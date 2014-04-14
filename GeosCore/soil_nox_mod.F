@@ -234,6 +234,7 @@
       REAL*8  :: BASE_TERM, CRF_TERM,  PULSE
       REAL*8  :: TC,        TEMP_TERM, WINDSQR
       REAL*8  :: WET_TERM,  A_FERT    
+      REAL*8  :: TK_CORR ! jaf, 4/4/14
 
       !=================================================================
       ! Initialize
@@ -246,6 +247,24 @@
       SOILNOX        = 0d0
       FERTDIAG       = 0d0
  
+      ! If needed, correct temperature
+#if   defined( GEOS_FP )
+
+      ! GEOS_FP temperatures are too high in the surface layer of the
+      ! Southeast US, relative to SEAC4RS, for T > 293K. Here we correct
+      ! using the relationship dervied from a best fit line between
+      ! GEOS-FP (nested resolution) and SEAC4RS data for 0-1 km. (jaf,
+      ! 4/4/14)
+      IF ( TK > 293d0 ) THEN
+         TK_CORR = 0.7923d0 * (TK + 76.5d0)
+      ELSE
+         TK_CORR = TK
+      ENDIF
+
+#else
+      TK_CORR = TK
+#endif
+
       ! Surface temperature [C]
       TC             = TK - 273.15d0
 

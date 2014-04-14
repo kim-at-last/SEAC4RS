@@ -255,6 +255,7 @@
       REAL*8  :: D_BTW_M, Q_DIR_2, Q_DIFF_2
       REAL*8  :: BETA, LDF, CT1, CEO
       REAL*8  :: ANEW, AGRO, AMAT, AOLD
+      REAL*8  :: TS_CORR ! jaf, 4/4/14
       LOGICAL :: BIDIR      
       
       !=================================================================
@@ -267,6 +268,23 @@
       Q_DIR      = State_Met%PARDR(I,J)
       Q_DIFF     = State_Met%PARDF(I,J)
       GWETROOT   = State_Met%GWETROOT(I,J)
+
+#if   defined( GEOS_FP )
+
+      ! GEOS_FP temperatures are too high in the surface layer of the
+      ! Southeast US, relative to SEAC4RS, for T > 293K. Here we correct
+      ! using the relationship dervied from a best fit line between
+      ! GEOS-FP (nested resolution) and SEAC4RS data for 0-1 km. (jaf,
+      ! 4/4/14)
+      IF ( TS > 293d0 ) THEN
+         TS_CORR = 0.7923d0 * (TS + 76.5d0)
+      ELSE
+         TS_CORR = TS
+      ENDIF
+
+#else
+      TS_CORR = TS
+#endif
       
       ! Initialize parameters, gamma values, and return value
       MEGAN_EMIS = 0d0
@@ -2057,6 +2075,32 @@ c$$$      AEF_MYRC = ARRAY(:,:,1)
 ! !LOCAL VARIABLES:
 !
       INTEGER           :: I, J, D
+      REAL*8            :: TS_CORR(IIPAR,JJPAR) ! jaf, 4/4/14
+
+#if   defined( GEOS_FP )
+
+      ! GEOS_FP temperatures are too high in the surface layer of the
+      ! Southeast US, relative to SEAC4RS, for T > 293K. Here we correct
+      ! using the relationship dervied from a best fit line between
+      ! GEOS-FP (nested resolution) and SEAC4RS data for 0-1 km. (jaf,
+      ! 4/4/14)
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J )
+      DO J = 1, JJPAR
+      DO I = 1, IIPAR
+         IF ( State_Met%TS(I,J) > 293d0 ) THEN
+            TS_CORR(I,J) = 0.7923d0 * (State_Met%TS(I,J) + 76.5d0)
+         ELSE
+            TS_CORR(I,J) = State_Met%TS(I,J)
+         ENDIF
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+
+#else
+      TS_CORR = State_Met%TS
+#endif
 
       !=================================================================
       ! UPDATE_T_DAY begins here!
@@ -2076,7 +2120,9 @@ c$$$      AEF_MYRC = ARRAY(:,:,1)
          ENDDO
             
          ! Store 
-         T_DAY(I,J,1)     = XLTMMP ( I, J, State_Met%TS    )
+         ! Now use corrected TS (jaf, 4/4/14)
+         !T_DAY(I,J,1)     = XLTMMP ( I, J, State_Met%TS    )
+         T_DAY(I,J,1)     = XLTMMP ( I, J, TS_CORR         )
          PARDF_DAY(I,J,1) = XLPARDF( I, J, State_Met%PARDF )
          PARDR_DAY(I,J,1) = XLPARDR( I, J, State_Met%PARDR )
 
