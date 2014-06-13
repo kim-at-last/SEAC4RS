@@ -144,7 +144,8 @@
       USE TRACERID_MOD,       ONLY : IDECHBr3,      IDECH2Br2
 
       ! SEAC4RS passive tracer (jaf, 6/14/13)
-      USE TRACERID_MOD,       ONLY : IDTPISOP,   IDEPISOP
+      ! Remove SEAC4RS passive tracers (skim, 5/23/14)
+      ! USE TRACERID_MOD,       ONLY : IDTPISOP,   IDEPISOP
 
 #if defined( DEVEL )
       USE TRACERID_MOD,       ONLY : IDTNO
@@ -689,20 +690,23 @@
                   ENDIF
                ENDIF
 
-               ! SEAC4RS passive tracer (jaf, 6/14/13)
-               IF ( IDTPISOP /= 0 ) THEN
-
-                  X = GET_XMID(I, J, 1)
-                  Y = GET_YMID(I, J, 1)
-
-                  IF ( (X >= -100.0) .AND. (X <  -75.0)  .AND.
-     &                 (Y >=   25.0) .AND. (Y <   40.0) ) THEN  
-                     EMISRR(I,J,IDEPISOP) = EMISRR(I,J,IDEPISOP) + 
-     &                                      ( EMIS_ISOP / DTSRCE )
-                     IF ( ND46 > 0 ) AD46(I,J,23) = AD46(I,J,23) +
-     &                               ( EMIS_ISOP / AREA_CM2 / DTSRCE )
-                  ENDIF
-               ENDIF
+!               Remove SEAC4RS passive tracers (skim, 5/23/14)
+!
+!               ! SEAC4RS passive tracer (jaf, 6/14/13)
+!               IF ( IDTPISOP /= 0 ) THEN
+!
+!                  X = GET_XMID(I, J, 1)
+!                  Y = GET_YMID(I, J, 1)
+!
+!                  IF ( (X >= -100.0) .AND. (X <  -75.0)  .AND.
+!     &                 (Y >=   25.0) .AND. (Y <   40.0) ) THEN  
+!                     EMISRR(I,J,IDEPISOP) = EMISRR(I,J,IDEPISOP) + 
+!     &                                      ( EMIS_ISOP / DTSRCE )
+!                     IF ( ND46 > 0 ) AD46(I,J,23) = AD46(I,J,23) +
+!     &                               ( EMIS_ISOP / AREA_CM2 / DTSRCE )
+!                  ENDIF
+!               ENDIF
+!
 
                !=================================================================
                ! save biogenic monoterpene emission for later use

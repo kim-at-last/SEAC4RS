@@ -435,8 +435,11 @@
       ! +1 for SEAC4RS ISOP passive tracers (jaf, 6/14/13)
       ! +5 for SEAC4RS SOA tracers (jaf, 6/20/13)
       ! +1 for ETHLN (jaf, 2/26/14)
+      ! -9 for SEAC4RS FF, BB, ISOP tracers (skim, 5/23/14)
+      ! +4 for SEAC4RS SOA tracers          (skim, 5/23/14)
       !INTEGER, PARAMETER :: NNPAR   = 100   ! For non-TOMAS simulations
-      INTEGER, PARAMETER :: NNPAR   = 115   ! For non-TOMAS simulations
+      !INTEGER, PARAMETER :: NNPAR   = 115   ! For non-TOMAS simulations
+      INTEGER, PARAMETER :: NNPAR    = 110   ! For non-TOMAS simulations  
       !------------------------------------------------------------------------
       ! This is in the std code (bmy, 10/30/13)
       !INTEGER, PARAMETER :: NNPAR   = 125   ! For non-TOMAS simulations
@@ -452,11 +455,11 @@
       !INTEGER, PARAMETER :: NEMPARA = 26
       ! +4 for SEAC4RS FF passive tracers (jaf, 6/13/13)
       ! +4 for SEAC4RS BB passive tracers (jaf, 6/14/13) 
-      !INTEGER, PARAMETER :: NEMPARA = 29
-      INTEGER, PARAMETER :: NEMPARA = 37
+      INTEGER, PARAMETER :: NEMPARA = 29
+      !INTEGER, PARAMETER :: NEMPARA = 37
       ! +1 for SEAC4RS ISOP passive tracers (jaf, 6/14/13)
-      !INTEGER, PARAMETER :: NEMPARB = 20
-      INTEGER, PARAMETER :: NEMPARB = 21
+      INTEGER, PARAMETER :: NEMPARB = 20
+      !INTEGER, PARAMETER :: NEMPARB = 21
 
       !=================================================================
       ! OTHER PARAMETERS 
@@ -530,7 +533,8 @@
       ! increase NBIOMAX to 24 for dicarbonyls (ccc, 2/02/10)
       ! increase NBIOMAX to 25 fpr CH4 (kjw)
       ! +4 for SEAC4RS BB passive tracers (jaf, 6/14/13)
-      INTEGER, PARAMETER :: NBIOMAX = 29
+      ! -4 for SEAC4RS BB passive tracers (skim, 5/23/24)
+      INTEGER, PARAMETER :: NBIOMAX = 25
       !------------------------------------------------------------------------
       ! This is in the std code (bmy, 10/30/13)
       !! SOAupdate: add 1 for naphthalene, now 26 (hotp 7/21/10)
