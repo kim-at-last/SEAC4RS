@@ -615,6 +615,15 @@ CONTAINS
     CALL NcRd( Q, fId, TRIM(v_name), st3d, ct3d )
     CALL Transfer_2d( Q, State_Met%PBLH )
 
+    ! Kludge for GEOS-FP PBL Height (skim, 5/2/14)
+    !    Based off of CH4 comparisons by kjw
+    DO J=1,JJPAR
+       DO I=1,IIPAR
+          ! Reduce PBL height by some percent.
+          State_Met%PBLH(I,J) = State_Met%PBLH(I,J) * ( 1.0 - 0.4 )
+       ENDDO
+    ENDDO
+
     ! Read PRECANV
     v_name = "PRECANV"
     CALL NcRd( Q, fId, TRIM(v_name), st3d, ct3d )
