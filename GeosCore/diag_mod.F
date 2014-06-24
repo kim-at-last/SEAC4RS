@@ -44,7 +44,7 @@
       ! For ND07 -- Carbon aerosol emission
       REAL*4,  ALLOCATABLE :: AD07(:,:,:,:)
       REAL*4,  ALLOCATABLE :: AD07_BC(:,:,:)
-      REAL*4,  ALLOCATABLE :: AD07_OC(:,:,:)
+      REAL*4,  ALLOCATABLE :: AD07_OC(:,:,:,:)
       REAL*4,  ALLOCATABLE :: AD07_HC(:,:,:,:)
       REAL*4,  ALLOCATABLE :: AD07_SOAGM(:,:,:,:)
       ! SEAC4RS SOA tracers (6/25/13)

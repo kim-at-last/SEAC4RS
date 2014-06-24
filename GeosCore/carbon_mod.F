@@ -214,6 +214,11 @@
       ! Scalars
       LOGICAL             :: USE_BOND_BIOBURN = .FALSE.
       INTEGER             :: DRYBCPI, DRYOCPI, DRYBCPO, DRYOCPO
+      !------------------------------------------------
+      ! Separate biomass burning POA into a new tracer
+      ! (skim, 6/13/14)
+      INTEGER             :: DRYBBOCPI, DRYBBOCPO
+      !------------------------------------------------
       INTEGER             :: DRYALPH, DRYLIMO, DRYALCO
       INTEGER             :: DRYSOG1, DRYSOG2, DRYSOG3, DRYSOG4
       INTEGER             :: DRYSOA1, DRYSOA2, DRYSOA3, DRYSOA4
@@ -251,6 +256,8 @@
       REAL*8, ALLOCATABLE :: TERP_ORGC(:,:)
       REAL*8, ALLOCATABLE :: BCCONV(:,:,:)
       REAL*8, ALLOCATABLE :: OCCONV(:,:,:)
+      ! Add a similar array for biomass burning POA (skim, 6/15/14)
+      REAL*8, ALLOCATABLE :: BBOCCONV(:,:,:)
       REAL*8, ALLOCATABLE :: BIOG_ALPH(:,:)
       REAL*8, ALLOCATABLE :: BIOG_LIMO(:,:)
       REAL*8, ALLOCATABLE :: BIOG_ALCO(:,:)
@@ -270,7 +277,9 @@
       ! SEAC4RS SOA tracers (jaf, 6/25/13)
       REAL*8, ALLOCATABLE :: BBVOC_EMIS(:,:,:)
       REAL*8, ALLOCATABLE :: AVOC_EMIS(:,:)
-      REAL*8, ALLOCATABLE :: BGSOA_EMIS(:,:)
+      ! Separate BGSOA emissions into isoprene/monterpenes under
+      ! high/low NOx conditions (skim, 6/13/14)
+      REAL*8, ALLOCATABLE :: BGSOA_EMIS(:,:,:)
 
       REAL*8, ALLOCATABLE :: GLOB_DARO2(:,:,:,:,:) ! Diagnostic (dkh, 11/10/06) 
       ! Cloud fraction - for cloud droplet uptake of dicarbonyls 
@@ -323,6 +332,14 @@
       USE TRACERID_MOD,       ONLY : IDTSOAG, IDTSOAM
       USE TRACERID_MOD,       ONLY : IDTASOA, IDTBBSOA
       USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC
+      !----------------------------------------------------------------
+      ! SEAC4RS specific-change
+      ! Separate POA into anthropogenic and biomass burning components
+      ! Leave anthropogenic component in OCPI and OCPO
+      ! Create new tracers for the biomass burning component
+      ! (skim, 6/13/14)
+      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
+      !----------------------------------------------------------------
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      USE TRACERID_MOD,       ONLY : IDTSOAG,  IDTSOAM
@@ -488,6 +505,22 @@
          CALL CHEM_OCPI( am_I_Root, Input_Opt, STT(:,:,:,IDTOCPI), RC )
          IF ( prtDebug ) THEN
             CALL DEBUG_MSG( '### CHEMCARBON: a CHEM_OCPI' )
+         ENDIF
+      ENDIF
+
+      ! Chemistry for BB hydrophobic OC
+      IF ( IDTBBOCPO > 0 ) THEN
+         CALL CHEM_BBOCPO(am_I_Root,Input_Opt,STT(:,:,:,IDTBBOCPO),RC)
+         IF ( prtDebug ) THEN
+            CALL DEBUG_MSG( '### CHEMCARBON: a CHEM_BBOCPO' )
+         ENDIF
+      ENDIF
+
+      ! Chemistry for BB hydrophilic OC
+      IF ( IDTBBOCPI > 0 ) THEN
+         CALL CHEM_BBOCPI(am_I_Root,Input_Opt,STT(:,:,:,IDTBBOCPI),RC)
+         IF ( prtDebug ) THEN
+            CALL DEBUG_MSG( '### CHEMCARBON: a CHEM_BBOCPI' )
          ENDIF
       ENDIF
 
@@ -1188,7 +1221,7 @@
          ! ND07 diagnostic: H-Philic OC from H-phobic [kg/timestep]
          !==============================================================
          IF ( ND07 > 0 .and. L <= LD07 ) THEN
-            AD07_OC(I,J,L) = AD07_OC(I,J,L) + OCCONV(I,J,L) 
+            AD07_OC(I,J,L,1) = AD07_OC(I,J,L,1) + OCCONV(I,J,L) 
          ENDIF
 
          ! Store modified OC concentration back in tracer array
@@ -1409,6 +1442,386 @@
       ENDIF    
 
       END SUBROUTINE CHEM_OCPI
+!EOC
+!------------------------------------------------------------------------------
+!          Harvard University Atmospheric Chemistry Modeling Group            !
+!------------------------------------------------------------------------------
+!BOP
+!
+! !IROUTINE: chem_bbocpo
+!
+! !DESCRIPTION: Subroutine CHEM\_BBOCPO converts hydrophobic OC to hydrophilic
+!  OC and calculates the dry deposition of hydrophobic OC for the biomass burning
+!  component of POA.
+!\\
+!\\
+! !INTERFACE:
+!
+      SUBROUTINE CHEM_BBOCPO( am_I_Root, Input_Opt, TC, RC )
+!
+! !USES:
+!
+      USE CMN_DIAG_MOD
+      USE CMN_SIZE_MOD
+      USE DIAG_MOD,           ONLY : AD44
+      USE DIAG_MOD,           ONLY : AD07_OC 
+      USE DRYDEP_MOD,         ONLY : DEPSAV
+      USE GIGC_ErrCode_Mod
+      USE GIGC_Input_Opt_Mod, ONLY : OptInput
+      USE GRID_MOD,           ONLY : GET_AREA_CM2
+      USE PBL_MIX_MOD,        ONLY : GET_FRAC_UNDER_PBLTOP
+      USE TRACERID_MOD,       ONLY : IDTBBOCPO
+      USE TIME_MOD,           ONLY : GET_TS_CHEM
+!
+! !INPUT PARAMETERS: 
+!
+      LOGICAL,        INTENT(IN)    :: am_I_Root             ! Root CPU?
+      TYPE(OptInput), INTENT(IN)    :: Input_Opt             ! Input Options
+!
+! !INPUT/OUTPUT PARAMETERS: 
+!
+      REAL*8,         INTENT(INOUT) :: TC(IIPAR,JJPAR,LLPAR) ! H-phobic OC [kg]
+!
+! !OUTPUT PARAMETERS:
+!
+      INTEGER,        INTENT(OUT)   :: RC                    ! Success?
+!
+! !REMARKS:
+!
+! Copied with minor adjustments from  CHEM_OCPO
+! 
+! !REVISION HISTORY: 
+!  15 Jun 2014 - S. Kim - Initial version
+!EOP
+!------------------------------------------------------------------------------
+!BOC
+!
+! !LOCAL VARIABLES:
+!
+      ! Scalars
+      LOGICAL            :: LNLPBL
+      INTEGER            :: I,      J,    L,    N_TRACERS
+      REAL*8             :: DTCHEM, FLUX, KOC,  BL_FRAC
+      REAL*8             :: TC0,    FREQ, CNEW, RKT, AREA_CM2
+
+      ! Arrays
+      REAL*8             :: ND44_TMP(IIPAR,JJPAR,LLPAR)
+      REAL*8             :: XNUMOL(Input_Opt%N_TRACERS)
+!
+! !DEFINED PARAMETERS:
+!
+      REAL*8,  PARAMETER :: OC_LIFE = 1.15D0
+
+      !=================================================================
+      ! CHEM_BBOCPO begins here!
+      !=================================================================
+
+      ! Return if OCPO isn't defined
+      IF ( IDTBBOCPO == 0 .or. DRYBBOCPO == 0 ) RETURN
+
+      ! Assume success
+      RC        = GIGC_SUCCESS
+
+      ! Copy fields from INPUT_OPT to local variables for use below
+      N_TRACERS = Input_Opt%N_TRACERS
+      XNUMOL    = Input_Opt%XNUMOL(1:N_TRACERS)
+      LNLPBL    = Input_Opt%LNLPBL
+
+      ! Initialize
+      KOC       = 1.D0 / ( 86400d0 * OC_LIFE )
+      DTCHEM    = GET_TS_CHEM() * 60d0
+      BBOCCONV  = 0d0
+
+      ! Initialize for drydep diagnostic
+      IF ( ND44 > 0 ) ND44_TMP = 0d0
+
+      !=================================================================
+      ! For tracers with dry deposition, the loss rate of dry dep is 
+      ! combined in chem loss term.
+      !
+      ! Conversion from hydrophobic to hydrophilic:  
+      ! e-folding time 1.15 days 
+      ! ----------------------------------------
+      ! Use an e-folding time of 1.15 days or a convertion rate 
+      ! of 1.0e-5 /sec. 
+      !    Hydrophobic --> Hydrophilic,  k  = 1.0e-5          
+      !    Aerosols are dry-deposited,   kd = DEPSAV (sec-1)      
+      !=================================================================
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, TC0, FREQ, BL_FRAC, RKT, CNEW, AREA_CM2, FLUX )
+!$OMP+SCHEDULE( DYNAMIC )
+      DO L = 1, LLPAR
+      DO J = 1, JJPAR
+      DO I = 1, IIPAR
+
+         ! Initial OC [kg]
+         TC0  = TC(I,J,L)
+
+         ! Zero drydep freq 
+         FREQ = 0d0
+
+         ! Fraction of grid box under the PBL top [unitless]
+         BL_FRAC = GET_FRAC_UNDER_PBLTOP( I, J, L )
+
+         ! Move drydep to vdiff_mod.f for non-local PBL mixing (Lin, 06/09/08) 
+         IF ( LNLPBL ) BL_FRAC = 0.D0
+
+         ! Only apply drydep to boxes w/in the PBL
+         IF ( BL_FRAC > 0d0 ) THEN
+
+            ! OC drydep frequency [1/s] -- BL_FRAC accounts for the fraction
+            ! of each grid box (I,J,L) that is located beneath the PBL top
+            FREQ = DEPSAV(I,J,DRYBBOCPO) * BL_FRAC
+
+         ENDIF
+
+         ! Amount of OCPO left after chemistry and drydep [kg]
+         RKT  = ( KOC + FREQ ) * DTCHEM
+         CNEW = TC0 * EXP( -RKT )
+
+         ! Prevent underflow condition
+         IF ( CNEW < SMALLNUM ) CNEW = 0d0
+
+         ! Amount of OCPO converted to OCPI [kg/timestep]
+         BBOCCONV(I,J,L) = ( TC0 - CNEW ) * KOC / ( KOC + FREQ )
+
+         !==============================================================
+         ! ND44 diagnostic: drydep loss [atoms C/cm2/s]
+         !==============================================================
+         IF ( ND44 > 0 .AND. FREQ > 0d0 ) THEN
+
+             ! Surface area [cm2]
+             AREA_CM2 = GET_AREA_CM2( I, J, L )
+
+             ! Convert drydep loss from [kg/timestep] to [atoms C/cm2/s]
+             ! XNUMOL is the ratio [molec tracer/kg tracer]     
+             FLUX     = TC0 - CNEW - BBOCCONV(I,J,L)
+             FLUX     = FLUX * XNUMOL(IDTBBOCPO) / ( DTCHEM * AREA_CM2 )
+
+             ! Store in ND44_TMP as a placeholder
+             ND44_TMP(I,J,L) = ND44_TMP(I,J,L) + FLUX
+         ENDIF
+
+         !==============================================================
+         ! ND07 diagnostic: H-Philic OC from H-phobic [kg/timestep]
+         !==============================================================
+         IF ( ND07 > 0 .and. L <= LD07 ) THEN
+            AD07_OC(I,J,L,2) = AD07_OC(I,J,L,2) + BBOCCONV(I,J,L) 
+         ENDIF
+
+         ! Store modified OC concentration back in tracer array
+         TC(I,J,L) = CNEW
+
+      ENDDO
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO  
+
+      !=================================================================
+      ! ND44: Sum drydep fluxes by level into the AD44 array in
+      ! order to ensure that  we get the same results w/ sp or mp 
+      !=================================================================
+      IF ( ND44 > 0 ) THEN 
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L )
+         DO J = 1, JJPAR
+         DO I = 1, IIPAR
+         DO L = 1, LLPAR
+            AD44(I,J,DRYBBOCPO,1) = AD44(I,J,DRYBBOCPO,1) + 
+     &                              ND44_TMP(I,J,L)
+         ENDDO
+         ENDDO
+         ENDDO
+!$OMP END PARALLEL DO
+      ENDIF   
+
+      END SUBROUTINE CHEM_BBOCPO
+!EOC
+!------------------------------------------------------------------------------
+!          Harvard University Atmospheric Chemistry Modeling Group            !
+!------------------------------------------------------------------------------
+!BOP
+!
+! !IROUTINE: chem_bbocpi
+!
+! !DESCRIPTION: Subroutine CHEM\_BBBCPI calculates dry deposition of 
+!  hydrophilic OC from biomass burning
+!\\
+!\\
+! !INTERFACE:
+!
+      SUBROUTINE CHEM_BBOCPI( am_I_Root, Input_Opt, TC, RC )
+!
+! !USES:
+!
+      USE CMN_DIAG_MOD
+      USE CMN_SIZE_MOD
+      USE DIAG_MOD,           ONLY : AD44 
+      USE DRYDEP_MOD,         ONLY : DEPSAV
+      USE GIGC_ErrCode_Mod
+      USE GIGC_Input_Opt_Mod, ONLY : OptInput
+      USE GRID_MOD,           ONLY : GET_AREA_CM2
+      USE PBL_MIX_MOD,        ONLY : GET_FRAC_UNDER_PBLTOP
+      USE TRACERID_MOD,       ONLY : IDTBBOCPI
+      USE TIME_MOD,           ONLY : GET_TS_CHEM
+!
+! !INPUT PARAMETERS: 
+!
+      LOGICAL,        INTENT(IN)    :: am_I_Root             ! Root CPU?
+      TYPE(OptInput), INTENT(IN)    :: Input_Opt             ! Input Options
+!
+! !INPUT/OUTPUT PARAMETERS: 
+!
+      REAL*8,         INTENT(INOUT) :: TC(IIPAR,JJPAR,LLPAR) ! H-philic OC [kg]
+
+!
+! !OUTPUT PARAMETERS:
+!
+      INTEGER,        INTENT(OUT)   :: RC                    ! Success?
+!
+! !REMARKS:
+!
+! Modified from CHEM_OCPI with minor modifications
+! 
+! !REVISION HISTORY:
+!  14 Jun 2014 - S. Kim - Initial version 
+!EOP
+!------------------------------------------------------------------------------
+!BOC
+!
+! !LOCAL VARIABLES:
+!
+      ! Scalars
+      LOGICAL :: LNLPBL
+      INTEGER :: I,      J,    L,       N_TRACERS 
+      REAL*8  :: DTCHEM, FLUX, BL_FRAC
+      REAL*8  :: TC0,    CNEW, CCV,     FREQ,      AREA_CM2
+
+      ! Arrays
+      REAL*8  :: ND44_TMP(IIPAR,JJPAR,LLPAR)
+      REAL*8  :: XNUMOL(Input_Opt%N_TRACERS)
+
+      !=================================================================
+      ! CHEM_OCPI begins here!
+      !=================================================================
+      IF ( IDTBBOCPI == 0 .or. DRYBBOCPI == 0 ) RETURN
+
+      ! Assume success
+      RC        = GIGC_SUCCESS
+
+      ! Copy fields from INPUT_OPT to local variables for use below
+      N_TRACERS = Input_Opt%N_TRACERS
+      XNUMOL    = Input_Opt%XNUMOL
+      LNLPBL    = Input_Opt%LNLPBL
+
+      ! Chemistry timestep [s]
+      DTCHEM    = GET_TS_CHEM() * 60d0
+
+      ! Initialize for drydep diagnostic
+      IF ( ND44 > 0 ) ND44_TMP = 0d0
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, TC0, CCV, BL_FRAC, FREQ, CNEW, AREA_CM2, FLUX )
+!$OMP+SCHEDULE( DYNAMIC )
+      DO L = 1, LLPAR
+      DO J = 1, JJPAR
+      DO I = 1, IIPAR
+
+         ! Initial H-philic OC [kg]
+         TC0 = TC(I,J,L)
+
+         ! H-philic OC that used to be H-phobic OC [kg]
+         CCV = BBOCCONV(I,J,L)
+
+         ! Fraction of box under the PBL top [unitless]
+         BL_FRAC = GET_FRAC_UNDER_PBLTOP( I, J, L )
+
+         ! Move drydep to vdiff_mod.f for non-local PBL mixing (Lin, 06/09/08) 
+         IF ( LNLPBL ) BL_FRAC = 0.D0
+
+         ! Only apply drydep to boxes w/in the PBL
+         IF ( BL_FRAC > 0d0 ) THEN
+
+            ! Drydep frequency [1/s]
+            FREQ = DEPSAV(I,J,DRYBBOCPI) * BL_FRAC
+
+            !===========================================================
+            ! Note, This is an analytical solution of first order 
+            ! partial differential equations (w/ 2 solutions):
+            !
+            ! #1) CNEW = Cphi * exp(-RKT) + Cconv/RKT * (1.-exp(-RKT))
+            ! #2) CNEW = ( Cphi + Cconv ) * exp(-RKT)
+            !===========================================================
+
+            ! CNEW = TC0 * EXP( -FREQ * DTCHEM ) 
+            !       + CCV / FREQ * ( 1.D0 - EXP( -FREQ * DTCHEM ) )
+
+            ! Amount of BCPI left after drydep [kg]
+            CNEW = ( TC0 + CCV ) * EXP( -FREQ * DTCHEM )
+
+            !===========================================================
+            ! ND44 diagnostic: drydep loss [atoms C/cm2/s]
+            !===========================================================
+            IF ( ND44 > 0 ) THEN
+
+               ! Surface area [cm2]
+               AREA_CM2 = GET_AREA_CM2( I, J, L )
+
+               ! Convert drydep loss from [kg/timestep] to [atoms C/cm2/s]
+               FLUX = ( TC0 + CCV - CNEW ) 
+               FLUX = FLUX * XNUMOL(IDTBBOCPI) / ( AREA_CM2 * DTCHEM )
+             
+               ! Store in ND44_TMP as a placeholder
+               ND44_TMP(I,J,L) = ND44_TMP(I,J,L) + FLUX
+            ENDIF
+
+         ELSE
+
+            ! Otherwise, avoid doing the exponential
+            ! to preserve precision and clock cycles
+            CNEW = TC0 + CCV
+
+         ENDIF
+      
+         ! Prevent underflow condition
+         IF ( CNEW < SMALLNUM ) CNEW = 0d0
+
+         ! Store modified concentration back in tracer array [kg]
+         TC(I,J,L) = CNEW
+
+      ENDDO
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO  
+
+      !=================================================================
+      ! Zero OCCONV array for next timestep
+      !=================================================================
+      BBOCCONV = 0d0
+
+      !=================================================================
+      ! ND44: Sum drydep fluxes by level into the AD44 array in
+      ! order to ensure that  we get the same results w/ sp or mp 
+      !=================================================================
+      IF ( ND44 > 0 ) THEN 
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L )
+         DO J = 1, JJPAR
+         DO I = 1, IIPAR
+         DO L = 1, LLPAR
+            AD44(I,J,DRYBBOCPI,1) = AD44(I,J,DRYBBOCPI,1) 
+     &                              + ND44_TMP(I,J,L)
+         ENDDO
+         ENDDO
+         ENDDO
+!$OMP END PARALLEL DO
+      ENDIF    
+
+      END SUBROUTINE CHEM_BBOCPI
 !EOC
 !-------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
@@ -4851,7 +5264,10 @@ c
       USE TRACERID_MOD,       ONLY : IDTECIL1,  IDTECOB1, IDTNK1
       USE TRACERID_MOD,       ONLY : IDTOCIL1,  IDTOCOB1
 #endif
-      USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC, IDTBGSOA
+      USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC
+      ! Separate BGSOA into its components (skim, 6/13/14)
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
 #if defined( DEVEL )
       USE TRACERID_MOD,       ONLY : IDTBCPI, IDTBCPO, IDTOCPI, IDTOCPO
 #endif
@@ -4921,6 +5337,8 @@ c
       INTEGER              :: I, J, L,LL, MONTH, N
       REAL*8               :: BCSRC(IIPAR,JJPAR,LLTROP,2)
       REAL*8               :: OCSRC(IIPAR,JJPAR,LLTROP,2)
+      ! Add source term for biomass burning POA (skim, 6/19/14)
+      REAL*8               :: BBSRC(IIPAR,JJPAR,LLTROP,2)
 
 #if   defined( TOMAS )
       ! more variables (win, 9/4/07)
@@ -4974,6 +5392,8 @@ c
       ! Initialize
       BCSRC = 0d0
       OCSRC = 0d0
+      ! Add BB source (skim, 6/19/14)
+      BBSRC = 0d0
 
       ! Assume success
       RC        = GIGC_SUCCESS
@@ -5127,31 +5547,44 @@ c
 !$OMP+PRIVATE( I, J, L )
       DO J = 1, JJPAR
       DO I = 1, IIPAR
+
          ! Total HYDROPHILIC BC source [kg]
          BCSRC(I,J,1,1) = ANTH_BLKC(I,J,1) + 
-     &        BIOF_BLKC(I,J,1) +  BIOB_BLKC(I,J,1,1)
+     &        BIOF_BLKC(I,J,1) + BIOB_BLKC(I,J,1,1)
 
-               ! Total HYDROPHOBIC BC source [kg]
+         ! Total HYDROPHOBIC BC source [kg]
          BCSRC(I,J,1,2) = ANTH_BLKC(I,J,2) +
-     &        BIOF_BLKC(I,J,2) +  BIOB_BLKC(I,J,1,2)
+     &        BIOF_BLKC(I,J,2) + BIOB_BLKC(I,J,1,2)
          
          IF ( LSOA ) THEN
-                  ! Total HYDROPHILIC OC source [kg]
-                  ! (Don't use archived TERP_ORGC if LSOA=T)
+
+            ! Total HYDROPHILIC OC source [kg]
+            ! (Don't use archived TERP_ORGC if LSOA=T)
             OCSRC(I,J,1,1) = ANTH_ORGC(I,J,1) + 
-     &              BIOF_ORGC(I,J,1) + BIOB_ORGC(I,J,1,1)
+     &              BIOF_ORGC(I,J,1) !+ BIOB_ORGC(I,J,1,1)
          
+            ! Separate anthropogenic and BB POA (skim, 6/19/14)
+            BBSRC(I,J,1,1) = BIOB_ORGC(I,J,1,1)
+
          ELSE
-                  ! Total HYDROPHILIC OC source [kg]
-                  ! (Use archived TERP_ORGC for if LSOA=F)
+
+            ! Total HYDROPHILIC OC source [kg]
+            ! (Use archived TERP_ORGC for if LSOA=F)
             OCSRC(I,J,1,1) = ANTH_ORGC(I,J,1) + 
      &              BIOF_ORGC(I,J,1) + 
-     &              BIOB_ORGC(I,J,1,1) + TERP_ORGC(I,J)
+     &              TERP_ORGC(I,J)
+
+            ! Separate anthropogenic and BB POA (skim, 6/19/14)
+            BBSRC(I,J,1,1) = BIOB_ORGC(I,J,1,1)            
+
          ENDIF
 
-              ! Total HYDROPHOBIC OC source [kg]
+         ! Total HYDROPHOBIC OC source [kg]
          OCSRC(I,J,1,2) = ANTH_ORGC(I,J,2) + 
-     &           BIOF_ORGC(I,J,2) + BIOB_ORGC(I,J,1,2)
+     &           BIOF_ORGC(I,J,2) !+ BIOB_ORGC(I,J,1,2)
+
+         ! Separate anthropogenic and BB POA (skim, 6/19/14)
+         BBSRC(I,J,1,2) = BIOB_ORGC(I,J,1,2)
 
          IF (ND07 > 0) THEN
             ! Biomass BC source
@@ -5163,25 +5596,34 @@ c
      &           ( BIOB_ORGC(I,J,1,1) + BIOB_ORGC(I,J,1,2) )
          ENDIF
 
-         DO L = 2, LLTROP 
+         DO L = 2, LLTROP
+
            ! Total HYDROPHILIC BC source [kg]
-            BCSRC(I,J,L,1) = BIOB_BLKC(I,J,L,1)
+           BCSRC(I,J,L,1) = BIOB_BLKC(I,J,L,1)
 
-            ! Total HYDROPHOBIC BC source [kg]
-            BCSRC(I,J,L,2) = BIOB_BLKC(I,J,L,2)
-         
-            IF ( LSOA ) THEN
-                  ! Total HYDROPHILIC OC source [kg]
-                  ! (Don't use archived TERP_ORGC if LSOA=T)
-               OCSRC(I,J,L,1) = BIOB_ORGC(I,J,L,1)
-            ELSE
-                  ! Total HYDROPHILIC OC source [kg]
-                  ! (Use archived TERP_ORGC for if LSOA=F)
-               OCSRC(I,J,L,1) = BIOB_ORGC(I,J,L,1)
-            ENDIF
+           ! Total HYDROPHOBIC BC source [kg]
+           BCSRC(I,J,L,2) = BIOB_BLKC(I,J,L,2)
 
-              ! Total HYDROPHOBIC OC source [kg]
-            OCSRC(I,J,L,2) = BIOB_ORGC(I,J,L,2)
+!-----------------------------------------------------------------          
+!            IF ( LSOA ) THEN
+!                  ! Total HYDROPHILIC OC source [kg]
+!                  ! (Don't use archived TERP_ORGC if LSOA=T)
+!               OCSRC(I,J,L,1) = BIOB_ORGC(I,J,L,1)
+!            ELSE
+!                  ! Total HYDROPHILIC OC source [kg]
+!                  ! (Use archived TERP_ORGC for if LSOA=F)
+!               OCSRC(I,J,L,1) = BIOB_ORGC(I,J,L,1)
+!            ENDIF
+!
+!              ! Total HYDROPHOBIC OC source [kg]
+!            OCSRC(I,J,L,2) = BIOB_ORGC(I,J,L,2)!
+!-----------------------------------------------------------------
+
+            ! Put the BB emissions into a separate array
+            ! (skim, 6/19/14)
+            BBSRC(I,J,L,1) = BIOB_ORGC(I,J,L,1)
+
+            BBSRC(I,J,L,2) = BIOB_ORGC(I,J,L,2)
 
             IF (ND07 > 0) THEN
                   ! Biomass BC source
@@ -5191,14 +5633,16 @@ c
                AD07(I,J,L,5) = AD07(I,J,L,5)       +
      &              ( BIOB_ORGC(I,J,L,1) + BIOB_ORGC(I,J,L,2) )
             ENDIF
-              ! END L statements
+
+            ! END L statements
          ENDDO
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
 
       ! Sum up all carbon tracers throughout the boundary layer
-      CALL EMITHIGH( BCSRC, OCSRC, Input_Opt, State_Chm )
+      ! Now pass the BB POA source array to EMITHIGH (skim, 6/19/14)
+      CALL EMITHIGH( BCSRC, OCSRC, BBSRC, Input_Opt, State_Chm )
       IF ( LPRT ) CALL DEBUG_MSG( '### EMISCARB: after EMITHIGH' )
 
       !=================================================================
@@ -5258,8 +5702,21 @@ c
      &              AD07(I,J,L,14) + BBVOC_EMIS(I,J,L)
             ENDDO
 
-            IF ( IDTBGSOA > 0 ) AD07(I,J,1,15) =
-     &                          AD07(I,J,1,15) + BGSOA_EMIS(I,J)
+            IF ( IDTBGSOA_ILNOX > 0 ) THEN
+               AD07(I,J,1,15) = AD07(I,J,1,15) + BGSOA_EMIS(I,J,1)
+            ENDIF
+
+            IF ( IDTBGSOA_IHNOX > 0 ) THEN
+               AD07(I,J,1,16) = AD07(I,J,1,16) + BGSOA_EMIS(I,J,2)
+            ENDIF
+
+            IF ( IDTBGSOA_MLNOX > 0 ) THEN
+               AD07(I,J,1,17) = AD07(I,J,1,17) + BGSOA_EMIS(I,J,3)
+            ENDIF
+
+            IF ( IDTBGSOA_MHNOX > 0 ) THEN
+               AD07(I,J,1,18) = AD07(I,J,1,18) + BGSOA_EMIS(I,J,4)
+            ENDIF
 
          ENDDO
          ENDDO 
@@ -5968,6 +6425,9 @@ ccc
       USE BPCH2_MOD,          ONLY : GET_NAME_EXT_2D,  GET_RES_EXT
       USE BPCH2_MOD,          ONLY : GET_TAU0,         READ_BPCH2
       USE CMN_SIZE_MOD
+      ! Add to define FNOX (skim, 6/17/14)
+      USE COMODE_MOD,         ONLY : CSPEC, JLOP
+      USE COMODE_LOOP_MOD
       USE DIRECTORY_MOD,      ONLY : DATA_DIR
       USE GIGC_Input_Opt_Mod, ONLY : OptInput
       USE GIGC_State_Met_Mod, ONLY : MetState
@@ -5975,7 +6435,12 @@ ccc
       USE TIME_MOD,           ONLY : GET_MONTH,        GET_TS_CHEM
       USE TIME_MOD,           ONLY : GET_TS_EMIS,      ITS_A_NEW_MONTH
       USE TRANSFER_MOD,       ONLY : TRANSFER_2D
-      USE TRACERID_MOD,       ONLY : IDTBGSOA
+      ! Separate BGSOA into its components (skim, 6/13/14)
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      ! Calculate the NOx regime (skim, 6/20/14)
+      USE TRACERID_MOD,       ONLY : IDXRIO2HO2 ,IDXRIO2NO  ,IDXRIO2ISOM
+      USE TRACERID_MOD,       ONLY : IDXRIO2RIO2,IDXRIO2MCO3,IDXRIO2MO2
 
       ! Arguments
       TYPE(OptInput), INTENT(IN)  :: Input_Opt   ! Input Options object
@@ -5983,7 +6448,7 @@ ccc
 
       ! Local variables
       LOGICAL, SAVE               :: FIRST = .TRUE.
-      INTEGER                     :: I, J, IJLOOP, THISMONTH
+      INTEGER                     :: I, J, JLOOP, IJLOOP, THISMONTH
       REAL*4                      :: ARRAY(IIPAR,JJPAR,1)
       REAL*8                      :: CONVERT(NVEGTYPE)
       REAL*8                      :: GMONOT(NVEGTYPE)
@@ -6003,6 +6468,9 @@ ccc
       REAL*8                      :: EMIS_ISOP
       REAL*8, PARAMETER           :: FBIOG_ISOP = 3.0d-2
 
+      ! Fraction of OA formed from high/low NOx pathways (skim, 6/13/14)
+      REAL*8                      :: FNOX
+
       ! Cosine SZA & PAR (for calculation of monoterpenes) (mpb,2009)
       REAL*8                      :: SC, PDF, PDR
 
@@ -6014,6 +6482,9 @@ ccc
       !=================================================================
       ! BIOGENIC_OC begins here!
       !=================================================================
+
+        PRINT*, 'BIOGENIC C EMISSIONS!'
+        PRINT*, IDXRIO2NO, IDXRIO2HO2
 
       ! Copy values from Input_Opt
       LMEGANMONO = Input_Opt%LMEGANMONO
@@ -6031,7 +6502,7 @@ ccc
 
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
-!$OMP+PRIVATE( I, J, EMMO )
+!$OMP+PRIVATE( I, J, EMMO, EMIS_ISOP, FNOX, JLOOP )
          DO J = 1, JJPAR
          DO I = 1, IIPAR
 
@@ -6051,11 +6522,30 @@ ccc
                ! Now need to convert this from atomsC to kgC
                ! dbm (11/2012)
                EMMO = EMMO * 12d-3/6.02d23
-             ENDIF
+
+            ENDIF
 
             ! For SEAC4RS SOA tracers, add this to biogenic SOA instead
             ! of POA (jaf, 6/25/13)
-            IF ( IDTBGSOA > 0 ) THEN
+            IF ( ( IDTBGSOA_ILNOX + IDTBGSOA_IHNOX + 
+     &             IDTBGSOA_MLNOX + IDTBGSOA_MHNOX ) > 0 ) THEN
+
+               ! JLOOP is the 1-D grid box index for SMVGEAR arrays
+               JLOOP = JLOP(I,J,1)
+
+!               ! Calculate the fraction of the chemistry proceeding by
+!               ! the low NOx pathway
+!               FNOX = CSPEC(JLOOP, IDXRIO2HO2) / CSPEC(JLOOP, IDXRIO2NO)
+
+                FNOX = 0.5d0
+
+!               ! Zero each fake chemical tracer
+!               CSPEC( JLOOP, IDXRIO2NO   ) = 0
+!               CSPEC( JLOOP, IDXRIO2HO2  ) = 0
+!               CSPEC( JLOOP, IDXRIO2ISOM ) = 0
+!               CSPEC( JLOOP, IDXRIO2RIO2 ) = 0
+!               CSPEC( JLOOP, IDXRIO2MCO3 ) = 0
+!               CSPEC( JLOOP, IDXRIO2MO2  ) = 0
 
                ! Also get isoprene from MEGAN [kg C/box]
                EMIS_ISOP = GET_MEGAN_EMISSIONS(I, J, State_Met, 'ISOP')
@@ -6064,7 +6554,21 @@ ccc
                EMIS_ISOP = EMIS_ISOP * ISOP_SCALE * 12d-3/6.02d23
 
                ! Add both components to BGSOA_EMIS array
-               BGSOA_EMIS(I,J) = EMMO * FBIOG + EMIS_ISOP * FBIOG_ISOP
+               ! PRINT*, I, J, EMIS_ISOP, FBIOG_ISOP, FNOX
+
+               ! Now separate the components and split between high/low NOx
+               !    First deal with OA from isoprene (skim, 6/13/14)
+               BGSOA_EMIS(I,J,1) = EMIS_ISOP * FBIOG_ISOP * FNOX
+               BGSOA_EMIS(I,J,2) = EMIS_ISOP * FBIOG_ISOP * (1 - FNOX)
+
+               ! Do the same for the OA from monoterpenes
+               BGSOA_EMIS(I,J,3) = EMMO * FBIOG * FNOX
+               BGSOA_EMIS(I,J,4) = EMMO * FBIOG * (1 - FNOX)
+              
+               ! -------------------------------------------------------
+               ! Original Code 
+               ! BGSOA_EMIS(I,J) = EMMO * FBIOG + EMIS_ISOP * FBIOG_ISOP
+               ! -------------------------------------------------------
 
             ELSE
 
@@ -6075,6 +6579,10 @@ ccc
          ENDDO
          ENDDO
 !$OMP END PARALLEL DO
+
+      PRINT*, 'AFTER FILLING BGSOA'
+      PRINT*, MAXVAL( BGSOA_EMIS(:,:,1) )
+      PRINT*, MINVAL( BGSOA_EMIS(:,:,1) )
 
       !=================================================================
       ! If secondary organic aerosols are turned on ...
@@ -7425,12 +7933,23 @@ ccc
 !
 ! !LOCAL VARIABLES:
 !
-      ! Emission ratio of SOA precursor to CO
-      ! Divide by 2.1 (skim, 6/26/13)
-      REAL*8, PARAMETER     :: ER_VOC_CO = 5.5D-2/2.1
+
+      !! ------------------------------------------------
+      !! ORIGINAL CODE
+      !!
+      !! Emission ratio of SOA precursor to CO
+      !! Divide by 2.1 (skim, 6/26/13)
+      !! REAL*8, PARAMETER     :: ER_VOC_CO = 5.5D-2/2.1
+      !! ------------------------------------------------
+
+      ! Adjust the emission ratio of SOA precursor to CO
+      !    Based off of discussion with Jose Jimenez
+      !    (skim, 6/13/14)
+      REAL*8, PARAMETER     :: ER_ANTHRO = 6.9D-2 / 2.1  ! Hayes   et al. [2014]
+      REAL*8, PARAMETER     :: ER_BIOB   = 1.3D-2 / 2.1  ! Cubison et al. [2013]
 
       INTEGER               :: I,     J,     L
-      REAL*8                :: A_CM2, DTSRCE, CONV
+      REAL*8                :: A_CM2, DTSRCE, CONV_ANTHRO, CONV_BIOB
 
       ! For fields from Input_Opt
       LOGICAL               :: LBIOMASS,  LBIOFUEL,    LANTHRO
@@ -7459,7 +7978,8 @@ ccc
       ! So first convert CO emissions to kg/cm2/s then apply ratio.
       ! Multiplication by area must happen within loop, but the rest is
       ! done here.
-      CONV = ER_VOC_CO * DTSRCE / XNUMOL_CO
+      CONV_ANTHRO = ER_ANTHRO * DTSRCE / XNUMOL_CO
+      CONV_BIOB   = ER_BIOB   * DTSRCE / XNUMOL_CO
 
       ! Zero emission arrays at each timestep
       AVOC_EMIS  = 0d0
@@ -7481,11 +8001,13 @@ ccc
          ! Biofuel emissions are in molec/cm3/s, so also require
          ! multiplication by boxheight
          IF ( LBIOFUEL .and. (IDTAVOC > 0) )
-     &        AVOC_EMIS(I,J) = BIOFUEL(IDBFCO,I,J) * CONV * A_CM2 * BXHT
+     &        AVOC_EMIS(I,J) = 
+     &        BIOFUEL(IDBFCO,I,J) * CONV_ANTHRO * A_CM2 * BXHT
 
          IF ( LBIOMASS .and. (IDTBBVOC > 0) ) THEN
             DO L = 1, LLTROP
-               BBVOC_EMIS(I,J,L) =   BBFIRE(I,J,L,IDBCO) * CONV * A_CM2
+               BBVOC_EMIS(I,J,L) = 
+     &         BBFIRE(I,J,L,IDBCO) * CONV_BIOB * A_CM2
             ENDDO
          ENDIF
       ENDDO
@@ -7494,14 +8016,14 @@ ccc
 
         ! EMISRR is in molec CO/box/s
         IF ( LANTHRO .and. (IDTAVOC > 0) ) AVOC_EMIS =
-     &     AVOC_EMIS + EMISRR(:,:,IDECO) * CONV
+     &     AVOC_EMIS + EMISRR(:,:,IDECO) * CONV_ANTHRO
 
         ! Return to calling program
         END SUBROUTINE EMISS_AVOC_BBVOC
 
 !------------------------------------------------------------------------------
 
-      SUBROUTINE EMITHIGH( BCSRC, OCSRC, Input_Opt, State_Chm )
+      SUBROUTINE EMITHIGH( BCSRC, OCSRC, BBSRC, Input_Opt, State_Chm )
 !
 !******************************************************************************
 !  Subroutine EMITHIGH mixes tracer completely from the surface to the PBL
@@ -7531,7 +8053,18 @@ ccc
       USE GIGC_State_Chm_Mod, ONLY : ChmState
       USE TRACERID_MOD,       ONLY : IDTBCPI, IDTBCPO, IDTOCPI, IDTOCPO
       USE TRACERID_MOD,       ONLY : IDTALPH, IDTLIMO, IDTALCO
-      USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC, IDTBGSOA
+      USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC
+      ! Separate BGSOA into its components (skim, 6/13/14)
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      !----------------------------------------------------------------
+      ! SEAC4RS specific-change
+      ! Separate POA into anthropogenic and biomass burning components
+      ! Leave anthropogenic component in OCPI and OCPO
+      ! Create new tracers for the biomass burning component
+      ! (skim, 6/13/14)
+      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
+      !----------------------------------------------------------------
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      USE TRACERID_MOD,       ONLY : IDTMTPA, IDTLIMO, IDTMTPO ! hotp 5/20/10
@@ -7544,6 +8077,8 @@ ccc
 !      
       REAL*8,         INTENT(IN)    :: BCSRC(IIPAR,JJPAR,LLTROP,2)
       REAL*8,         INTENT(IN)    :: OCSRC(IIPAR,JJPAR,LLTROP,2)
+      ! Add in a separate BB POA source array (skim, 6/19/14)
+      REAL*8,         INTENT(IN)    :: BBSRC(IIPAR,JJPAR,LLTROP,2)
       TYPE(OptInput), INTENT(IN)    :: Input_Opt   ! Input Options object
 !
 ! !INPUT/OUTPUT PARAMETERS:
@@ -7554,7 +8089,7 @@ ccc
 !
       LOGICAL         :: IS_BCPO, IS_OCPO, IS_BCPI, IS_OCPI
       LOGICAL         :: IS_ALPH, IS_LIMO, IS_ALCO
-      LOGICAL         :: IS_AVOC, IS_BBVOC, IS_BGSOA
+      LOGICAL         :: IS_AVOC, IS_BBVOC, IS_BGSOA, IS_BBPOA
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      LOGICAL         :: IS_MTPA, IS_LIMO, IS_MTPO ! hotp 5/20/10
@@ -7587,8 +8122,12 @@ ccc
       IS_LIMO = ( IDTLIMO > 0 )
       IS_ALCO = ( IDTALCO > 0 )
       IS_AVOC = ( IDTAVOC > 0 )
+      
+      ! Add check for BB POA (skim, 6/19/14)
+      IS_BBPOA = ( IDTBBOCPI + IDTBBOCPO > 0 )
       IS_BBVOC = ( IDTBBVOC > 0 )
-      IS_BGSOA = ( IDTBGSOA > 0 )
+      IS_BGSOA = ( IDTBGSOA_ILNOX + IDTBGSOA_IHNOX + 
+     &             IDTBGSOA_MLNOX + IDTBGSOA_MHNOX > 0 ) 
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      IS_MTPO = ( IDTMTPO > 0 )
@@ -7612,48 +8151,151 @@ ccc
       IF ( IS_OCPI  ) EMIS_SAVE(:,:,IDTOCPI)  = 0d0
       IF ( IS_BCPO  ) EMIS_SAVE(:,:,IDTBCPO)  = 0d0
       IF ( IS_OCPO  ) EMIS_SAVE(:,:,IDTOCPO)  = 0d0
+
+      ! Add initialization for BB POA (skim, 6/19/14)
+      IF ( IS_BBPOA ) THEN
+         EMIS_SAVE(:,:,IDTBBOCPI ) = 0d0
+         EMIS_SAVE(:,:,IDTBBOCPO ) = 0d0
+      ENDIF
+
+      IF ( IS_AVOC  ) EMIS_SAVE(:,:,IDTAVOC ) = 0d0
       IF ( IS_BBVOC ) EMIS_SAVE(:,:,IDTBBVOC) = 0d0
+      IF ( IS_BGSOA ) THEN
+
+         EMIS_SAVE(:,:,IDTBGSOA_ILNOX) = 0d0
+         EMIS_SAVE(:,:,IDTBGSOA_IHNOX) = 0d0
+         EMIS_SAVE(:,:,IDTBGSOA_MLNOX) = 0d0
+         EMIS_SAVE(:,:,IDTBGSOA_MHNOX) = 0d0
+
+      ENDIF
+
+      PRINT*, 'EMITTING BIOGENIC SOA IN EMITHIGH'
+      PRINT*, IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+      PRINT*, IDTBGSOA_MLNOX, IDTBGSOA_MHNOX 
+
+      PRINT*, MAXVAL( BGSOA_EMIS(:,:,1) )
+      PRINT*, MAXVAL( BGSOA_EMIS(:,:,2) )
+      PRINT*, MAXVAL( BGSOA_EMIS(:,:,3) )
+      PRINT*, MAXVAL( BGSOA_EMIS(:,:,4) )
 
       IF ( LNLPBL ) THEN
+
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
 !$OMP+PRIVATE( I, J, L )
-         DO L = 1, PBL_MAX
+         DO L = 1, LLTROP
          DO J = 1, JJPAR
          DO I = 1, IIPAR
 
-            IF ( IS_BCPI ) EMIS_SAVE(I,J,IDTBCPI)  = 
-     &                     EMIS_SAVE(I,J,IDTBCPI)  + BCSRC(I,J,L,1)
-            IF ( IS_OCPI ) EMIS_SAVE(I,J,IDTOCPI)  =
-     &                     EMIS_SAVE(I,J,IDTOCPI)  + OCSRC(I,J,L,1)
-            IF ( IS_BCPO ) EMIS_SAVE(I,J,IDTBCPO)  =
-     &                     EMIS_SAVE(I,J,IDTBCPO)  + BCSRC(I,J,L,2)
-            IF ( IS_OCPO ) EMIS_SAVE(I,J,IDTOCPO)  =
-     &                     EMIS_SAVE(I,J,IDTOCPO)  + OCSRC(I,J,L,2)
-            IF ( IS_BBVOC) EMIS_SAVE(I,J,IDTBBVOC) =
-     &                     EMIS_SAVE(I,J,IDTBBVOC) + BBVOC_EMIS(I,J,L)
+            ! IF IN THE PBL
+            IF  ( L .LE. PBL_MAX ) THEN
+
+               ! FIRST LEVEL, TWO DIMENSIONAL EMISSIONS AT SURFACE
+               ! Move this into the inner loop (skim, 6/17/14)
+               IF ( L == 1 ) THEN
+
+                  IF ( IS_ALPH  ) THEN
+                     EMIS_SAVE(I,J,IDTALPH) = BIOG_ALPH(I,J)
+                  ENDIF
+                  IF ( IS_LIMO ) THEN
+                     EMIS_SAVE(I,J,IDTLIMO) = BIOG_LIMO(I,J)
+                     ! lead to too much ORVC_TERP in the 1st layer?
+                     ORVC_TERP(I,J,1) = ORVC_TERP(I,J,1)+ BIOG_TERP(I,J)
+                  ENDIF
+                  IF ( IS_ALCO ) THEN
+                     EMIS_SAVE(I,J,IDTALCO) = BIOG_ALCO(I,J)
+                     ! lead to too much ORVC_SESQ in the 1st layer?
+                     ORVC_SESQ(I,J,1) = ORVC_SESQ(I,J,1)+ BIOG_SESQ(I,J)
+                  ENDIF
+
+                  ! SEAC4RS SOA Tracers (jaf, 6/25/13)
+                  IF ( IS_AVOC ) EMIS_SAVE(I,J,IDTAVOC) = AVOC_EMIS(I,J)
+
+                  ! Separate the BGSOA tracers (skim, 6/13/14)
+                  IF ( IS_BGSOA ) THEN
+
+                     EMIS_SAVE(I,J,IDTBGSOA_ILNOX) = BGSOA_EMIS(I,J,1)
+                     EMIS_SAVE(I,J,IDTBGSOA_IHNOX) = BGSOA_EMIS(I,J,2)
+                     EMIS_SAVE(I,J,IDTBGSOA_MLNOX) = BGSOA_EMIS(I,J,3)
+                     EMIS_SAVE(I,J,IDTBGSOA_MHNOX) = BGSOA_EMIS(I,J,4)
+
+                  ENDIF
+
+               ENDIF
+
+               IF ( IS_BCPI ) EMIS_SAVE(I,J,IDTBCPI)  = 
+     &              EMIS_SAVE(I,J,IDTBCPI)  + BCSRC(I,J,L,1)
+               IF ( IS_OCPI ) EMIS_SAVE(I,J,IDTOCPI)  =
+     &              EMIS_SAVE(I,J,IDTOCPI)  + OCSRC(I,J,L,1)
+               IF ( IS_BCPO ) EMIS_SAVE(I,J,IDTBCPO)  =
+     &              EMIS_SAVE(I,J,IDTBCPO)  + BCSRC(I,J,L,2)
+               IF ( IS_OCPO ) EMIS_SAVE(I,J,IDTOCPO)  =
+     &              EMIS_SAVE(I,J,IDTOCPO)  + OCSRC(I,J,L,2)
+
+               ! Now add BB POA (skim, 6/19/14)
+               IF ( IS_BBPOA ) THEN
+
+                    EMIS_SAVE(I,J,IDTBBOCPI) =
+     &              EMIS_SAVE(I,J,IDTBBOCPI) + BBSRC(I,J,L,1)
+
+                    EMIS_SAVE(I,J,IDTBBOCPO) =
+     &              EMIS_SAVE(I,J,IDTBBOCPO) + BBSRC(I,J,L,2)
+
+               ENDIF
+               IF ( IS_BBVOC ) EMIS_SAVE(I,J,IDTBBVOC) =
+     &              EMIS_SAVE(I,J,IDTBBVOC) + BBVOC_EMIS(I,J,L)
+
+            ! ABOVE THE PBL
+            ELSE
+
+               ! Hydrophilic BLACK CARBON
+               IF ( IS_BCPI ) THEN
+                  STT(I,J,L,IDTBCPI) = STT(I,J,L,IDTBCPI) + 
+     &                 ( BCSRC(I,J,L,1) )
+               ENDIF
+
+               ! Hydrophilic ORGANIC CARBON
+               IF ( IS_OCPI ) THEN
+                  STT(I,J,L,IDTOCPI) = STT(I,J,L,IDTOCPI) + 
+     &                 ( OCSRC(I,J,L,1) )
+               ENDIF
             
-            IF ( L == 1 ) THEN 
-               IF ( IS_ALPH  ) EMIS_SAVE(I,J,IDTALPH) = BIOG_ALPH(I,J)
-               IF ( IS_LIMO ) THEN
-                  EMIS_SAVE(I,J,IDTLIMO) = BIOG_LIMO(I,J)
-               ! lead to too much ORVC_TERP in the 1st layer?
-                  ORVC_TERP(I,J,1) = ORVC_TERP(I,J,1)+ BIOG_TERP(I,J)
+               ! Hydrophobic BLACK CARBON
+               IF ( IS_BCPO ) THEN
+                  STT(I,J,L,IDTBCPO) = STT(I,J,L,IDTBCPO) + 
+     &                 ( BCSRC(I,J,L,2) )
                ENDIF
-               IF ( IS_ALCO ) THEN
-                  EMIS_SAVE(I,J,IDTALCO) = BIOG_ALCO(I,J)
-                  ! lead to too much ORVC_SESQ in the 1st layer?
-                  ORVC_SESQ(I,J,1) = ORVC_SESQ(I,J,1)+ BIOG_SESQ(I,J)
+
+               ! Hydrophobic ORGANIC CARBON
+               IF ( IS_OCPO ) THEN
+                  STT(I,J,L,IDTOCPO) = STT(I,J,L,IDTOCPO) + 
+     &                 ( OCSRC(I,J,L,2) )
                ENDIF
-               ! SEAC4RS SOA Tracers (jaf, 6/25/13)
-               IF (IS_AVOC ) EMIS_SAVE(I,J,IDTAVOC) = AVOC_EMIS(I,J)
-               IF (IS_BGSOA) EMIS_SAVE(I,J,IDTBGSOA)= BGSOA_EMIS(I,J)
+
+               ! Add BB POA tracers above the PBL
+               ! (skim, 6/19/14)
+               IF ( IS_BBPOA ) THEN
+
+                  STT(I,J,L,IDTBBOCPI) = STT(I,J,L,IDTBBOCPI) +
+     &                                   BBSRC(I,J,L,1)
+
+                  STT(I,J,L,IDTBBOCPO) = STT(I,J,L,IDTBBOCPO) +
+     &                                   BBSRC(I,J,L,2)
+
                ENDIF
-               ENDDO
-            ENDDO
+
+               ! Biomass Burning Emission Precursor
+               IF ( IS_BBVOC ) THEN
+                  STT(I,J,L,IDTBBVOC) = STT(I,J,L,IDTBBVOC) + 
+     &                 ( BBVOC_EMIS(I,J,L) )
+               ENDIF
+
+            ENDIF
          ENDDO
+      ENDDO
+      ENDDO
 !$OMP END PARALLEL DO
-      
+          
          RETURN                 ! we don't need to use below
 
       ENDIF
@@ -7736,8 +8378,19 @@ ccc
 
          ! Biogenic SOA tracer
          IF ( IS_BGSOA ) THEN
-            STT(I,J,L,IDTBGSOA) = STT(I,J,L,IDTBGSOA) +
-     &                           ( F_OF_PBL * BGSOA_EMIS(I,J) )
+
+            ! Separate BGSOA into its components (skim, 6/13/14)
+            STT(I,J,L,IDTBGSOA_ILNOX) = STT(I,J,L,IDTBGSOA_ILNOX) +
+     &                                  ( F_OF_PBL * BGSOA_EMIS(I,J,1) )
+
+            STT(I,J,L,IDTBGSOA_IHNOX) = STT(I,J,L,IDTBGSOA_IHNOX) +
+     &                                  ( F_OF_PBL * BGSOA_EMIS(I,J,2) )
+
+            STT(I,J,L,IDTBGSOA_MLNOX) = STT(I,J,L,IDTBGSOA_MLNOX) +
+     &                                  ( F_OF_PBL * BGSOA_EMIS(I,J,3) )
+
+            STT(I,J,L,IDTBGSOA_MHNOX) = STT(I,J,L,IDTBGSOA_MHNOX) +
+     &                                  ( F_OF_PBL * BGSOA_EMIS(I,J,4) )
 
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
@@ -9271,7 +9924,10 @@ ccc
       USE GRID_MOD,           ONLY : GET_BOUNDING_BOX
       USE TIME_MOD,           ONLY : GET_NYMDb, GET_NHMSb, GET_TAUb
       USE TRACERID_MOD,       ONLY : IDTSOA5
-      USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC, IDTBGSOA
+      USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC
+      ! Separate BGSOA into its components (skim, 6/13/14)
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
 !
 ! !INPUT PARAMETERS:
 !
@@ -9329,6 +9985,12 @@ ccc
       ALLOCATE( OCCONV( IIPAR, JJPAR, LLPAR ), STAT=AS )
       IF ( AS /= 0 ) CALL ALLOC_ERR( 'OCCONV' )
       OCCONV = 0d0
+
+      ! Create a biomass burning POA conversion array
+      ! skim, 6/15/14
+      ALLOCATE( BBOCCONV( IIPAR, JJPAR, LLPAR ), STAT=AS )
+      IF ( AS /= 0 ) CALL ALLOC_ERR( 'BBOCCONV' )
+      BBOCCONV = 0d0
 
       !=================================================================
       ! These only have to be allocated if we are
@@ -9420,8 +10082,12 @@ ccc
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'BBVOC_EMIS' )
          BBVOC_EMIS = 0d0
       ENDIF
-      IF ( IDTBGSOA > 0 ) THEN
-         ALLOCATE( BGSOA_EMIS( IIPAR, JJPAR ), STAT=AS )
+      IF ( ( IDTBGSOA_ILNOX + IDTBGSOA_IHNOX + 
+     &       IDTBGSOA_MLNOX + IDTBGSOA_MHNOX > 0 ) ) THEN
+         PRINT*, IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+         PRINT*, IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+         PRINT*, 'ALLOCATED BGSOA_EMIS'
+         ALLOCATE( BGSOA_EMIS( IIPAR, JJPAR, 4 ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'BGSOA_EMIS' )
          BGSOA_EMIS = 0d0
       ENDIF
@@ -9490,27 +10156,30 @@ ccc
       !=================================================================
 
       ! Initialize flags
-      DRYBCPI = 0
-      DRYOCPI = 0
-      DRYBCPO = 0
-      DRYOCPO = 0
-      DRYALPH = 0
-      DRYLIMO = 0
-      DRYALCO = 0
-      DRYSOG1 = 0
-      DRYSOG2 = 0
-      DRYSOG3 = 0
-      DRYSOG4 = 0
-      DRYSOG5 = 0
-      DRYSOA1 = 0
-      DRYSOA2 = 0
-      DRYSOA3 = 0
-      DRYSOA4 = 0
-      DRYSOA5 = 0
-      DRYSOAG = 0
-      DRYSOAM = 0
-      DRYASOA = 0
-      DRYBBSOA = 0
+      DRYBCPI   = 0
+      DRYOCPI   = 0
+      DRYBCPO   = 0
+      DRYOCPO   = 0
+      DRYALPH   = 0
+      DRYLIMO   = 0
+      DRYALCO   = 0
+      DRYSOG1   = 0
+      DRYSOG2   = 0
+      DRYSOG3   = 0
+      DRYSOG4   = 0
+      DRYSOG5   = 0
+      DRYSOA1   = 0
+      DRYSOA2   = 0
+      DRYSOA3   = 0
+      DRYSOA4   = 0
+      DRYSOA5   = 0
+      DRYSOAG   = 0
+      DRYSOAM   = 0
+      DRYASOA   = 0
+      DRYBBSOA  = 0
+      ! Add dry deposition of the biomass burning POA tracer (skim, 6/15/14)
+      DRYBBOCPI = 0
+      DRYBBOCPO = 0
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      DRYPOA1  = 0
@@ -9596,6 +10265,10 @@ ccc
                   DRYASOA = N
                CASE ( 'BBSOA' )
                   DRYBBSOA = N
+               CASE ( 'BBOCPI' )
+                  DRYBBOCPI = N
+               CASE ( 'BBOCPO' )
+                  DRYBBOCPO = N
                CASE DEFAULT
                   ! Nothing
             END SELECT        
@@ -9629,6 +10302,7 @@ ccc
       IF ( ALLOCATED( TERP_ORGC ) ) DEALLOCATE( TERP_ORGC )
       IF ( ALLOCATED( BCCONV    ) ) DEALLOCATE( BCCONV    )
       IF ( ALLOCATED( OCCONV    ) ) DEALLOCATE( OCCONV    )
+      IF ( ALLOCATED( BBOCCONV  ) ) DEALLOCATE( BBOCCONV  )
       IF ( ALLOCATED( EF_BLKC   ) ) DEALLOCATE( EF_BLKC   )
       IF ( ALLOCATED( EF_ORGC   ) ) DEALLOCATE( EF_ORGC   )
       IF ( ALLOCATED( BIOG_ALPH ) ) DEALLOCATE( BIOG_ALPH )

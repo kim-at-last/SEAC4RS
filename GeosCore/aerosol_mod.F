@@ -336,7 +336,18 @@
       USE TRACERID_MOD,       ONLY : IDTSOA1, IDTSOA2, IDTSOA3, IDTSOA4
       USE TRACERID_MOD,       ONLY : IDTSO4,  IDTSOA5  
       USE TRACERID_MOD,       ONLY : IDTSOAG, IDTSOAM
-      USE TRACERID_MOD,       ONLY : IDTASOA, IDTBBSOA, IDTBGSOA
+      !----------------------------------------------------------------
+      ! SEAC4RS specific-change
+      ! Separate POA into anthropogenic and biomass burning components
+      ! Leave anthropogenic component in OCPI and OCPO
+      ! Create new tracers for the biomass burning component
+      ! (skim, 6/13/14)
+      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
+      !----------------------------------------------------------------
+      USE TRACERID_MOD,       ONLY : IDTASOA, IDTBBSOA
+      ! Separate BGSOA into its components (skim, 6/13/14)
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
       USE TRACERID_MOD,       ONLY : IDTSO4,   IDTSOAG, IDTSOAM
 !-----------------------------------------------------------------------------
 ! These are in the std code (bmy, 10/30/13)
@@ -450,6 +461,19 @@
       LSSALT = Input_Opt%LSSALT
       LSULF  = Input_Opt%LSULF
 
+      PRINT*, 'MAXVAL OC TRACERS'
+      PRINT*, MAXVAL( STT(:,:,:,IDTOCPI  ) )
+      PRINT*, MAXVAL( STT(:,:,:,IDTBBOCPI) )
+      PRINT*, MAXVAL( STT(:,:,:,IDTOCPO  ) )
+      PRINT*, MAXVAL( STT(:,:,:,IDTBBOCPO) )
+      PRINT*, MAXVAL( STT(:,:,:,IDTASOA  ) )
+      PRINT*, MAXVAL( STT(:,:,:,IDTBBSOA ) )
+
+      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_ILNOX) )
+      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_IHNOX) )
+      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_MLNOX) )
+      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_MHNOX) )
+
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
 !$OMP+PRIVATE( I, J, L, N )
@@ -502,8 +526,9 @@
             BCPO(I,J,L) = STT(I,J,L,IDTBCPO) / State_Met%AIRVOL(I,J,L)
 
             ! Hydrophobic OC [kg/m3] 
-            OCPO(I,J,L) = STT(I,J,L,IDTOCPO) * OCF /
-     &                    State_Met%AIRVOL(I,J,L)
+            ! Add the anthropognic and biomass burning POA (skim, 6/13/14)
+            OCPO(I,J,L) = ( STT(I,J,L,IDTOCPO) + STT(I,J,L,IDTBBOCPO) ) 
+     &                    * OCF / State_Met%AIRVOL(I,J,L)
 
             IF ( LSOA ) THEN
 
@@ -544,7 +569,9 @@
                ! 6/26/13)
 !               OCPI(I,J,L) = STT(I,J,L,IDTOCPI) * OCF /
 !     &                       State_Met%AIRVOL(I,J,L)
-               OCPI(I,J,L) = STT(I,J,L,IDTOCPI)
+               ! Add the anthropogenic and biomass burning POA components
+               ! (skim, 6/13/14)
+               OCPI(I,J,L) = STT(I,J,L,IDTOCPI) + STT(I,J,L,IDTBBOCPI)
 
                ! Add SEAC4RS SOA tracers if they are turned on
                ! For now assume the same correction factor for SOA
@@ -554,8 +581,14 @@
      &                                           STT(I,J,L,IDTASOA)
                IF ( IDTBBSOA > 0 ) OCPI(I,J,L) = OCPI(I,J,L) + 
      &                                           STT(I,J,L,IDTBBSOA)
-               IF ( IDTBGSOA > 0 ) OCPI(I,J,L) = OCPI(I,J,L) + 
-     &                                           STT(I,J,L,IDTBGSOA)
+               IF ( IDTBGSOA_ILNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) + 
+     &                                   STT(I,J,L,IDTBGSOA_ILNOX)
+               IF ( IDTBGSOA_IHNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) +
+     &                                   STT(I,J,L,IDTBGSOA_IHNOX)
+               IF ( IDTBGSOA_MLNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) +
+     &                                   STT(I,J,L,IDTBGSOA_MLNOX)
+               IF ( IDTBGSOA_MHNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) +
+     &                                   STT(I,J,L,IDTBGSOA_MHNOX)
 
                OCPI(I,J,L) = OCPI(I,J,L) * OCF / State_Met%AIRVOL(I,J,L)
 !-----------
@@ -1545,13 +1578,22 @@
       ! To turn off the radiative effects of different aerososl
       ! uncomment the following lines
       !=================================================================
-      !DO R = 1,NRH
+      DO R = 1,NRH
+
       !  ODAER(:,:,:,R)       = 0.d0  !sulfate
       !  ODAER(:,:,:,R+NRH)   = 0.d0  !BC
       !  ODAER(:,:,:,R+2*NRH) = 0.d0  !OC
       !  ODAER(:,:,:,R+3*NRH) = 0.d0  !SS(accum)
       !  ODAER(:,:,:,R+4*NRH) = 0.d0  !SS(coarse)
-      !ENDDO
+
+        PRINT*, 'RESULTS OF ODAER'
+        PRINT*, MAXVAL( ODAER(:,:,:,R      ) )
+        PRINT*, MAXVAL( ODAER(:,:,:,R+  NRH) )
+        PRINT*, MAXVAL( ODAER(:,:,:,R+2*NRH) )
+        PRINT*, MAXVAL( ODAER(:,:,:,R+3*NRH) )
+        PRINT*, MAXVAL( ODAER(:,:,:,R+4*NRH) )
+
+      ENDDO
 
       !=================================================================
       ! To turn off heterogeneous chemistry on different aerosols

@@ -387,13 +387,13 @@
       IF ( ND07 > 0 .and. LCARB ) THEN 
          LD07 = MIN( ND07, LLPAR )
 
-         ALLOCATE( AD07( IIPAR, JJPAR, LLTROP,PD07 ), STAT=AS )
+         ALLOCATE( AD07( IIPAR, JJPAR, LLTROP, PD07 ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD07' )
 
          ALLOCATE( AD07_BC( IIPAR, JJPAR, LD07 ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD07_BC' )
 
-         ALLOCATE( AD07_OC( IIPAR, JJPAR, LD07 ), STAT=AS )
+         ALLOCATE( AD07_OC( IIPAR, JJPAR, LD07, 2 ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD07_OC' )
 
          ! SOAupdate (hotp 6/15/09)

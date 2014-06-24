@@ -5096,6 +5096,17 @@
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
 
+         ! Hydrophilic BB OC (aerosol)
+         ELSE IF ( N == IDTBBOCPI ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTBBOCPI
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'BBOCPI'
+            HSTAR(NUMDEP)   = 0.0d0
+            F0(NUMDEP)      = 0.0d0
+            XMW(NUMDEP)     = 12d-3
+            AIROSOL(NUMDEP) = .TRUE.
+
          ! Hydrophobic BC (aerosol)
          ELSE IF ( N == IDTBCPO ) THEN
             NUMDEP          = NUMDEP + 1
@@ -5113,6 +5124,17 @@
             NTRAIND(NUMDEP) = IDTOCPO
             NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'OCPO'
+            HSTAR(NUMDEP)   = 0.0d0
+            F0(NUMDEP)      = 0.0d0
+            XMW(NUMDEP)     = 12d-3
+            AIROSOL(NUMDEP) = .TRUE.
+
+         ! Hydrophobic BB OC (aerosol)
+         ELSE IF ( N == IDTBBOCPO ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTBBOCPO
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'BBOCPO'
             HSTAR(NUMDEP)   = 0.0d0
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 12d-3
@@ -5489,11 +5511,42 @@
             AIROSOL(NUMDEP) = .TRUE.
 
          ! BGSOA
-         ELSE IF ( N == IDTBGSOA ) THEN
+         ! Separate into component parts (skim, 6/13/14)
+         ELSE IF ( N == IDTBGSOA_ILNOX ) THEN
             NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBGSOA
+            NTRAIND(NUMDEP) = IDTBGSOA_ILNOX
             NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BGSOA'
+            DEPNAME(NUMDEP) = 'BGSOA_ILNOX'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 12d-3
+            AIROSOL(NUMDEP) = .TRUE.
+
+         ELSE IF ( N == IDTBGSOA_IHNOX ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTBGSOA_IHNOX
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'BGSOA_IHNOX'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 12d-3
+            AIROSOL(NUMDEP) = .TRUE.
+
+         ELSE IF ( N == IDTBGSOA_MLNOX ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTBGSOA_MLNOX
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'BGSOA_MLNOX'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 12d-3
+            AIROSOL(NUMDEP) = .TRUE.
+
+         ELSE IF ( N == IDTBGSOA_MHNOX ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTBGSOA_MHNOX
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'BGSOA_MHNOX'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3

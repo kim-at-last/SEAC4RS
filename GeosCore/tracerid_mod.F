@@ -294,6 +294,11 @@
       INTEGER            :: IDH2SO4   !(win, 6/23/09)
       !sfarina - leaving IDH2SO4 defined regardless of sim.
 
+      ! Track RO2 and SO2 loss for SEAC4RS (skim, 6/17/14)
+      INTEGER            :: IDXRIO2NO,   IDXRIO2HO2,  IDXRIO2ISOM
+      INTEGER            :: IDXRIO2RIO2, IDXRIO2MCO3, IDXRIO2MO2
+      INTEGER            :: IDXSO2
+
       ! SEAC4RS tracers (jaf, 6/13/13)
       ! Remove passive tracers for now (skim, 5/23/14)
       ! INTEGER            :: IDPCOFNE, IDPCOFSE, IDPCOFW, IDPCOFRW
@@ -311,6 +316,14 @@
       INTEGER            :: IDTNH4,  IDTNIT,   IDTRN,   IDTPB,   IDTBE7
       INTEGER            :: IDTBCPI, IDTBCPO,  IDTOCPI, IDTOCPO, IDTDST1
       INTEGER            :: IDTDST2, IDTDST3,  IDTDST4, IDTSALA, IDTSALC
+      !----------------------------------------------------------------
+      ! SEAC4RS specific-change
+      ! Separate POA into anthropogenic and biomass burning components
+      ! Leave anthropogenic component in OCPI and OCPO
+      ! Create new tracers for the biomass burning component
+      ! (skim, 6/13/14)
+      !----------------------------------------------------------------
+      INTEGER            :: IDTBBOCPI, IDTBBOCPO
       INTEGER            :: IDTALPH, IDTALCO, IDTSOG1, IDTSOG2 
       INTEGER            :: IDTSOG3, IDTSOG4,  IDTSOA1, IDTSOA2, IDTSOA3
       INTEGER            :: IDTSOA4
@@ -484,7 +497,12 @@
       ! INTEGER            :: IDTPCOBCN, IDTPCOBSE, IDTPCOBW, IDTPCOBRW
       ! INTEGER            :: IDTPISOP
       INTEGER            :: IDTAVOC,   IDTBBVOC,  IDTASOA,  IDTBBSOA
-      INTEGER            :: IDTBGSOA
+
+      ! Separate biogenic SOA into components from isoprene/monoterpenes
+      !    Further separate based on low or high NOx
+      ! (skim, 6/13/14)
+      INTEGER            :: IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+      INTEGER            :: IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
 
       ! For tagged Hg simulation
       INTEGER              :: N_Hg_CATS
@@ -986,11 +1004,19 @@
                COUNT_BB = COUNT_BB + 1
                IDBOC    = COUNT_BB
 
+            ! Add for BB POA component (skim, 6/13/14)
+            CASE( 'BBOCPI' )
+               IDTBBOCPI = N
+
             CASE ( 'BCPO' )
                IDTBCPO  = N
     
             CASE ( 'OCPO' )
                IDTOCPO  = N
+
+            ! Add for BB POA component (skim, 6/13/14)
+            CASE( 'BBOCPO' )
+               IDTBBOCPO = N
 
             CASE ( 'ALPH' )
                IDTALPH  = N
@@ -1444,8 +1470,20 @@
             CASE ( 'BBSOA' )
                IDTBBSOA  = N
 
-            CASE ( 'BGSOA' )
-               IDTBGSOA  = N
+            ! Separate biogenic SOA into components from isoprene/monoterpenes
+            !    Further separate based on low or high NOx
+            ! (skim, 6/13/14)
+            CASE ( 'BGSOA_ILNOX' )
+               IDTBGSOA_ILNOX  = N
+
+            CASE ( 'BGSOA_IHNOX' )
+               IDTBGSOA_IHNOX  = N
+
+            CASE ( 'BGSOA_MLNOX' )
+               IDTBGSOA_MLNOX  = N
+
+            CASE ( 'BGSOA_MHNOX' )
+               IDTBGSOA_MHNOX  = N
 
             !--------------------------------
             ! Tagged Ox Tracers
@@ -3340,6 +3378,17 @@
          IF ( NAMEGAS(I) == 'NRO2'     ) IDNRO2     = I
          IF ( NAMEGAS(I) == 'LNRO2H'   ) IDLNRO2H   = I
          IF ( NAMEGAS(I) == 'LNRO2N'   ) IDLNRO2N   = I
+         ! Add for SEAC4RS (skim, 6/17/14)
+         ! Highlight SO4 production from SO2
+         ! Highlight RO2 production pathways
+         IF ( NAMEGAS(I) == "XRIO2NO"   ) IDXRIO2NO   = I
+         IF ( NAMEGAS(I) == "XRIO2HO2"  ) IDXRIO2HO2  = I
+         IF ( NAMEGAS(I) == "XRIO2ISOM" ) IDXRIO2ISOM = I
+         IF ( NAMEGAS(I) == "XRIO2RIO2" ) IDXRIO2RIO2 = I
+         IF ( NAMEGAS(I) == "XRIO2MCO3" ) IDXRIO2MCO3 = I
+         IF ( NAMEGAS(I) == "XRIO2MO2"  ) IDXRIO2MO2  = I
+         IF ( NAMEGAS(I) == "XSO2"      ) IDXSO2      = I       
+
       ENDDO
 
       !=================================================================
@@ -4422,6 +4471,15 @@
       !IDPCOBRW  = 0
       !IDPISOP   = 0
 
+      ! Track RO2 and SO2 loss for SEAC4RS (skim, 6/17/14)
+      IDXRIO2NO   = 0
+      IDXRIO2HO2  = 0
+      IDXRIO2ISOM = 0
+      IDXRIO2RIO2 = 0
+      IDXRIO2MCO3 = 0
+      IDXRIO2MO2  = 0
+      IDXSO2      = 0
+
       ! GEOS-CHEM Tracer ID #'s
       IDTNO     = 0
       IDTNO2    = 0
@@ -4467,8 +4525,10 @@
       IDTSO4aq  = 0
       IDTBCPI   = 0
       IDTOCPI   = 0
+      IDTBBOCPI = 0
       IDTBCPO   = 0
       IDTOCPO   = 0
+      IDTBBOCPO = 0
       IDTOxStrt = 0
       IDTOX     = 0  
       IDTDST1   = 0
@@ -4542,7 +4602,14 @@
       IDTBBVOC   = 0
       IDTASOA    = 0
       IDTBBSOA   = 0
-      IDTBGSOA   = 0
+
+      ! Separate biogenic SOA into components from isoprene/monoterpenes
+      !    Further separate based on low or high NOx
+      ! (skim, 6/13/14)
+      IDTBGSOA_ILNOX = 0
+      IDTBGSOA_IHNOX = 0
+      IDTBGSOA_MLNOX = 0
+      IDTBGSOA_MHNOX = 0
 
       ! SOAupdate: convert all POA/POG to 1 and 2 (hotp 10/11/09)
        !semivolpoa (hotp 8/24/09)

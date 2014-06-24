@@ -251,7 +251,7 @@
 
       ! SEAC4RS passive tracers (jaf, 6/14/13)
       ! Remove SEAC4RS passive tracers (skim, 5/23/14)
-      ! USE GRID_MOD,           ONLY : GET_XMID,  GET_YMID
+      USE GRID_MOD,           ONLY : GET_XMID,  GET_YMID
       ! USE TRACERID_MOD,       ONLY : IDBPCOBCN, IDBPCOBSE
       ! USE TRACERID_MOD,       ONLY : IDBPCOBW,  IDBPCOBRW
 
