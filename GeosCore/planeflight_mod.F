@@ -181,15 +181,17 @@
 
       ! Save the aerosol extinction curtains along the flight track
       ! For DIAL data (skim, 12/06/13)
-      REAL*8, ALLOCATABLE            :: P_CURTAIN     ( :,:    )
-      REAL*8, ALLOCATABLE            :: HEIGHT_CURTAIN( :,:    )
-      REAL*8, ALLOCATABLE            :: TRACER_CURTAIN( :,:, : )
-      REAL*8, ALLOCATABLE            :: SNA_CURTAIN   ( :,:    )
-      REAL*8, ALLOCATABLE            :: BC_CURTAIN    ( :,:    )
-      REAL*8, ALLOCATABLE            :: OC_CURTAIN    ( :,:    )
-      REAL*8, ALLOCATABLE            :: SSA_CURTAIN   ( :,:    )
-      REAL*8, ALLOCATABLE            :: SSC_CURTAIN   ( :,:    )
-      REAL*8, ALLOCATABLE            :: DUST_CURTAIN  ( :,:    )
+      REAL*8, ALLOCATABLE            :: P_CURTAIN     ( :,:   )
+      REAL*8, ALLOCATABLE            :: T_CURTAIN     ( :,:   )
+      REAL*8, ALLOCATABLE            :: H_CURTAIN     ( :,:   )
+      REAL*8, ALLOCATABLE            :: HEIGHT_CURTAIN( :,:   )
+      REAL*8, ALLOCATABLE            :: TRACER_CURTAIN( :,:,: )
+      REAL*8, ALLOCATABLE            :: SNA_CURTAIN   ( :,:   )
+      REAL*8, ALLOCATABLE            :: BC_CURTAIN    ( :,:   )
+      REAL*8, ALLOCATABLE            :: OC_CURTAIN    ( :,:   )
+      REAL*8, ALLOCATABLE            :: SSA_CURTAIN   ( :,:   )
+      REAL*8, ALLOCATABLE            :: SSC_CURTAIN   ( :,:   )
+      REAL*8, ALLOCATABLE            :: DUST_CURTAIN  ( :,:   )
 
       !=================================================================
       ! MODULE ROUTINES -- follow below the "CONTAINS" statement 
@@ -578,6 +580,8 @@
                IF ( LINE == 'GMAO_ICE90' ) PVAR(N) = 1109
                ! Save out the boundary layer (skim, 12/06/13)
                IF ( LINE == 'GMAO_PBLH'  ) PVAR(N) = 1201
+               ! Save out tropopause pressure (kjw, 2/5/2014)
+               IF ( LINE == 'GMAO_TRPP'  ) PVAR(N) = 1202
 
             !===========================================================
             ! Column aerosol optical depths (same order as for FAST-J)
@@ -1523,6 +1527,12 @@
                      VARI(V) = GET_PBL_TOP_m(I, J)
 
                   !--------------------------
+                  ! GEOS-Chem Tropopause Pressure [hPa]
+                  !--------------------------
+                  CASE ( 1202 )
+                     VARI(V) = State_met%TROPP(I,J)
+
+                  !--------------------------
                   ! Column aerosol optical 
                   ! depths [unitless]
                   !--------------------------
@@ -1692,7 +1702,7 @@
                      ! Initialize GEOS-Chem tracer array [kg] from
                      ! Chemistry State object (mpayer, 12/6/12)
                      STT => State_Chm%Tracers
-                     
+
                      ! Convert from [kg] --> [v/v]
                      VARI(V) = STT(I,J,L,N) * Input_Opt%TCVV(N) /
      &                         State_Met%AD(I,J,L)
@@ -1702,8 +1712,19 @@
                      ! Save the tracer curtains, (skim, 12/06/13)
                      ! Only need to get the pressure and height once
                      IF ( N == 1 ) THEN
+
+                        !PRINT*, 'SPHU'
+                        !PRINT*, minval( State_Met%SPHU )
+                        !PRINT*, maxval( State_Met%SPHU )
+
+                        !PRINT*, 'AVGW'
+                        !PRINT*, minval( State_Met%AVGW )
+                        !PRINT*, maxval( State_Met%AVGW )
+
                         DO H = 1,LLPAR
-                           P_CURTAIN(M, H) = GET_PCENTER(I, J, H)
+                           P_CURTAIN(M, H) = GET_PCENTER   (I, J, H)
+                           T_CURTAIN(M, H) = State_Met%T   (I, J, H)
+                           H_CURTAIN(M, H) = State_Met%SPHU(I, J, H)
                         ENDDO
 
                         HEIGHT_CURTAIN(M,:) = State_Met%BXHEIGHT(I,J,:)
@@ -1972,6 +1993,7 @@
       USE CMN_SIZE_MOD
       USE TIME_MOD,               ONLY : EXPAND_DATE
       USE TIME_MOD,               ONLY : GET_NYMD, GET_NHMS
+      USE TRACER_MOD,             ONLY : N_TRACERS
       ! Modules for netCDF read
       USE m_netcdf_io_open
       USE m_netcdf_io_get_dimlen
@@ -2023,7 +2045,7 @@
       ! Arrays for netCDF start and count values
       INTEGER            :: st1d(1), ct1d(1)
       INTEGER            :: st2d(2), ct2d(2)
-      INTEGER            :: st3d(3), ct3d(3), dummy(81)
+      INTEGER            :: st3d(3), ct3d(3), dummy(N_TRACERS)
        
       !=================================================================
       ! SAVE_CURTAIN begins here!
@@ -2084,7 +2106,7 @@
 
       ! Define the tracer number - currently hardwired for SEAC4RS
       v_name = 'tracers'
-      CALL NcDef_Dimension( fId, TRIM(v_name), 81, id_tracers )
+      CALL NcDef_Dimension( fId, TRIM(v_name), N_TRACERS, id_tracers )
 
       !--------------------------------
       ! VARIABLE: lon
@@ -2183,6 +2205,44 @@
       ! Define the units attribute
       a_name = "units"
       a_val  = "hPa"
+      CALL NcDef_Var_Attributes(fId, vId, TRIM(a_name), TRIM(a_val) )
+
+      !--------------------------------
+      ! VARIABLE: T_CURTAIN
+      !--------------------------------
+
+      v_name = "temperature"
+      vId    = vId + 1
+      var2d  = (/ id_lon, id_levels /)
+      CALL NcDef_Variable( fId, TRIM(v_name), NF_DOUBLE, 2, var2d, vId )
+
+      ! Define the long_name attribute
+      a_name = "long_name"
+      a_val  = "Temperature Curtain"
+      CALL NcDef_Var_Attributes(fId, vId, TRIM(a_name), TRIM(a_val) )
+
+      ! Define the units attribute
+      a_name = "units"
+      a_val  = "K"
+      CALL NcDef_Var_Attributes(fId, vId, TRIM(a_name), TRIM(a_val) )
+
+      !--------------------------------
+      ! VARIABLE: H_CURTAIN
+      !--------------------------------
+
+      v_name = "h2o"
+      vId    = vId + 1
+      var2d  = (/ id_lon, id_levels /)
+      CALL NcDef_Variable( fId, TRIM(v_name), NF_DOUBLE, 2, var2d, vId )
+
+      ! Define the long_name attribute
+      a_name = "long_name"
+      a_val  = "Water Vapor Curtain"
+      CALL NcDef_Var_Attributes(fId, vId, TRIM(a_name), TRIM(a_val) )
+
+      ! Define the units attribute
+      a_name = "units"
+      a_val  = "v/v"
       CALL NcDef_Var_Attributes(fId, vId, TRIM(a_name), TRIM(a_val) )
 
       !--------------------------------
@@ -2353,7 +2413,7 @@
       ct1d   = (/ NPOINTS /)
       v_name = "lon"
       CALL NcWr( PLON, fId, TRIM(v_name), st1d, ct1d )
-      
+
       ! Write lat to netCDF file
       st1d   = (/ 1 /)
       ct1d   = (/ NPOINTS /)
@@ -2368,8 +2428,8 @@
 
       ! Write dummy tracer number to netCDF file
       st1d   = (/ 1  /)
-      ct1d   = (/ 81 /)
-      dummy  = (/( I, I = 1, 81 )/)
+      ct1d   = (/ N_TRACERS /)
+      dummy  = (/( I, I = 1, N_TRACERS )/)
       v_name = "tracers" 
       CALL NcWr( dummy, fId, TRIM(v_name), st1d, ct1d )
 
@@ -2380,12 +2440,27 @@
       CALL NcWr( P_CURTAIN, fId, TRIM(v_name), st2d, ct2d )
 
       st2d   = (/ 1, 1 /)
+      ct2d   = (/ size( T_CURTAIN, 1 ), size( T_CURTAIN, 2 ) /)
+      v_name = "temperature"
+      CALL NcWr( T_CURTAIN, fId, TRIM(v_name), st2d, ct2d )
+
+      st2d   = (/ 1, 1 /)
+      ct2d   = (/ size( H_CURTAIN, 1 ), size( H_CURTAIN, 2 ) /)
+      v_name = "h2o"
+
+        PRINT*, 'MIN & MAX of H_CURTAIN'
+        PRINT*, minval( H_CURTAIN ), maxval( H_CURTAIN )
+
+      CALL NcWr( H_CURTAIN, fId, TRIM(v_name), st2d, ct2d )
+
+      st2d   = (/ 1, 1 /)
       ct2d   = (/ size(HEIGHT_CURTAIN, 1), size(HEIGHT_CURTAIN, 2) /)
       v_name = "height"
       CALL NcWr( HEIGHT_CURTAIN, fId, TRIM(v_name), st2d, ct2d )
 
       st3d   = (/ 1, 1, 1 /)
-      ct3d   = (/ size(TRACER_CURTAIN,1), size(TRACER_CURTAIN,2), 81 /)
+      ct3d   = (/ size(TRACER_CURTAIN,1), size(TRACER_CURTAIN,2) , 
+     &            N_TRACERS                                      /)
       v_name = "t_curtain"
       CALL NcWr( TRACER_CURTAIN, fId, TRIM(v_name), st3d, ct3d )
 
@@ -2428,6 +2503,8 @@
       PRINT*, 'DEALLOCATING PLANEFLIGHT CURTAINS'
 
       IF ( ALLOCATED( P_CURTAIN      ) ) DEALLOCATE( P_CURTAIN      )
+      IF ( ALLOCATED( T_CURTAIN      ) ) DEALLOCATE( T_CURTAIN      )
+      IF ( ALLOCATED( H_CURTAIN      ) ) DEALLOCATE( H_CURTAIN      )
       IF ( ALLOCATED( HEIGHT_CURTAIN ) ) DEALLOCATE( HEIGHT_CURTAIN )
       IF ( ALLOCATED( TRACER_CURTAIN ) ) DEALLOCATE( TRACER_CURTAIN )
       IF ( ALLOCATED( SNA_CURTAIN    ) ) DEALLOCATE( SNA_CURTAIN    )
@@ -2628,11 +2705,12 @@
 !
 ! !USES:
 !
-      USE ERROR_MOD, ONLY : ALLOC_ERR
-      USE ERROR_MOD, ONLY : GEOS_CHEM_STOP
-      USE FILE_MOD,  ONLY : IOERROR
-      USE CMN_SIZE_MOD    ! Size Parameters
-      USE COMODE_LOOP_MOD ! ITLOOP
+      USE ERROR_MOD,  ONLY : ALLOC_ERR
+      USE ERROR_MOD,  ONLY : GEOS_CHEM_STOP
+      USE FILE_MOD,   ONLY : IOERROR
+      USE CMN_SIZE_MOD     ! Size Parameters
+      USE COMODE_LOOP_MOD  ! ITLOOP
+      USE TRACER_MOD, ONLY : N_TRACERS
 !
 ! !INPUT PARAMETERS:
 !
@@ -2828,10 +2906,16 @@
       ALLOCATE( P_CURTAIN( NPOINTS, LLPAR ), STAT=AS )
       IF ( AS /= 0 ) CALL ALLOC_ERR( 'P_CURTAIN' )
 
+      ALLOCATE( T_CURTAIN( NPOINTS, LLPAR ), STAT=AS )
+      IF ( AS /= 0 ) CALL ALLOC_ERR( 'T_CURTAIN' )
+
+      ALLOCATE( H_CURTAIN( NPOINTS, LLPAR ), STAT=AS )
+      IF ( AS /= 0 ) CALL ALLOC_ERR( 'H_CURTAIN' )
+
       ALLOCATE( HEIGHT_CURTAIN( NPOINTS, LLPAR ), STAT=AS )
       IF ( AS /= 0 ) CALL ALLOC_ERR( 'HEIGHT_CURTAIN' )
 
-      ALLOCATE( TRACER_CURTAIN( NPOINTS, LLPAR, 81 ), STAT=AS )
+      ALLOCATE( TRACER_CURTAIN( NPOINTS, LLPAR, N_TRACERS ), STAT=AS )
       IF ( AS /= 0 ) CALL ALLOC_ERR( 'TRACER_CURTAIN' )
 
       ALLOCATE( SNA_CURTAIN ( NPOINTS, LLPAR ), STAT=AS )
@@ -2867,15 +2951,17 @@
       PLON   = 0e0
       PPRESS = 0e0
 
-      P_CURTAIN      = 0e0
-      HEIGHT_CURTAIN = 0e0
-      TRACER_CURTAIN = 0e0
-      SNA_CURTAIN    = 0e0
-      BC_CURTAIN     = 0e0
-      OC_CURTAIN     = 0e0
-      SSA_CURTAIN    = 0e0
-      SSC_CURTAIN    = 0e0
-      DUST_CURTAIN   = 0e0
+      P_CURTAIN      = 0d0
+      T_CURTAIN      = 0d0
+      H_CURTAIN      = 0d0
+      HEIGHT_CURTAIN = 0d0
+      TRACER_CURTAIN = 0d0
+      SNA_CURTAIN    = 0d0
+      BC_CURTAIN     = 0d0
+      OC_CURTAIN     = 0d0
+      SSA_CURTAIN    = 0d0
+      SSC_CURTAIN    = 0d0
+      DUST_CURTAIN   = 0d0
 
       END SUBROUTINE INIT_PLANEFLIGHT
 !EOC
