@@ -524,7 +524,10 @@
                ! Accumulate into Q
                Q(X,Y,K,W) = Q(X,Y,K,W) + TMP
     
-            ELSE IF ( N == 76 .and. IS_FULLCHEM ) THEN
+            ! Move OH to 100 because there are more than 76 tracers
+            !    skim (6/17/14)
+            ! ELSE IF ( N == 76 .and. IS_FULLCHEM ) THEN
+            ELSE IF ( N == 100 .and. IS_FULLCHEM ) THEN
 
                !--------------------------------------
                ! OH CONCENTRATION [molec/cm3]
@@ -1080,7 +1083,10 @@
             GMNL     = ND50_NL
             GMTRC    = 3
 
-         ELSE IF ( N == 76 ) THEN
+         ! Move OH to 100 because there are more than 76 tracers
+         !    skim (6/17/14)
+         ! ELSE IF ( N == 76 ) THEN
+         ELSE IF ( N == 100 ) THEN
 
             !---------------------
             ! OH 
