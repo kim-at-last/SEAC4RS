@@ -1635,6 +1635,10 @@
                   ! Apply masks
                   BCPO(:,:,L,HH)       = BCPO(:,:,L,HH)       * USA_MASK
 
+                  ! Scale down by 30% on the basis of comparisons to
+                  ! SEAC4RS (skim, 5/23/14)
+                  BCPO(:,:,L,HH)       = BCPO(:,:,L,HH) * 0.7
+
                   !-----------------
                   ! BCPO_WKEND
                   !-----------------
@@ -1656,6 +1660,10 @@
 
                   ! Apply masks
                   BCPO_WKEND(:,:,L,HH) = BCPO_WKEND(:,:,L,HH) * USA_MASK
+
+                  ! Scale down by 30% on the basis of comparisons to
+                  ! SEAC4RS (skim, 5/23/14)
+                  BCPO_WKEND(:,:,L,HH) = BCPO_WKEND(:,:,L,HH) * 0.7
 
                ENDDO
             ENDDO
@@ -2460,8 +2468,10 @@
             OCPO       = GEOS_NATIVEWD * ScPM25
             OCPO_WKEND = GEOS_NATIVEWE * ScPM25
          ELSEIF ( TRIM(SId) == 'BC') THEN !BCPO
-            BCPO       = GEOS_NATIVEWD * ScPM25
-            BCPO_WKEND = GEOS_NATIVEWE * ScPM25
+            ! Scale BC down by 30% on the basis of SEAC4RS comparisons
+            ! (skim, 5/23/14)
+            BCPO       = GEOS_NATIVEWD * ScPM25 * 0.7
+            BCPO_WKEND = GEOS_NATIVEWE * ScPM25 * 0.7
 ! Species not currently used
 !         ELSEIF ( TRIM(SId) == 'C2H4') THEN !C2H4 - no scaling
 !            C2H4       = GEOS_NATIVEWD
