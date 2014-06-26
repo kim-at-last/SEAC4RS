@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------
-!          Harvard University Atmospheric Chemistry Modeling Group            !
+!                  GEOS-Chem Global Chemical Transport Model                  !
 !------------------------------------------------------------------------------
 !BOP
 !
@@ -97,7 +97,7 @@
       CONTAINS
 !EOC
 !------------------------------------------------------------------------------
-!          Harvard University Atmospheric Chemistry Modeling Group            !
+!                  GEOS-Chem Global Chemical Transport Model                  !
 !------------------------------------------------------------------------------
 !BOP
 !
@@ -113,13 +113,16 @@
 !
 ! !USES:
 !
-      USE BPCH2_MOD,     ONLY : GET_NAME_EXT_2D
-      USE BPCH2_MOD,     ONLY : GET_RES_EXT
-      USE BPCH2_MOD,     ONLY : GET_TAU0
-      USE BPCH2_MOD,     ONLY : READ_BPCH2
-      USE DIRECTORY_MOD, ONLY : DATA_DIR
-      USE TIME_MOD,      ONLY : EXPAND_DATE
-      USE TRANSFER_MOD,  ONLY : TRANSFER_2D
+      USE BPCH2_MOD,      ONLY : GET_NAME_EXT_2D
+      USE BPCH2_MOD,      ONLY : GET_RES_EXT
+      USE BPCH2_MOD,      ONLY : GET_TAU0
+      USE BPCH2_MOD,      ONLY : READ_BPCH2
+      USE DIRECTORY_MOD,  ONLY : DATA_DIR
+      USE TIME_MOD,       ONLY : EXPAND_DATE
+      USE TRANSFER_MOD,   ONLY : TRANSFER_2D
+      USE DIRECTORY_MOD,  ONLY : DATA_DIR_1x1
+      USE REGRID_A2A_MOD, ONLY : DO_REGRID_A2A
+
 !
 ! !INPUT PARAMETERS: 
 !
@@ -185,6 +188,8 @@
 !  13 Dec 2013 - M. Sulprizio- Now pass USE_O3_FROM_MET logical flag so that
 !                              we bypass reading TOMS O3 data when using TO3
 !                              from the met fields.
+!  05 Mar 2014 - M. Sulprizio- Now regrid TOMS O3 from the files on GEOS 1x1
+!                              grid (J. Lin)
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -196,6 +201,10 @@
       REAL*4             :: ARRAY(IIPAR,JJPAR,1)
       REAL*8             :: XTAU
       CHARACTER(LEN=255) :: FILENAME
+
+      CHARACTER(LEN=255) :: LLFILENAME
+      REAL*4             :: ARRAY1x1(I1x1,J1x1,1)
+      REAL*8             :: INGRID (I1x1,J1x1)
 
       !=================================================================
       ! Initialization
@@ -244,14 +253,85 @@
       ! Create YYYYMMDD value
       YYYYMMDD = ( YEAR * 10000 ) + ( THISMONTH * 100 ) + 01
      
-      ! Define filename (with replaceable tokens)
 #if   !defined( GCAP )
-      FILENAME = 'TOMS_201203/TOMS_O3col_YYYY.' // GET_NAME_EXT_2D() //
-     &           '.'                            // GET_RES_EXT()
+
+      ! Define filename (with replaceable tokens)
+!------------------------------------------------------------------------------
+! Prior to 3/5/14:
+!      FILENAME = 'TOMS_201203/TOMS_O3col_YYYY.' // GET_NAME_EXT_2D() //
+!     &           '.'                            // GET_RES_EXT()
+!------------------------------------------------------------------------------
+      ! Regrid from the files on geos.1x1 grid -- Lin_20140305
+      FILENAME = 'TOMS_201203/TOMS_O3col_YYYY.geos.1x1'
+
+      ! Replace YYYY token with current year
+      CALL EXPAND_DATE( FILENAME, YYYYMMDD, 000000 )
+
+      ! Now prefix the data directory
+      FILENAME = TRIM( DATA_DIR_1x1 ) // TRIM( FILENAME )
+
+      ! Echo filename
+      WRITE( 6, 110 ) TRIM( FILENAME )
+ 110  FORMAT( '     - READ_TOMS: Reading ', a )
+
+      !=================================================================
+      ! Regrid from 1x1 to model resolution
+      !=================================================================
+
+      ! File with lat/lon edges for regridding
+      LLFILENAME = TRIM( DATA_DIR_1x1) //
+     &             'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos1x1.nc'
+
+      !-----------------------------
+      ! TOMS O3 columns
+      !-----------------------------
+      
+      ! Read data
+      CALL READ_BPCH2( FILENAME, 'TOMS-O3',  1,
+     &                 XTAU,      I1x1,      J1x1,
+     &                 1,         ARRAY1x1,  QUIET=.TRUE. )
+
+      ! Regrid to current model resolution
+      INGRID = ARRAY1x1(:,:,1)
+      CALL DO_REGRID_A2A( LLFILENAME, I1x1, J1x1,
+     &                    INGRID,     TOMS,  IS_MASS=0,
+     &                    netCDF=.TRUE.              )
+
+      !--------------------------------
+      ! d(TOMS)/dT (1st half of month)
+      !--------------------------------
+
+       ! Read data
+      CALL READ_BPCH2( FILENAME, 'TOMS-O3',  2,
+     &                 XTAU,      I1x1,      J1x1, 
+     &                 1,         ARRAY1x1,  QUIET=.TRUE. )
+
+      ! Regrid to current model resolution
+      INGRID = ARRAY1x1(:,:,1)
+      CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,
+     &                    INGRID,     DTOMS1,  IS_MASS=0,
+     &                    netCDF=.TRUE.              )
+
+      !--------------------------------
+      ! d(TOMS)/dT (2nd half of month)
+      !--------------------------------
+
+       ! Read data: 
+      CALL READ_BPCH2( FILENAME, 'TOMS-O3',  3,
+     &                 XTAU,      I1x1,      J1x1,
+     &                 1,         ARRAY1x1,  QUIET=.TRUE. )
+
+      ! Regrid to current model resolution
+      INGRID = ARRAY1x1(:,:,1)
+      CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,
+     &                    INGRID,     DTOMS2,  IS_MASS=0,
+     &                    netCDF=.TRUE.              )
+
 #else
+
+      ! Define filename (with replaceable tokens)
       FILENAME = 'TOMS_200701/TOMS_O3col_YYYY.' // GET_NAME_EXT_2D() //
      &           '.'                            // GET_RES_EXT()
-#endif
 
       ! Replace YYYY token with current year
       CALL EXPAND_DATE( FILENAME, YYYYMMDD, 000000 )
@@ -260,8 +340,8 @@
       FILENAME = TRIM( DATA_DIR ) // TRIM( FILENAME )
 
       ! Echo filename
-      WRITE( 6, 110 ) TRIM( FILENAME )
- 110  FORMAT( '     - READ_TOMS: Reading ', a )
+      WRITE( 6, 120 ) TRIM( FILENAME )
+ 120  FORMAT( '     - READ_TOMS: Reading ', a )
 
       !-----------------------------
       ! TOMS O3 columns
@@ -299,10 +379,12 @@
       ! Cast to REAL*8 and resize if necessary
       CALL TRANSFER_2D( ARRAY(:,:,1), DTOMS2 )
 
+#endif
+
       END SUBROUTINE READ_TOMS
 !EOC
 !------------------------------------------------------------------------------
-!          Harvard University Atmospheric Chemistry Modeling Group            !
+!                  GEOS-Chem Global Chemical Transport Model                  !
 !------------------------------------------------------------------------------
 !BOP
 !
@@ -335,7 +417,7 @@
       ! directly from the met fields
       LOGICAL, INTENT(IN)  :: USE_O3_FROM_MET
       
-      ! TO3 from the met fields
+      ! TO3 from the met fields [Dobsons]
       REAL*8,  INTENT(IN)  :: TO3(IIPAR,JJPAR)
 !
 ! !REMARKS:
@@ -430,10 +512,10 @@
          ! we won't overwrite this with TOMS/SBUV O3 columns
          !---------------------------------------------------------------
          IF ( FIRST ) THEN
-            WRITE(6,*) 'TOMS/SBUV data are not available for this year'
-            WRITE(6,*) 'We use the total O3 column given by GEOS-5.'
-            WRITE(6,*) 'The validation by GMAO of these O3 columns is ' 
-     &                 // 'in progress.'
+            WRITE( 6, '(a)' ) REPEAT( '%', 45 )
+            WRITE( 6, 100   )
+ 100        FORMAT( '%%% USING O3 COLUMNS FROM THE MET FIELDS! %%% ' )
+            WRITE( 6, '(a)' ) REPEAT( '%', 45 )
             FIRST = .FALSE.
          ENDIF
 
@@ -487,7 +569,7 @@
       END SUBROUTINE COMPUTE_OVERHEAD_O3
 !EOC
 !------------------------------------------------------------------------------
-!          Harvard University Atmospheric Chemistry Modeling Group            !
+!                  GEOS-Chem Global Chemical Transport Model                  !
 !------------------------------------------------------------------------------
 !BOP
 !
@@ -522,7 +604,7 @@
       END FUNCTION GET_OVERHEAD_O3
 !EOC
 !------------------------------------------------------------------------------
-!          Harvard University Atmospheric Chemistry Modeling Group            !
+!                  GEOS-Chem Global Chemical Transport Model                  !
 !------------------------------------------------------------------------------
 !BOP
 !
@@ -579,7 +661,7 @@
       END SUBROUTINE INIT_TOMS
 !EOC
 !------------------------------------------------------------------------------
-!          Harvard University Atmospheric Chemistry Modeling Group            !
+!                  GEOS-Chem Global Chemical Transport Model                  !
 !------------------------------------------------------------------------------
 !BOP
 !
