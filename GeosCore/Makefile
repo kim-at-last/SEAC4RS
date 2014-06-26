@@ -114,6 +114,7 @@
 #  20 Aug 2013 - R. Yantosca - Make sure Makefile target names are consistent
 #  20 Sep 2013 - R. Yantosca - Bug fix for make realclean: Don't try to make
 #                              clean unless we compile for target hpc
+#  03 Feb 2014 - R. Yantosca - Add linoz_mod.o to input_mod.o dependency list
 #EOP
 #------------------------------------------------------------------------------
 #BOC
@@ -810,7 +811,8 @@ input_mod.o                 : input_mod.F                                    \
                               sulfate_mod.o           tomas_mod.o            \
                               tpcore_bc_mod.o         tracerid_mod.o         \
                               tracer_mod.o            transport_mod.o        \
-                              tropopause_mod.o        wetscav_mod.o
+                              tropopause_mod.o        wetscav_mod.o          \
+                              linoz_mod.o
 
 isoropiaII_mod.o            : isoropiaII_mod.F                               \
                               global_hno3_mod.o       tracerid_mod.o         \
