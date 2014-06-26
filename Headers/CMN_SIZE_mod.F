@@ -535,7 +535,8 @@
       ! increase NBIOMAX to 25 fpr CH4 (kjw)
       ! +4 for SEAC4RS BB passive tracers (jaf, 6/14/13)
       ! -4 for SEAC4RS BB passive tracers (skim, 5/23/24)
-      INTEGER, PARAMETER :: NBIOMAX = 25
+      ! +2 for PAN and HNO3 (krt, 6/3/14)
+      INTEGER, PARAMETER :: NBIOMAX = 31
       !------------------------------------------------------------------------
       ! This is in the std code (bmy, 10/30/13)
       !! SOAupdate: add 1 for naphthalene, now 26 (hotp 7/21/10)
