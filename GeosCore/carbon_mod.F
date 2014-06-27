@@ -6449,6 +6449,7 @@ ccc
       ! Local variables
       LOGICAL, SAVE               :: FIRST = .TRUE.
       INTEGER                     :: I, J, JLOOP, IJLOOP, THISMONTH
+      INTEGER                     :: pXRIO2NO, pXRIO2HO2
       REAL*4                      :: ARRAY(IIPAR,JJPAR,1)
       REAL*8                      :: CONVERT(NVEGTYPE)
       REAL*8                      :: GMONOT(NVEGTYPE)
@@ -6483,8 +6484,19 @@ ccc
       ! BIOGENIC_OC begins here!
       !=================================================================
 
-        PRINT*, 'BIOGENIC C EMISSIONS!'
-        PRINT*, IDXRIO2NO, IDXRIO2HO2
+      PRINT*, 'BIOGENIC C EMISSIONS!'
+      PRINT*, IDXRIO2NO, IDXRIO2HO2
+
+      ! SEAC4RS KLUDGE (skim, 6/27/14)
+      ! SETTRACE is not called until the chemistry timestep
+      !    Copy the relevant portion here to define location
+      !    in the CSPEC array
+      NCS = NCSURBAN
+
+      DO I = 1, NSPEC(NCS)
+        IF ( NAMEGAS(I) == 'XRIO2NO'  ) pXRIO2NO  = I
+        IF ( NAMEGAS(I) == 'XRIO2HO2' ) pXRIO2HO2 = I
+      ENDDO
 
       ! Copy values from Input_Opt
       LMEGANMONO = Input_Opt%LMEGANMONO
@@ -6533,19 +6545,17 @@ ccc
                ! JLOOP is the 1-D grid box index for SMVGEAR arrays
                JLOOP = JLOP(I,J,1)
 
-!               ! Calculate the fraction of the chemistry proceeding by
-!               ! the low NOx pathway
-!               FNOX = CSPEC(JLOOP, IDXRIO2HO2) / CSPEC(JLOOP, IDXRIO2NO)
+               ! Calculate the fraction of the chemistry proceeding by
+               ! the low NOx pathway
+               FNOX = CSPEC(JLOOP, pXRIO2HO2) / CSPEC(JLOOP, pXRIO2NO)
 
-                FNOX = 0.5d0
-
-!               ! Zero each fake chemical tracer
-!               CSPEC( JLOOP, IDXRIO2NO   ) = 0
-!               CSPEC( JLOOP, IDXRIO2HO2  ) = 0
-!               CSPEC( JLOOP, IDXRIO2ISOM ) = 0
-!               CSPEC( JLOOP, IDXRIO2RIO2 ) = 0
-!               CSPEC( JLOOP, IDXRIO2MCO3 ) = 0
-!               CSPEC( JLOOP, IDXRIO2MO2  ) = 0
+               ! Zero each fake chemical tracer
+               CSPEC( JLOOP, pXRIO2NO   ) = 0
+               CSPEC( JLOOP, pXRIO2HO2  ) = 0
+!              CSPEC( JLOOP, pXRIO2ISOM ) = 0
+!              CSPEC( JLOOP, pXRIO2RIO2 ) = 0
+!              CSPEC( JLOOP, pXRIO2MCO3 ) = 0
+!              CSPEC( JLOOP, pXRIO2MO2  ) = 0
 
                ! Also get isoprene from MEGAN [kg C/box]
                EMIS_ISOP = GET_MEGAN_EMISSIONS(I, J, State_Met, 'ISOP')
