@@ -2294,7 +2294,7 @@
          !==============================================================
          CATEGORY = 'NO-AC-$'
             
-         DO L = 1, LLCHEM
+         DO L = 1, LLPAR
             ARRAY(:,:,L) = AD32_ac(:,:,L) / SCALESRCE               
          ENDDO
 
