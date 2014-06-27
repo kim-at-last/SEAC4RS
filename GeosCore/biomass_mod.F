@@ -588,25 +588,44 @@
                 ! REMOVE THE PASSIVE CO TRACERS (skim, 6/24/14)
                 ! These came back in with the latest code merge
 
-!               X = GET_XMID( I, J, 1 ) 
-!               Y = GET_YMID( I, J, 1 ) 
-!
-!               IF ( (X >= -140.0) .AND. (X <  -60.0)   .AND.
-!     &              (Y >=   50.0) .AND. (Y <   71.0) ) THEN
-!                  IF ( IDBPCOBCN > 0 ) 
-!     &                 BIOMASS(I,J,IDBPCOBCN) = BIOMASS(I,J,IDBCO)
-!               ELSE IF ( (X >= -100.0) .AND. (X <  -75.0)   .AND.
-!     &                   (Y >=   25.0) .AND. (Y <   37.0) ) THEN
-!                  IF ( IDBPCOBSE > 0 ) 
-!     &                 BIOMASS(I,J,IDBPCOBSE) = BIOMASS(I,J,IDBCO)
-!               ELSE IF ( (X >= -125.0) .AND. (X < -100.0)   .AND.
-!     &                   (Y >=   31.0) .AND. (Y <   50.0) ) THEN
-!                  IF ( IDBPCOBW > 0 ) 
-!     &                 BIOMASS(I,J,IDBPCOBW) = BIOMASS(I,J,IDBCO)
-!               ELSE
-!                  IF ( IDBPCOBRW > 0 ) 
-!     &                 BIOMASS(I,J,IDBPCOBRW) = BIOMASS(I,J,IDBCO)
-!               ENDIF
+               X = GET_XMID( I, J, 1 ) 
+               Y = GET_YMID( I, J, 1 ) 
+
+               ! Scale the FINN fire emissions by region
+               ! Based on MLR analysis, following Fisher et al. [2010]
+               ! Temporary scale factors -
+               !    waiting for full analysis from tagged CO or
+               !    inversion analysis from the UIOWA team
+               ! skim, 6/27/14
+
+               IF ( (X >= -140.0) .AND. (X <  -60.0)   .AND.
+     &              (Y >=   50.0) .AND. (Y <   71.0) ) THEN
+
+                  BIOMASS(I,J,:) = BIOMASS(I,J,:) * 7.4
+
+               ELSE IF ( (X >= -100.0) .AND. (X <  -75.0)   .AND.
+     &                   (Y >=   25.0) .AND. (Y <   37.0) ) THEN
+
+                  BIOMASS(I,J,:) = BIOMASS(I,J,:) * 1.9
+
+               ELSE IF ( (X >= -125.0) .AND. (X < -100.0)   .AND.
+     &                   (Y >=   31.0) .AND. (Y <   50.0) ) THEN
+
+                  BIOMASS(I,J,:) = BIOMASS(I,J,:) * 4.4
+
+               ELSE
+
+      ! Kludge specifically for SEAC4RS (skim, 6/27/14)
+      ! These scale factors were derived for the nested grid simulation
+      !    over the US. We should not apply the rest of the world scale
+      !    factor to the 4 x 5 simulation.
+#if   defined( GRID025x03125 )
+                  BIOMASS(I,J,:) = BIOMASS(I,J,:) * 0.01
+#else
+                  BIOMASS(I,J,:) = BIOMASS(I,J,:) * 1.00
+#endif
+
+               ENDIF
 
             ENDDO
             ENDDO
