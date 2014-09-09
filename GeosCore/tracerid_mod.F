@@ -3440,6 +3440,7 @@
          IF ( NAMEGAS(I) == 'ISN1'   ) IDISN1   = I    
          IF ( NAMEGAS(I) == 'ETHLN'  ) IDETHLN  = I    
          IF ( NAMEGAS(I) == 'GLYX'   ) IDGLYX   = I    
+         IF ( NAMEGAS(I) == 'MGLY'   ) IDMGLY   = I
          IF ( NAMEGAS(I) == 'HCOOH'  ) IDHCOOH  = I    
          IF ( NAMEGAS(I) == 'ACTA'   ) IDACTA   = I    
          IF ( NAMEGAS(I) == 'MAOP'   ) IDMAOP   = I    
@@ -3458,13 +3459,6 @@
          IF ( NAMEGAS(I) == 'RA3P'   ) IDRA3P   = I    
          IF ( NAMEGAS(I) == 'RB3P'   ) IDRB3P   = I    
          IF ( NAMEGAS(I) == 'RP'     ) IDRP     = I    
-
-         IF ( NAMEGAS(I) == 'APAN'   ) IDAPAN    = I
-         IF ( NAMEGAS(I) == 'ENPAN'  ) IDENPAN   = I
-         IF ( NAMEGAS(I) == 'MPAN'   ) IDMPAN    = I
-         IF ( NAMEGAS(I) == 'NIPAN'  ) IDNIPAN   = I
- 
-
          IF ( NAMEGAS(I) == 'DRYNO2' ) IDDRYNO2 = I
          IF ( NAMEGAS(I) == 'DRYPAN' ) IDDRYPAN = I
          IF ( NAMEGAS(I) == 'DRYO3 ' ) IDDRYO3  = I
