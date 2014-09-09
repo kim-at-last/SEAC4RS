@@ -6487,16 +6487,19 @@ ccc
       PRINT*, 'BIOGENIC C EMISSIONS!'
       PRINT*, IDXRIO2NO, IDXRIO2HO2
 
-      ! SEAC4RS KLUDGE (skim, 6/27/14)
-      ! SETTRACE is not called until the chemistry timestep
-      !    Copy the relevant portion here to define location
-      !    in the CSPEC array
-      NCS = NCSURBAN
+!
+!      ! SEAC4RS KLUDGE (skim, 6/27/14)
+!      ! SETTRACE is not called until the chemistry timestep
+!      !    Copy the relevant portion here to define location
+!      !    in the CSPEC array
+!      NCS = NCSURBAN
+!
+!      DO I = 1, NSPEC(NCS)
+!        IF ( NAMEGAS(I) == 'XRIO2NO'  ) pXRIO2NO  = I
+!        IF ( NAMEGAS(I) == 'XRIO2HO2' ) pXRIO2HO2 = I
+!      ENDDO
+!
 
-      DO I = 1, NSPEC(NCS)
-        IF ( NAMEGAS(I) == 'XRIO2NO'  ) pXRIO2NO  = I
-        IF ( NAMEGAS(I) == 'XRIO2HO2' ) pXRIO2HO2 = I
-      ENDDO
 
       ! Copy values from Input_Opt
       LMEGANMONO = Input_Opt%LMEGANMONO
@@ -6542,20 +6545,32 @@ ccc
             IF ( ( IDTBGSOA_ILNOX + IDTBGSOA_IHNOX + 
      &             IDTBGSOA_MLNOX + IDTBGSOA_MHNOX ) > 0 ) THEN
 
+               ! Calculate the fraction of the chemistry proceeding by
+               ! the low NOx pathway
+               IF ( FIRST ) THEN
+
+               FNOX = 0.5
+
+               ELSE 
+
                ! JLOOP is the 1-D grid box index for SMVGEAR arrays
                JLOOP = JLOP(I,J,1)
 
-               ! Calculate the fraction of the chemistry proceeding by
-               ! the low NOx pathway
-               FNOX = CSPEC(JLOOP, pXRIO2HO2) / CSPEC(JLOOP, pXRIO2NO)
+               FNOX = CSPEC(JLOOP,IDXRIO2HO2) /
+     &               (CSPEC(JLOOP,IDXRIO2HO2) + CSPEC(JLOOP,IDXRIO2NO))
+
+!               PRINT*, I, J, FNOX,
+!     &                 CSPEC(JLOOP,IDXRIO2NO), CSPEC(JLOOP,IDXRIO2HO2)
 
                ! Zero each fake chemical tracer
-               CSPEC( JLOOP, pXRIO2NO   ) = 0
-               CSPEC( JLOOP, pXRIO2HO2  ) = 0
+               CSPEC( JLOOP, IDXRIO2NO   ) = 0
+               CSPEC( JLOOP, IDXRIO2HO2  ) = 0
 !              CSPEC( JLOOP, pXRIO2ISOM ) = 0
 !              CSPEC( JLOOP, pXRIO2RIO2 ) = 0
 !              CSPEC( JLOOP, pXRIO2MCO3 ) = 0
 !              CSPEC( JLOOP, pXRIO2MO2  ) = 0
+
+               ENDIF
 
                ! Also get isoprene from MEGAN [kg C/box]
                EMIS_ISOP = GET_MEGAN_EMISSIONS(I, J, State_Met, 'ISOP')
@@ -6842,6 +6857,9 @@ ccc
 !$OMP END PARALLEL DO
 
       ENDIF
+
+      ! No longer the first timestep
+      FIRST = .FALSE.
 
       ! Return to calling program
       END SUBROUTINE BIOGENIC_OC
