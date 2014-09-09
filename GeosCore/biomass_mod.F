@@ -235,7 +235,8 @@
       ! Need to know for FINN emissions (skim, 7/27/13)
       USE TIME_MOD,           ONLY : ITS_A_NEW_DAY
       ! Need to know for FLAMBE emissions (skim, 6/21/13)
-      USE TIME_MOD,           ONLY : ITS_A_NEW_HOUR
+      USE TIME_MOD,           ONLY : ITS_A_NEW_HOUR, GET_LOCALTIME
+      USE TIME_MOD,           ONLY : GET_DAY, GET_HOUR
       USE TRACERID_MOD,       ONLY : IDTBCPO, IDTNH3, IDTOCPO, IDTSO2
       USE TRACERID_MOD,       ONLY : IDBBC, IDBNH3, IDBOC, IDBSO2
       USE TRACERID_MOD,       ONLY : IDBCO, IDBNO, IDBHNO3 ! HNO3 (evf,9/15/11)
@@ -291,6 +292,11 @@
       REAL*8              :: BXHT_CM, DTSRCE
       REAL*8              :: TEMP
       REAL*8              :: X,       Y
+
+      ! for fire diurnal cycle, krt, 2/28/14
+      REAL*4           :: WRAP(24d0), ScFire
+      INTEGER          :: NOXHOUR
+
       ! For fire injection scheme
       REAL*8           :: EMIS_BL, DELTPRES, DELTPRESFT, DELTPRESUS
       REAL*8           :: TOTPRES, TOTPRESFT, TOTPRESFTUS !evf, krt, 2/7/14
@@ -558,6 +564,12 @@
 !
 !            ENDIF
 
+         ! Fire diurnal scaling factors (% per hour)
+         !    from WRAP Report to Project No. 178-6, July 2005
+         ! krt, 2/28/14 / (100/24 = 4.166666)
+            WRAP = (/0.58,0.58,0.57,0.57,0.57,0.57,0.57,0.57,0.57,2,4,7,
+     &        10,13,16,17,12,7,4,0.57,0.57,0.57,0.57,0.57/)/(100d0/24d0)
+
          ! ----------------Fire Emissions ---------------
          ! Put 40% of NOx Biomass emissions into PAN
          ! and 20% into HNO3 (evf, 9/9/11, 9/15/11) per Alvarado et al, 2010
@@ -643,11 +655,15 @@
 !$OMP+DEFAULT( SHARED )
 !$OMP+PRIVATE( I, J, L, N, TOP )
 !$OMP+PRIVATE( EMIS_BL, TOTPRES, TOTPRESFT, TOTPRESFTUS, DELTPRES )
-!$OMP+PRIVATE( DELTPRESFT, DELTPRESUS, BLFRAC, FTFRAC  )
+!$OMP+PRIVATE( DELTPRESFT, DELTPRESUS, BLFRAC, FTFRAC, NOXHOUR )
 
          DO N = 1, NBIOMAX
          DO J = 1, JJPAR
          DO I = 1, IIPAR
+
+            NOXHOUR = MIN( 23, NINT( GET_LOCALTIME ( I, J, 1 ) ) )+1
+            ScFire = WRAP(NOXHOUR)
+
             ! FIRE INJECTION VARIABLES
             ! Hardcoded levels for SEAC4RS fire injection heights
             ! krt, 11/26/13
@@ -694,10 +710,11 @@
                   IF ( L .le. TOP ) THEN 
                      DELTPRES = GET_PEDGE(I,J,L) - GET_PEDGE(I,J,L+1)
                      IF (LNLPBL) DELTPRES = TOTPRES
-                     EMIS_BL = BIOMASS(I,J,N)*BLFRAC*DELTPRES/TOTPRES 
+                     EMIS_BL = BIOMASS(I,J,N)*BLFRAC*ScFire*
+     &                         DELTPRES/TOTPRES 
                                        
                   ELSE IF ( L .le. TOPS .and. L .ge. BOTS ) THEN                    
-                     EMIS_BL  = BIOMASS(I,J,N) *FTFRAC* 
+                     EMIS_BL  = BIOMASS(I,J,N) *FTFRAC*ScFire*
      &                    DELTPRESUS/TOTPRESFTUS
                   ENDIF
 
@@ -729,11 +746,12 @@
                      DELTPRES = GET_PEDGE(I,J,L) - GET_PEDGE(I,J,L+1)
                      ! Add option for non-local PBL (Lin, 03/31/09)
                      IF (LNLPBL) DELTPRES = TOTPRES
-                     EMIS_BL = BIOMASS(I,J,N)*BLFRAC*DELTPRES/TOTPRES 
+                     EMIS_BL = BIOMASS(I,J,N)*BLFRAC*ScFire*
+     &                         DELTPRES/TOTPRES 
                 
                   ELSE IF ( L .le. TOP+10 .and. L .ge. TOP+1) THEN 
                      ! krt - otherwise we are a few % off (10/3/13)
-                     EMIS_BL  = BIOMASS(I,J,N) *FTFRAC* 
+                     EMIS_BL  = BIOMASS(I,J,N) *FTFRAC*ScFire* 
      &                    DELTPRESFT/TOTPRESFT
                   ENDIF
 
