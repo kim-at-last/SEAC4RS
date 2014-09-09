@@ -429,7 +429,8 @@
      &                   NKHNO4(ICS),   NKN2O5,       NKHO2, 
      &                   NKGLYC(ICS,2), NKHAC(ICS,2), NKMCO3(ICS,3),
      &                   NKBrNO3,       NKHOBr,       NK1HBr, 
-     &                   NK2HOBr,       NK2HBr,       NNRO2HO2(ICS) 
+     &                   NK2HOBr,       NK2HBr,       NNRO2HO2(ICS), 
+     &                   NNADDAT(ICS)   ! Criegee (dbm, mje, 11/2013)
 
       INTEGER ::         IH2O,        IOXYGEN,   MB1,      MB2
 
@@ -482,7 +483,8 @@
      &  NKSPECA(  MAXGL3,ICS), NKSPECB(  MAXGL3,ICS),
      &  NKSPECC(MAXGL3,ICS),NKSPECD(MAXGL3,ICS),NKSPECK(MAXGL3,ICS),
      &  NKSPECG(MAXGL2,ICS),NKSPECRO2HO2(MAXGL3,ICS),
-     &  NKSPECF(MAXGL3,ICS), NKSPECH(MAXGL3,ICS)
+     &  NKSPECF(MAXGL3,ICS), NKSPECH(MAXGL3,ICS),
+     &  NKSPECAT(MAXGL3,ICS) ! Criegee (dbm, mje, 11/2013)
 
       ! re-define some nkspec* arrays for harvard chem mechanism (bdf)
       INTEGER ::        NOLOSP(ICP),    NGNFRAC(ICP),    NOLOSRAT(ICP), 

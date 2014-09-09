@@ -1119,6 +1119,14 @@
                IF (SPECL(1).EQ.'Z') THEN
                   NKSPECZ(NCS) = NK
                ENDIF
+
+               ! Criegee (dbm, mje, 11/2013)
+               IF (SPECL(1).EQ.'@') THEN
+                  WRITE (6,*) '@@@@',NCS
+                  NNADDAT(NCS)=NNADDAT(NCS)+1
+                  NKSPECAT(NNADDAT(NCS),NCS) = NK
+               ENDIF
+
 !
 ! *********************************************************************
 ! *                       SURFACE REACTIONS                           * 
@@ -1201,7 +1209,7 @@
  450  FORMAT('READCHEM: ORD# REACT ',I3,' CANT HAVE COEFF > 1')
  470  FORMAT('READCHEM: SURFACE REACTION ',I5,'HAS THREE REACTANTS ')
  510  FORMAT(I3,1X,ES7.1,1X,F7.2,1X,I6,1X,0PF3.2,1X,
-     1       A6,2(A1,A6),14(A1,0PF3.1,A6)) 
+     1       A6,2(A1,A6),14(A1,0PF3.1,A8)) 
  520  FORMAT( 'KINETIC REACTIONS FOR ', A,' CHEMISTRY',/,   
      1        'RATE CONSTANTS HAVE FORM K = A * (300/T)**B * EXP(C/T).')
  521  FORMAT( 'NMBR   A       B     C     Fv       REACTION' )
