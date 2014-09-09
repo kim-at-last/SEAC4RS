@@ -939,7 +939,9 @@
             IF (SPECL(1).EQ.'DA') NKMCO3(NCS,1)=NK 
             IF (SPECL(1).EQ.'DB') NKMCO3(NCS,2)=NK 
             IF (SPECL(1).EQ.'DC') NKMCO3(NCS,3)=NK 
-
+!FLAG SPECIAL RATE CALCULATION FOR HO2H2O-->
+            IF (SPECL(1).EQ.'HH') NKHO2H2O=NK
+            IF (SPECL(1).EQ.'HI') NKHO2H2ONO2=NK
          ENDIF
       ENDDO
 

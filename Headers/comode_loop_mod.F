@@ -419,6 +419,7 @@
       ! Add NKO3PHOTH2 to account for the H2 reaction of O1D (bhh, jmao,
       !  eam, 7/18/11)
       !Added NNRO2HO2(jmao, 11/17/2012)
+      !Added NKHO2H2O, NKHO2H2ONO2 (krt, 7/31/14)
       INTEGER            NNADD1,        NNADDA(ICS),  NNADDB(  ICS), 
      &                   NNADDC(ICS),   NNADDD(ICS),  NNADDK(  ICS), 
      &                   NNADDV(ICS),   NNADDZ,       
@@ -427,6 +428,7 @@
      &                   NNADDF(ICS),   NNADDH(ICS), 
      &                   NKHOROI(ICS),  NKHOROJ(ICS),
      &                   NKHNO4(ICS),   NKN2O5,       NKHO2, 
+     &                   NKHO2H2O, NKHO2H2ONO2,
      &                   NKGLYC(ICS,2), NKHAC(ICS,2), NKMCO3(ICS,3),
      &                   NKBrNO3,       NKHOBr,       NK1HBr, 
      &                   NK2HOBr,       NK2HBr,       NNRO2HO2(ICS), 

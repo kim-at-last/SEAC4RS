@@ -226,6 +226,10 @@
       ! Add nitrate effect (lzh, 10/25/2011)
       REAL*8           :: TMP1, TMP2
 
+      ! For HONO chemistry (krt, 7/31/14)
+      REAL*8  :: k0300, kINF300, kINFT, k0T
+      REAL*4  :: nHI, mHI
+
       ! Avoid array temporaries in CHECK_VALUE
       INTEGER            :: ERR_LOC(4)
       CHARACTER(LEN=255) :: ERR_VAR
@@ -813,6 +817,30 @@ c new OH+CO rate from JPL2006.
               RRATE(KLOOP,NKHAC(NCS,2))=RRATE(KLOOP,NKHAC(NCS,2))
      &                                  *(1d0-HAC_FRAC)
 
+            ENDDO
+         ENDIF
+
+         ! Special rates for HO2H2O (Li et al, 2014 in Science )
+         IF (NKHO2H2O .GT. 0  ) THEN
+            DO KLOOP   = 1, KTLOOP
+
+               RRATE(KLOOP,NKHO2H2O)= 1d-13 /
+     &              ( 2.4E-25 * (EXP(4350 / T3K (KLOOP ) )))
+
+               k0300 = 1.8d-31
+               kINF300 = 4.7E-12
+               nHI = 3.2
+               mHI = 1.4
+               kINFT = kINF300 * (T3K(KLOOP)/300)**(-mHI)
+               k0T   = k0300   * (T3K(KLOOP)/300)**(-nHI)
+
+               RRATE(KLOOP,NKHO2H2ONO2)= 3.5 *
+     &              (( k0T * DENAIR(KLOOP) ) /
+     &              ( 1 + ( k0T * DENAIR(KLOOP))/ kINFT )) *
+     &              (0.6**(1+(LOG10((k0T*DENAIR(KLOOP))/
+     &              kINFT))**2)**-1)
+c$$$               IF (KLOOP .eq. 10 ) WRITE(*,*) 'CALCRATE',
+c$$$     &              RRATE(KLOOP,NKHO2H2ONO2), RRATE(KLOOP, NKHO2H2O)
             ENDDO
          ENDIF
 
