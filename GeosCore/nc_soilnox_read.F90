@@ -120,7 +120,17 @@
       ! Read the SNIRI:units attribute
       a_name = "units"
       CALL NcGet_Var_Attributes( fId,TRIM(v_name),TRIM(a_name),a_val )
-
+      PRINT*, SNIRI
+      PRINT*, 'REPLACING INTERNAL RESISTANCE FOR DECIDUOUS FORESTS' 
+      SNIRI(17) = SNIRI(17) * 0.80       ! reducing by 20% based on Duke data, krt, 7/11/14
+      SNIRI(18) = SNIRI(18) * 0.80       ! reducing by 20% based on Duke data, krt, 7/11/14
+      SNIRI(20) = SNIRI(20) * 0.80  ! reducing by 20% based on Duke data, krt, 7/11/14
+      PRINT*, 'REPLACING INTERNAL RESISTANCE FOR CONIFEROUS FORESTS' 
+      SNIRI(19) = 200 * 0.80 ! reducing by 20% based on Duke data, krt, 7/11/14
+      SNIRI(16) = 200 * 0.80 ! reducing by 20% based on Duke data, krt, 7/11/14
+      SNIRI(21) = 200 * 0.80 ! reducing by 20% based on Duke data, krt, 7/11/14
+      PRINT*, SNIRI
+      
       ! Echo info to stdout
       WRITE( 6, 130 ) TRIM(v_name), TRIM(a_val)
 
