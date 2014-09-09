@@ -63,7 +63,7 @@
       USE DIAG_MOD,        ONLY : AD52,        AD54,        AD63
       USE DIAG_MOD,        ONLY : AD63_COUNT
       USE DIAG_MOD,        ONLY : AD19,        AD58,        AD60
-      USE DIAG_MOD,        ONLY : AD44_WOLF
+      USE DIAG_MOD,        ONLY : AD44_WOLF,   AD44b
 
 #if   defined( TOMAS )
       USE DIAG_MOD,        ONLY : AD59_NUMB,   AD59_SULF,   AD59_SALT  !(win, 7/9/09)
@@ -1064,6 +1064,10 @@
          ! Allocate AD44 array
          ALLOCATE( AD44( IIPAR, JJPAR, NMAX, 2 ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD44' )
+
+         ! Allocate AD44b array
+         ALLOCATE( AD44b( IIPAR, JJPAR, NMAX ), STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD44b' )
 
          ! Allocate AD44 array
          ALLOCATE( AD44_WOLF( IIPAR, JJPAR, NMAX, 2 ), STAT=AS )

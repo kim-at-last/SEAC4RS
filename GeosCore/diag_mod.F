@@ -197,6 +197,7 @@
 
       ! For ND44 -- Dry deposition fluxes & velocities
       REAL*4,  ALLOCATABLE :: AD44(:,:,:,:)
+      REAL*4,  ALLOCATABLE :: AD44b(:,:,:)
       ! Add for extra diagnostic along flight path (skim, 8/16/14)
       REAL*4,  ALLOCATABLE :: AD44_WOLF(:,:,:,:)
 
@@ -446,6 +447,7 @@
       IF ( ALLOCATED( AD39        ) ) DEALLOCATE( AD39        )
       IF ( ALLOCATED( AD43        ) ) DEALLOCATE( AD43        )
       IF ( ALLOCATED( AD44        ) ) DEALLOCATE( AD44        )
+      IF ( ALLOCATED( AD44b       ) ) DEALLOCATE( AD44b       )
       IF ( ALLOCATED( AD44_WOLF   ) ) DEALLOCATE( AD44_WOLF   )
       IF ( ALLOCATED( AD45        ) ) DEALLOCATE( AD45        )
       IF ( ALLOCATED( AD46        ) ) DEALLOCATE( AD46        )
