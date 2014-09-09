@@ -1783,7 +1783,7 @@ contains
     USE DAO_MOD,            ONLY : IS_ICE, IS_LAND
     USE DEPO_MERCURY_MOD,   ONLY : ADD_Hg2_DD, ADD_HgP_DD
     USE DEPO_MERCURY_MOD,   ONLY : ADD_Hg2_SNOWPACK
-    USE DIAG_MOD,           ONLY : AD44
+    USE DIAG_MOD,           ONLY : AD44, AD44_WOLF
     USE DRYDEP_MOD,         ONLY : DEPNAME, NUMDEP, NTRAIND, DEPSAV, &
                                    SHIPO3DEP
     USE DRYDEP_MOD,         ONLY : DRYHg0, DRYHg2, DRYHgP !cdh
@@ -2432,9 +2432,15 @@ contains
                 ! Convert : kg/m2/s -> molec/cm2/s
                 ! consider timestep difference between convection and emissions
 		IF(ND44 > 0 .or. LGTMM) THEN                
+
 		AD44(:,:,N,1) = AD44(:,:,N,1) + dflx(:,:,NN) &
                                 / TRACER_MW_KG(NN) * 6.022d23 * 1.d-4 &
-                                * GET_TS_CONV() / GET_TS_EMIS() 
+                                * GET_TS_CONV() / GET_TS_EMIS()
+
+                AD44_WOLF(:,:,N,1) = dflx(:,:,NN) &
+                                / TRACER_MW_KG(NN) * 6.022d23 * 1.d-4 &
+                                * GET_TS_CONV() / GET_TS_EMIS()
+
 		ENDIF
 
                 ! If Soil NOx is turned on, then call SOIL_DRYDEP to

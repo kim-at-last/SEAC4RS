@@ -63,6 +63,7 @@
       USE DIAG_MOD,        ONLY : AD52,        AD54,        AD63
       USE DIAG_MOD,        ONLY : AD63_COUNT
       USE DIAG_MOD,        ONLY : AD19,        AD58,        AD60
+      USE DIAG_MOD,        ONLY : AD44_WOLF
 
 #if   defined( TOMAS )
       USE DIAG_MOD,        ONLY : AD59_NUMB,   AD59_SULF,   AD59_SALT  !(win, 7/9/09)
@@ -387,7 +388,8 @@
       IF ( ND07 > 0 .and. LCARB ) THEN 
          LD07 = MIN( ND07, LLPAR )
 
-         ALLOCATE( AD07( IIPAR, JJPAR, LLTROP, PD07 ), STAT=AS )
+         ! Change from LLTROP to LD07 (skim, 6/28/14)
+         ALLOCATE( AD07( IIPAR, JJPAR, LD07, PD07 ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD07' )
 
          ALLOCATE( AD07_BC( IIPAR, JJPAR, LD07 ), STAT=AS )
@@ -1062,6 +1064,11 @@
          ! Allocate AD44 array
          ALLOCATE( AD44( IIPAR, JJPAR, NMAX, 2 ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD44' )
+
+         ! Allocate AD44 array
+         ALLOCATE( AD44_WOLF( IIPAR, JJPAR, NMAX, 2 ), STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD44_WOLF' )
+
       ENDIF
       
       !=================================================================

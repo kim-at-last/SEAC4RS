@@ -179,7 +179,14 @@
          IF ( ND38 > 0 ) AD38     = 0e0
          IF ( ND39 > 0 ) AD39     = 0e0
          IF ( ND43 > 0 ) AD43     = 0e0
-         IF ( ND44 > 0 ) AD44     = 0e0
+
+         ! Always initialize the instantaneous array as well
+         !    (skim, 8/16/14)
+         IF ( ND44 > 0 ) THEN
+            AD44      = 0e0
+            AD44_WOLF = 0e0
+         ENDIF
+
          IF ( ND45 > 0 ) AD45     = 0e0
          IF ( ND46 > 0 ) AD46     = 0e0
          IF ( ND47 > 0 ) AD47     = 0e0

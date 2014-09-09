@@ -620,6 +620,22 @@
                IF ( LINE == 'HG2_FRACP'  ) PVAR(N) = 4002
 
             !===========================================================
+            ! Save output for Glenn Wolfe - skim 8/16/13 PVAR offset: 5000
+            !===========================================================
+            CASE ( 'WOLF' )
+
+               IF ( LINE == 'WOLF_ISOP' ) PVAR(N) = 5001
+               IF ( LINE == 'WOLF_MONO' ) PVAR(N) = 5002
+               IF ( LINE == 'WOLF_SOIL' ) PVAR(N) = 5003
+               IF ( LINE == 'WOLF_FERT' ) PVAR(N) = 5004
+               IF ( LINE == 'WOLF_VO3'  ) PVAR(N) = 5005
+               IF ( LINE == 'WOLF_FO3'  ) PVAR(N) = 5006
+               IF ( LINE == 'WOLF_VNO2' ) PVAR(N) = 5007
+               IF ( LINE == 'WOLF_FNO2' ) PVAR(N) = 5008
+               IF ( LINE == 'WOLF_VH2O2') PVAR(N) = 5009
+               IF ( LINE == 'WOLF_FH2O2') PVAR(N) = 5010
+
+            !===========================================================
             ! SMVGEAR rxn rate: listed as "REA_001", etc.
             ! PVAR offset: 10000
             !===========================================================
@@ -1199,19 +1215,26 @@
 #if   defined( TOMAS )
       USE DIAG_MOD,           ONLY : AD61_INST   ! (win, 7/28/09)
 #endif
+      USE DIAG_MOD,           ONLY : AD44_WOLF              !skim, 08/17/14
+      USE DRYDEP_MOD,         ONLY : NUMDEP, DEPNAME        !skim, 08/17/14
       USE ERROR_MOD,          ONLY : GEOS_CHEM_STOP  
       USE GIGC_ErrCode_Mod
       USE GIGC_Input_Opt_Mod, ONLY : OptInput
       USE GIGC_State_Chm_Mod, ONLY : ChmState
       USE GIGC_State_Met_Mod, ONLY : MetState
+      USE GRID_MOD,           ONLY : GET_AREA_CM2           !skim, 08/17/14
+      USE MEGAN_MOD,          ONLY : GET_MEGAN_EMISSIONS    !skim, 08/17/14
       USE PRESSURE_MOD,       ONLY : GET_PEDGE, GET_PCENTER !skim, 12/06/13
-      USE TIME_MOD,           ONLY : GET_TAU,        GET_TS_DIAG
+      USE TIME_MOD,           ONLY : GET_TAU, GET_TS_DIAG, GET_TS_EMIS
       USE OCEAN_MERCURY_MOD,  ONLY : Fp, Fg !eds 10/27/11
 
       USE JV_CMN_MOD               ! ODAER, QAA, QAA_AOD
       USE DUST_MOD,           ONLY : ODMDUST !lei, 12/03/13
       USE COMODE_LOOP_MOD          ! CSPEC, etc.
       USE PBL_MIX_MOD,        ONLY : GET_PBL_TOP_m !skim, 12/06/13
+
+      USE COMMSOIL_MOD             ! To get soil and fertilizer NOx emissions
+                                   ! skim, 8/17/14
 !
 ! !INPUT PARAMETERS:
 !
@@ -1264,6 +1287,7 @@
       LOGICAL, SAVE       :: FIRST = .TRUE.
       LOGICAL             :: PCHEM
       INTEGER             :: I, IP, IRHN, J, L, JLOOP, M, N, R, RH, V, H
+      INTEGER             :: D, T   !skim
       INTEGER             :: LL     !eds
       INTEGER             :: LPLANE
       INTEGER             :: DUST_TYPE !lei, 12/03/13
@@ -1679,6 +1703,113 @@
 
                   CASE ( 4002 )
                      VARI(V) = FP(I,J,LL) !L+1 sample 4/24/12
+
+                  !=======================================================
+                  ! Emission & deposition along flight track skim 8/16/13
+                  !=======================================================
+                  CASE ( 5001 ) ! Isoprene emissions
+                     VARI(V) = GET_MEGAN_EMISSIONS(I,J,State_Met,'ISOP')
+
+                     VARI(V) = VARI(V) / 
+     &                  GET_AREA_CM2(I,J,1) / (GET_TS_EMIS() * 60d0)
+
+                  CASE ( 5002 ) ! Monoterpene emissions
+                     VARI(V) = 
+     &                  GET_MEGAN_EMISSIONS(I,J,State_Met,'APIN') +
+     &                  GET_MEGAN_EMISSIONS(I,J,State_Met,'BPIN') +
+     &                  GET_MEGAN_EMISSIONS(I,J,State_Met,'LIMO') +
+     &                  GET_MEGAN_EMISSIONS(I,J,State_Met,'SABI') +
+     &                  GET_MEGAN_EMISSIONS(I,J,State_Met,'MYRC') +
+     &                  GET_MEGAN_EMISSIONS(I,J,State_Met,'CARE') +
+     &                  GET_MEGAN_EMISSIONS(I,J,State_Met,'OCIM') +     
+     &                  GET_MEGAN_EMISSIONS(I,J,State_Met,'OMON')
+
+                     VARI(V) = VARI(V) / 
+     &                  GET_AREA_CM2(I,J,1) / (GET_TS_EMIS() * 60d0)
+
+                  CASE ( 5003 ) ! Soil NO emissions
+                     VARI(V) = INST_SOIL(I,J)
+
+                  CASE ( 5004 ) ! Fertilizer NO emissions
+                     VARI(V) = INST_FERT(I,J)
+                   
+                  CASE ( 5005 ) ! O3 Deposition Velocity
+
+                     ! Reinitialize with error signal
+                     D = -1
+
+                     DO T = 1, NUMDEP
+                        IF ( DEPNAME(T) == 'O3' ) THEN
+                           D = T
+                        ENDIF
+                     ENDDO
+
+                     VARI(V) = AD44_WOLF(I, J, D, 2)
+
+                  CASE ( 5006 ) ! O3 Deposition Flux
+
+                     ! Reinitialize with error signal
+                     D = -1
+
+                     DO T = 1, NUMDEP
+                        IF ( DEPNAME(T) == 'O3' ) THEN
+                           D = T
+                        ENDIF
+                     ENDDO
+
+                     VARI(V) = AD44_WOLF(I, J, D, 1)
+
+                  CASE ( 5007 ) ! NO2 Deposition Velocity
+
+                     ! Reinitialize with error signal
+                     D = -1
+
+                     DO T = 1, NUMDEP
+                        IF ( DEPNAME(T) == 'NO2' ) THEN
+                           D = T
+                        ENDIF
+                     ENDDO
+
+                     VARI(V) = AD44_WOLF(I, J, D, 2)
+
+                  CASE ( 5008 ) ! NO2 Deposition Flux
+
+                     ! Reinitialize with error signal
+                     D = -1
+
+                     DO T = 1, NUMDEP
+                        IF ( DEPNAME(T) == 'NO2' ) THEN
+                           D = T
+                        ENDIF
+                     ENDDO
+
+                     VARI(V) = AD44_WOLF(I, J, D, 1)
+
+                  CASE ( 5009 ) ! H2O2 Deposition Velocity
+
+                     ! Reinitialize with error signal
+                     D = -1
+
+                     DO T = 1, NUMDEP
+                        IF ( DEPNAME(T) == 'H2O2' ) THEN
+                           D = T
+                        ENDIF
+                     ENDDO
+
+                     VARI(V) = AD44_WOLF(I, J, D, 2)
+
+                  CASE ( 5010 ) ! H2O2 Deposition Flux
+
+                     ! Reinitialize with error signal
+                     D = -1
+
+                     DO T = 1, NUMDEP
+                        IF ( DEPNAME(T) == 'H2O2' ) THEN
+                           D = T
+                        ENDIF
+                     ENDDO
+
+                     VARI(V) = AD44_WOLF(I, J, D, 1)
 
                   !--------------------------
                   ! SMVGEAR reaction rates
