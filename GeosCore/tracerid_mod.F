@@ -1285,6 +1285,9 @@
             CASE ( 'ISN1' )
                IDTISN1  = N
 
+            CASE ( 'ISOPN' )
+               IDTISOPN  = N
+
             CASE (  'ETHLN'  )
                IDTETHLN  = N
 
@@ -3347,10 +3350,10 @@
          IF ( NAMEGAS(I) == 'CO'     ) IDCO     = I
          IF ( NAMEGAS(I) == 'ALK4'   ) IDALK4   = I
          IF ( NAMEGAS(I) == 'ISOP'   ) IDISOP   = I
- !        IF ( NAMEGAS(I) == 'APINE'  ) IDAPINE  = I
+!        IF ( NAMEGAS(I) == 'APINE'  ) IDAPINE  = I
          IF ( NAMEGAS(I) == 'GLPAN'  ) IDGLPAN  = I
          IF ( NAMEGAS(I) == 'GPAN'   ) IDGPAN   = I
-         IF ( NAMEGAS(I) == 'PMN'    ) IDPMN   = I
+         IF ( NAMEGAS(I) == 'PMN'    ) IDPMN    = I
          IF ( NAMEGAS(I) == 'PPN'    ) IDPPN    = I
          IF ( NAMEGAS(I) == 'HNO3'   ) IDHNO3   = I
          IF ( NAMEGAS(I) == 'H2O2'   ) IDH2O2   = I
@@ -3510,7 +3513,7 @@
          IF ( NAMEGAS(I) == 'DRYHAC'   ) IDDRYHAC  = I
          IF ( NAMEGAS(I) == 'DRYALD2'  ) IDDRYALD2 = I
          IF ( NAMEGAS(I) == 'DRYNH3'   ) IDDRYNH3  = I
-!         IF ( NAMEGAS(I) == 'DRYAPINE' ) IDDRYAPINE = I
+         IF ( NAMEGAS(I) == 'DRYAPINE' ) IDDRYAPINE = I
 
 !-Not used. (ccc, 01/27/10)
 !         IF ( NAMEGAS(I) == 'BENZ'   ) IDBENZ   = I 
@@ -4678,6 +4681,16 @@
       IDC2H2    = 0
       IDMBO     = 0
       IDHC187   = 0
+      IDGLYX    = 0
+      IDMGLY    = 0
+      IDDRYGLYX = 0
+      IDDRYMGLY = 0
+      IDC2H4    = 0
+      IDC2H2    = 0
+      IDMBO     = 0
+      IDGLYC    = 0
+      IDHAC     = 0
+      IDMPN     = 0
 
       IDAPAN    = 0
       IDENPAN   = 0
