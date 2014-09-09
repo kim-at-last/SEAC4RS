@@ -1694,7 +1694,7 @@
       REAL*8  XMWH2O,DAIR,TEMPK,TEMPC
       INTEGER IOLSON,II,IW
       INTEGER K,IJLOOP,LDT
-      REAL*8  RCLX,RIXX,BIOFIT
+      REAL*8  RCLX,RIXX
 
 #if   defined( TOMAS )
       ! For TOMAS aerosol (win, 7/15/09)
@@ -1910,6 +1910,8 @@
 !*     dependence over the canopy depth; sp even though RI is input per
 !*     unit area of leaf it need not be scaled by LAI to yield a bulk
 !*     canopy value because that's already done in the GFACI formulation.
+!      krt, 7/23/14 - Replace RADO with GAMMAPAR from MEGAN. Calculate
+!               RIX using GAMMAPAR instead of BIOFIT
 !***************************************************************************
 
             RAD0 = RADIAT(IJLOOP)
@@ -1919,14 +1921,15 @@
             IF (TEMPC .GT. 0.D0 .AND. TEMPC .LT. 40.D0)
      *           GFACT = 400.D0/TEMPC/(40.0D0-TEMPC)
             GFACI = 100.D0
-            IF ( RAD0 > 0.D0 .and. State_Met%XLAI(I,J,LDT) > 0.D0 ) THEN
-               GFACI = 1.D0 / BIOFIT( DRYCOEFF,       
-     &                                State_Met%XLAI(I,J,LDT),
-     &                                SUNCOS(IJLOOP), 
-     &                                CFRAC(IJLOOP)            )
+            IF ( State_Met%GAMMAPAR(I,J) > 0d0
+     &           .and. State_Met%XLAI(I,J,LDT) > 0.D0 ) THEN
+
+               RIX = RIX*GFACT /
+     &              (State_Met%GAMMAPAR(I,J)*State_Met%XLAI(I,J,LDT))
+            ELSE
+               RIX = RIX*GFACT*GFACI
             ENDIF
-            
-            RIX = RIX*GFACT*GFACI
+
  150        CONTINUE
 !*                                 
 !*    Compute aerodynamic resistance to lower elements in lower part           
