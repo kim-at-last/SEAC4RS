@@ -524,6 +524,11 @@
 
             ENDIF
 
+            ! KLUDGE FOR NIGHTTIME DEPOSITION (krt, 7/12/14)
+            IF ( State_Met%PARDR(I,J) .LE. 1 ) THEN
+               DVZ = DVZ * 2
+            ENDIF
+
             ! Set Vd for aerosol tracers over snow/ice (J. Fisher, 8/1/11)
             IF ( ( AIROSOL(N)    ) .and. ( LSNOW(IJLOOP) )  .and. 
      &           ( NN /= IDTSALA ) .and. ( NN /= IDTSALC )  .and.
