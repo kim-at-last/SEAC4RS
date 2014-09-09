@@ -4500,6 +4500,17 @@
             XMW(NUMDEP)     = 63d-3
             AIROSOL(NUMDEP) = .FALSE.
 
+         ! HNO2
+         ELSE IF ( N == IDTHNO2 ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTHNO2
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'HNO2'
+            HSTAR(NUMDEP)   = 1.0d+5
+            F0(NUMDEP)      = 0.1d0
+            XMW(NUMDEP)     = 63d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
          ! H2O2
          ELSE IF ( N == IDTH2O2 ) THEN
             NUMDEP          = NUMDEP + 1
@@ -4570,7 +4581,18 @@
             F0(NUMDEP)      = 1.0d0 !0d0
             XMW(NUMDEP)     = 135d-3
             AIROSOL(NUMDEP) = .FALSE.
-         
+        
+         ! PMNN
+         ELSE IF ( N == IDTPMNN ) THEN
+            NUMDEP          = NUMDEP + 1
+            NDVZIND(NUMDEP) = DRYDPAN
+            NTRAIND(NUMDEP) = IDTPMNN
+            DEPNAME(NUMDEP) = 'PMNN'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0!149d-3
+            AIROSOL(NUMDEP) = .FALSE.
+ 
          ! PYPAN (uses same dep vel as PAN)
          !FP_ISOP
          ELSE IF ( N == IDTPYPAN ) THEN
@@ -4587,7 +4609,7 @@
          ELSE IF ( N == IDTISN1 ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTISN1
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDPAN !HNO3
             DEPNAME(NUMDEP) = 'ISN1'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
@@ -4750,6 +4772,190 @@
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 0d0
+            AIROSOL(NUMDEP) = .FALSE.
+
+            ! krt, 4/21/14, adding ...
+        ! ACTA
+         ELSE IF ( N == IDTACTA ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTACTA
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'ACTA'
+            HSTAR(NUMDEP)   = 0d0
+!            HSTAR(NUMDEP)   = 4.1d3
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0!60d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ! HCOOH
+         ELSE IF ( N == IDTHCOOH ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTHCOOH
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'HCOOH'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0
+!           HSTAR(NUMDEP)   = 8.9d3
+            !F0(NUMDEP)      = 1.0d0
+            !XMW(NUMDEP)     = 46d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ! krt, 4/21/14, adding organic peroxides
+         !
+         ELSE IF ( N == IDTMAOP ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTMAOP
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'MAOP'
+            HSTAR(NUMDEP)   = 0d0
+!            HSTAR(NUMDEP)   = 3.4d2
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!102d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTVRP ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTVRP
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'VRP'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!120d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTETP ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTETP
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'ETP'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!62d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTATOOH ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTATOOH
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'ATOOH'
+            HSTAR(NUMDEP)   = 0d0!1.0d+14 !same as HNO3
+!            HSTAR(NUMDEP)   = 3.4d2
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!90d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTISNP ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTISNP
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'ISNP'
+            HSTAR(NUMDEP)   = 1.0d+14 !same as HNO3
+!            HSTAR(NUMDEP)   = 3.4d2
+            F0(NUMDEP)      = 1.0d0
+            XMW(NUMDEP)     = 197d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTIAP ) THEN !peroxide from IAO2
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTIAP
+            NDVZIND(NUMDEP) = DRYDHNO3
+!            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'IAP'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!150d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTINPN ) THEN !peroxide from INO2
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTINPN
+            NDVZIND(NUMDEP) = DRYDHNO3
+!            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'INPN'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!163d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTMP ) THEN !methylhydroperoxide
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTMP
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'MP'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!48d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTMRP ) THEN !peroxide from MRO2
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTMRP
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'MRP'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!121d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTPRPN ) THEN !peroxide from PRN1
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTPRPN
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'PRPN'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!137d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTPP ) THEN !peroxide from PO2
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTPP
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'PP'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!92d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTR4P ) THEN !peroxide from R4O2
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTR4P
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'R4P'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!90d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTRA3P ) THEN !peroxide from A3O2
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTRA3P
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'RA3P'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!76d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTRB3P ) THEN !peroxide from B3O2
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTRB3P
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'RB3P'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!76d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ELSE IF ( N == IDTRP ) THEN !peroxide from RCO3
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTRP
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'RP'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!90d-3
             AIROSOL(NUMDEP) = .FALSE.
 
          !--------------------------------------------
