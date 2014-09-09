@@ -397,7 +397,7 @@ carbon_mod.o                : carbon_mod.F                                   \
                               tracerid_mod.o          tracer_mod.o           \
                               tropopause_mod.o        vdiff_pre_mod.o        \
                               nei2008_anthro_mod.o    finn_biomass_mod.o     \
-                              biofuel_mod.o
+                              biofuel_mod.o           sulfate_mod.o
 
 ch3i_mod.o                  : ch3i_mod.F                                     \
                               biofuel_mod.o           biomass_mod.o          \
