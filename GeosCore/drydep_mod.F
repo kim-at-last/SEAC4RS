@@ -2812,7 +2812,8 @@
 !
       PRINT*, IRI
       PRINT*, 'REPLACING INTERNAL RESISTANCE FOR CONIFEROUS FORESTS' 
-      IRI(3) = 200
+      IRI(3) = 200    * 0.8 ! coniferous, reducing by 80% based on Duke data, krt, 7/11/14
+      IRI(2) = IRI(2) * 0.8 ! deciduous , reducing by 80% based on Duke data, krt, 7/11/14
       PRINT*, IRI
 !
 !
