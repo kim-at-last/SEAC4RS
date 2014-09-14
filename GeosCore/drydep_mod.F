@@ -4368,6 +4368,7 @@
 !                              DIFFG, where it is in the denominator.
 !  04 Sep 2013 - R. Yantosca - Improve printout of drydep species
 !  26 Feb 2014 - J. Fisher   - Add ETHLN as drydep species
+!  29 Jul 2014 - J. Fisher   - Add DHDN  as drydep species
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -5093,6 +5094,17 @@
             F0(NUMDEP)      = 1d0 !Karl et al. 2010(science)
             XMW(NUMDEP)     = 105d-3
             AIROSOL(NUMDEP) = .FALSE.   
+
+         !DHDN (jaf, 5/21/14)
+         ELSE IF ( N == IDTDHDN ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTDHDN
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'DHDN'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0
+            AIROSOL(NUMDEP) = .FALSE.
 
          !PROPNN
          ELSE IF ( N == IDTPROPNN ) THEN

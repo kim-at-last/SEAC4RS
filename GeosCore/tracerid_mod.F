@@ -270,7 +270,7 @@
       INTEGER            :: IDIEPOX,IDMAP,  IDNO2,  IDNO3,   IDHNO2 
       INTEGER            :: IDISN1, IDMGLY, IDETHLN,IDGLYX, IDHCOOH
       INTEGER            :: IDACTA, IDMAOP, IDVRP,  IDETP,  IDATOOH
-      INTEGER            :: IDISNP, IDPMNN, IDMOBA
+      INTEGER            :: IDISNP, IDPMNN, IDMOBA, IDDHDN
       INTEGER            :: IDIAP,  IDINPN, IDMRP, IDPRPN
       INTEGER            :: IDPP,   IDR4P,  IDRA3P, IDRB3P, IDRP
       ! IDs of aromatics not use (hotp 8/1/09)
@@ -294,7 +294,7 @@
       INTEGER            :: IDDRYAPINE, IDDRYISOPNB, IDDRYISOPND
       INTEGER            :: IDDRYIAP,  IDDRYINPN, IDDRYMP, IDDRYMRP
       INTEGER            :: IDDRYPP,   IDDRYR4P, IDDRYRA3P, IDDRYPRPN
-      INTEGER            :: IDDRYRB3P, IDDRYRP
+      INTEGER            :: IDDRYRB3P, IDDRYRP, IDDRYDHDN
 
       INTEGER            :: IDDRYAPAN, IDDRYENPAN, IDDRYGLPAN
       INTEGER            :: IDDRYGPAN, IDDRYMPAN, IDDRYNIPAN
@@ -350,7 +350,7 @@
       INTEGER :: IDTISN1,  IDTMGLY, IDTETHLN,IDTGLYX, IDTHCOOH
       INTEGER :: IDTACTA,  IDTMAOP, IDTVRP,  IDTETP,  IDTATOOH
       INTEGER :: IDTISNP,  IDTPMNN, IDTCH3Br, IDTAPINE
-      INTEGER :: IDTIAP,   IDTINPN, IDTMRP,  IDTPRPN
+      INTEGER :: IDTIAP,   IDTINPN, IDTMRP,  IDTPRPN, IDTDHDN
       INTEGER :: IDTPP,    IDTR4P,  IDTRA3P, IDTRB3P, IDTRP
 
       INTEGER :: IDTRN,   IDTPB,    IDTBE7
@@ -665,6 +665,7 @@
 !                              semivolatile POA simulations; Removed tracers
 !                              for old SOA simulation (H. Pye)
 !  26 Feb 2014 - J. Fisher   - Add ETHLN (already included as chem species)
+!  29 Jul 2014 - J. Fisher   - Add DHDN
 !******************************************************************************
 !
       ! References to F90 modules
@@ -1290,6 +1291,9 @@
 
             CASE (  'ETHLN'  )
                IDTETHLN  = N
+
+            CASE (  'DHDN'  )
+               IDTDHDN  = N
 
             !--------------------------------
             ! Dicarbonyls GLYX & MGLY
@@ -3440,6 +3444,7 @@
          IF ( NAMEGAS(I) == 'ISN1'   ) IDISN1   = I    
          IF ( NAMEGAS(I) == 'ETHLN'  ) IDETHLN  = I    
          IF ( NAMEGAS(I) == 'GLYX'   ) IDGLYX   = I    
+         IF ( NAMEGAS(I) == 'DHDN'   ) IDDHDN   = I
          IF ( NAMEGAS(I) == 'MGLY'   ) IDMGLY   = I
          IF ( NAMEGAS(I) == 'HCOOH'  ) IDHCOOH  = I    
          IF ( NAMEGAS(I) == 'ACTA'   ) IDACTA   = I    
@@ -3498,6 +3503,7 @@
          IF ( NAMEGAS(I) == 'DRYISOPNB') IDDRYISOPNB = I
          IF ( NAMEGAS(I) == 'DRYMMN  ') IDDRYMMN   = I
          IF ( NAMEGAS(I) == 'DRYETHLN') IDDRYETHLN = I
+         IF ( NAMEGAS(I) == 'DRYDHDN' ) IDDRYDHDN  = I
          IF ( NAMEGAS(I) == 'DRYPROPNN') IDDRYPROPNN = I
          IF ( NAMEGAS(I) == 'DRYRIP'   ) IDDRYRIP  = I
          IF ( NAMEGAS(I) == 'DRYIEPOX' ) IDDRYIEPOX = I
@@ -4590,6 +4596,7 @@
       IDHNO2    = 0
       IDISN1    = 0
       IDETHLN   = 0
+      IDDHDN    = 0
       IDGLYX    = 0
       IDMGLY    = 0
       IDHCOOH   = 0
@@ -4649,6 +4656,7 @@
       IDDRYISOPNB = 0
       IDDRYMMN   = 0
       IDDRYETHLN = 0
+      IDDRYDHDN  = 0
       IDDRYPROPNN = 0
       IDDRYRIP    = 0
       IDDRYIEPOX  = 0
@@ -4815,6 +4823,7 @@
       IDTHNO2    = 0
       IDTISN1    = 0
       IDTETHLN   = 0
+      IDTDHDN    = 0
       IDTGLYX    = 0
       IDTMGLY    = 0
       IDTHCOOH   = 0

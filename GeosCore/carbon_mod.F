@@ -567,7 +567,6 @@
 
       ! If not an SOA simulation then uptake gas phase SOA precursors
       ! to avoid overestimating the concentration of gas phase species
-      ! For now this implementation only includes uptake of IEPOX.
       ! The uptake parameterization of IEPOX is based on Pye et al. (2013)
       ! irreversible uptake of isoprene epoxides and uses southeast US a gamma
       ! (uptake coefficient) value similar to values obtained over the southeast
@@ -2346,6 +2345,9 @@
       ! SOAG_LIGGIO_DIFF begins here!
       !=================================================================
 
+      ! Don't do this if GLYX is not a tracer!
+      IF ( IDTGLYX <= 0 ) RETURN
+
       ! Assume success
       RC = GIGC_SUCCESS
 
@@ -2592,6 +2594,9 @@
       !=================================================================
       ! SOAG_LIGGIO_DIFF begins here!
       !=================================================================
+
+      ! Don't do this if MGLY is not a tracer!
+      IF ( IDTMGLY <= 0 ) RETURN
 
       ! Assume success
       RC = GIGC_SUCCESS
@@ -3316,23 +3321,21 @@
       USE GIGC_State_Chm_Mod, ONLY : ChmState
       USE TIME_MOD,           ONLY : GET_TS_CHEM
       USE TROPOPAUSE_MOD,     ONLY : ITS_IN_THE_STRAT
-      USE TRACERID_MOD,       ONLY : IDTIEPOX
+      USE TRACERID_MOD,       ONLY : IDTIEPOX, IDTIMAE
+      USE TRACERID_MOD,       ONLY : IDTMMN,   IDTPROPNN, IDTETHLN
+      USE TRACERID_MOD,       ONLY : IDTISN1,  IDTR4N2,   IDTDHDN
       USE TRACER_MOD,         ONLY : TRACER_MW_KG
       USE PRESSURE_MOD,       ONLY : GET_PCENTER
 !
 ! !INPUT PARAMETERS:
 !
-      LOGICAL,        INTENT(IN)    :: am_I_Root   ! Is this the root
-CPU?
-      TYPE(OptInput), INTENT(IN)    :: Input_Opt   ! Input Options
-object
-      TYPE(MetState), INTENT(IN)    :: State_Met   ! Meteorology State
-object
+      LOGICAL,        INTENT(IN)    :: am_I_Root   ! Is this the root CPU?
+      TYPE(OptInput), INTENT(IN)    :: Input_Opt   ! Input Options object
+      TYPE(MetState), INTENT(IN)    :: State_Met   ! Meteorology State object
 !
 ! !INPUT/OUTPUT PARAMETERS:
 !
-      TYPE(ChmState), INTENT(INOUT) :: State_Chm   ! Chemistry State
-object
+      TYPE(ChmState), INTENT(INOUT) :: State_Chm   ! Chemistry State object
 !
 ! !OUTPUT PARAMETERS:
 !
@@ -3354,7 +3357,9 @@ object
 !  (1 ) First implemented in GEOS-Chem by Eloise Marais using CMAQ code
 !  developed
 !       by H.O.T. Pye (April 2014)
-!
+! 24 Jul 2014 - J.A. Fisher - Added uptake of ANs
+! 28 Jul 2014 - J.A. Fisher - Added uptake of IMAE
+! 28 Jul 2014 - J.A. Fisher - Reorganised for increased flexibility
 !
 !EOP
 !------------------------------------------------------------------------------
@@ -3364,46 +3369,56 @@ object
 !
       LOGICAL            :: prtDebug
       LOGICAL            :: LPRT
-      INTEGER            :: I,        J,        L,        N
+      INTEGER            :: I, J, L, N, M
       INTEGER            :: JLOOP
+
+      ! Number of gas-phase species that can be taken up
+      ! Currently includes: IEPOX, IMAE, MMN, PROPNN, ETHLN, ISN1, R4N2
+      !                     DHDN
+      INTEGER, PARAMETER :: N_SPEC_UPTAKE = 8
 
       ! Prescribed uptake coefficient from Pye et al. (2013)
       REAL*8, PARAMETER  :: GAMMA_IEPOX = 2d-3
-      ! Mean molecular speed [m/s]:
-      REAL*8             :: RHO
+      REAL*8, PARAMETER  :: GAMMA_IMAE  = 1d-4
+      ! For ANs, assume gamma=1 for now (jaf, 25/7/14)
+      REAL*8, PARAMETER  :: GAMMA_ANs = 1d0
+
       ! Temperature [K], Pressure [hPa]:
       REAL*8             :: XTEMP,      XPRES
+
       ! Particle radius [cm]:
       REAL*8             :: XRADIUS
+
       ! Particle surface area [cm^2 aerosol per cm^3 air]:
       REAL*8             :: XWAREA
+
       ! Diffusivity in gas phase at local conditions [m^2/s]:
       REAL*8             :: DIFF_N2O5
-      ! Heterogeneous rate constants for isoprene-derived species
-      ! (i.e. IEPOX)
-      REAL*8             :: KSPC
-      ! Gas-phase concentration of precursors:
-      REAL*8             :: GASC
-      ! Change in gas-phase concentration:
-      REAL*8             :: DELC
+
       ! Chemistry time step [min]
       REAL*8             :: DTCHEM
+
       ! Relative humidity [%]
       REAL*8             :: XRH
-      INTEGER :: TRACERLIST(1), KLM, SPC
 
       ! Diffusivity in gas phase at standard conditions [m^2/s]:
       REAL*8, PARAMETER  :: DIFF_N2O5_STD = 1.0d-5
+
       ! Standard conditions of temperature and pressure
       ! for N2O5 gas-phase diffusivity (T = 273.15 K; P = 1013.25 hPa ):
       REAL*8, PARAMETER  :: STDTEMP=273.15d0, STDATMPA=1.01325d3
-      ! Define critical RH (%), above which heterogeneous chemistry
-      ! occurs:
+
+      ! Define critical RH (%), above which heterogeneous chemistry occurs:
       REAL*8, PARAMETER  :: CRITRH = 35.0d0
+
+      ! Variables for reorganised version
+      INTEGER            :: IDTs(N_SPEC_UPTAKE)        ! IDs of species
+      REAL*8             :: GAMMAs(N_SPEC_UPTAKE)      ! Gamma values
+      LOGICAL            :: IS_AN(N_SPEC_UPTAKE)       ! Is this an AN?
+      REAL*8             :: RHO, K_RATE, G_CONC, DEL
 
       ! Pointers
       ! We need to define local arrays to hold corresponding values
-      ! from the Chemistry State (State_Chm) object. (mpayer, 12/6/12)
       REAL*8, POINTER :: STT(:,:,:,:)
 
       !=================================================================
@@ -3420,142 +3435,161 @@ object
 
       ! Do we have to print debug output?
       prtDebug = ( LPRT .and. am_I_Root )
-      ! Alkyl nitrates for aerosol uptake
 
-      TRACERLIST = (/ IDTIEPOX /)
+      ! Get chemistry time step [s]:
+      DTCHEM = GET_TS_CHEM() * 60d0
+
+      ! Initialize arrays
+      IDTS = 0
+      GAMMAs = 0d0
+      IS_AN = .FALSE.
+
+      ! Cycle over possible species for uptake, check whether they are
+      ! defined as tracers, and set IDT, gamma & ANs logical variable
+      IF ( IDTIEPOX > 0 ) THEN
+         IDTs(1)   = IDTIEPOX
+         GAMMAs(1) = GAMMA_IEPOX
+         IS_AN(1)  = .FALSE.
+      ENDIF
+      IF ( IDTIMAE > 0 ) THEN
+         IDTs(2)   = IDTIMAE
+         GAMMAs(2) = GAMMA_IMAE
+         IS_AN(2)  = .FALSE.
+      ENDIF
+      IF ( IDTMMN > 0 ) THEN
+         IDTs(3)   = IDTMMN
+         GAMMAs(3) = GAMMA_ANs
+         IS_AN(3)  = .TRUE.
+      ENDIF
+      IF ( IDTPROPNN > 0 ) THEN
+         IDTs(4)   = IDTPROPNN
+         GAMMAs(4) = GAMMA_ANs
+         IS_AN(4)  = .TRUE.
+      ENDIF
+      IF ( IDTETHLN > 0 ) THEN
+         IDTs(5)   = IDTETHLN
+         GAMMAs(5) = GAMMA_ANs
+         IS_AN(5)  = .TRUE.
+      ENDIF
+      IF ( IDTISN1 > 0 ) THEN
+         IDTs(6)   = IDTISN1
+         GAMMAs(6) = GAMMA_ANs
+         IS_AN(6)  = .TRUE.
+      ENDIF
+      IF ( IDTR4N2 > 0 ) THEN
+         IDTs(7)   = IDTR4N2
+         GAMMAs(7) = GAMMA_ANs
+         IS_AN(7)  = .TRUE.
+      ENDIF
+      IF ( IDTDHDN > 0 ) THEN
+         IDTs(8)   = IDTDHDN
+         GAMMAs(8) = GAMMA_ANs
+         IS_AN(8)  = .TRUE.
+      ENDIF
+!! For now, turn off uptake for everything but IEPOX, IMAE (jaf,9/11/14)
+      IDTS(3:8) = 0
+!!
 
       ! For parallel do:
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
-!$OMP+PRIVATE( I, J, L, N, KLM, JLOOP, XRADIUS, XTEMP, RHO,KSPC  )
-!$OMP+PRIVATE( XWAREA, DIFF_N2O5, XPRES, GASC, DELC, XRH,SPC)
+!$OMP+PRIVATE( I, J, L, M, N, JLOOP )
+!$OMP+PRIVATE( XRADIUS, XTEMP,  XPRES,  XRH, XWAREA, DIFF_N2O5 )
+!$OMP+PRIVATE( RHO,     G_CONC, K_RATE, DEL )
       DO L = 1, LLPAR
       DO J = 1, JJPAR
       DO I = 1, IIPAR
 
-         ! =============================================================
-         ! Initialize variables for use in this subroutine. This list is
-         ! likely overkill, but better safe than sorry!
-         ! ============================================================
-
-         ! MERGE1 (hotp 5/25/09)
-         IF ( ITS_IN_THE_STRAT( I, J, L, State_Met ) ) GOTO 121
+         ! Skip out of inappropriate boxes as early as possible
+         IF ( ITS_IN_THE_STRAT( I, J, L, State_Met ) )  CYCLE
 
          ! Get 1-D index
          JLOOP   = JLOP( I, J, L )
 
          ! JLOP equal 0 if we're not in the tropopause. (ccc,10/16/09)
-         IF ( JLOOP == 0 ) GOTO 121
+         IF ( JLOOP == 0 ) CYCLE
 
          ! Get RH
+         XRH    = State_Met%RH( I, J, L )   ![%]
+
          ! Only do heterogeneous chemistry if above critical RH:
          ! The formation of isoprene-derived SOA on wet aerosols is
-         ! consistent with the finding by Nguyen et al. (2014) that
-         ! IEPOX-
+         ! consistent with the finding by Nguyen et al. (2014) that IEPOX-
          ! derived SOA are formed on wet aerosol and that there is weak
          ! dependence of SOA yields on relative humidity.
-         XRH    = State_Met%RH( I, J, L ) ![%]
-         IF ( XRH .lt. CRITRH ) GOTO 121
+         IF ( XRH .lt. CRITRH ) CYCLE
 
-         ! Get chemistry time step [s]:
-         DTCHEM = GET_TS_CHEM() * 60d0
          ! Get temperature:
          XTEMP   = State_Met%T( I, J, L )
+
          ! Get pressure [in hPa]:
          XPRES   = GET_PCENTER( I, J, L )
 
-         ! Get change in gas-phase concentration that results from
-         ! reactive uptake of IEPOX and IMAE:
          ! First adjust diffusivity at standard conditions
          ! (DIFF_N2O5_STD = 1d-5 m^2/s) to local conditions:
          DIFF_N2O5 = DIFF_N2O5_STD * ( (XTEMP/STDTEMP)**1.75 ) *
-     &        ( STDATMPA/XPRES )
+     &                               ( STDATMPA/XPRES )
 
-         DO KLM = 1, SIZE( TRACERLIST )
-            SPC = TRACERLIST(KLM)
+         ! Initialize variables for each iteration
+         RHO    = 0d0 ! mean molecular speed
+         K_RATE = 0d0 ! Loss rate
+         G_CONC = 0d0 ! Gas phase concentration
+         DEL    = 0d0 ! Change in concentration
 
-            ! Initialize radius and area:
-            XRADIUS = 0d0
-            XWAREA  = 0d0
-            GASC    = 0d0
-            ! Initialize mean molecular speed:
-            RHO   = 0d0
-            ! Initialize loss rate of SOA precusors:
-            KSPC      = 0d0
-            ! Change in precursor concentration:
-            DELC = 0d0
+         ! Loop over gas-phase species
+         DO M = 1, N_SPEC_UPTAKE
+
+            ! If this species isn't used here, skip it
+            IF ( IDTs(M) <= 0 ) CYCLE
 
             ! Calculate mean molecular speed [m/s]:
             RHO = SQRT( ( 8d0 * RSTARG * 1d-7 * XTEMP )/
-     &           ( ONEPI * TRACER_MW_KG( SPC )))
+     &                  ( ONEPI * TRACER_MW_KG(IDTs(M)) ) )
 
             ! Get gas phase concentration of precursors [mol]:
-            GASC = STT( I, J, L, SPC) / TRACER_MW_KG( SPC )
+            G_CONC = STT( I, J, L, IDTs(M) ) / TRACER_MW_KG(IDTs(M))
 
-            ! Loop over aerosols (this includes sulfate, black carbon
-            ! and
+            ! Loop over aerosols (this includes sulfate, black carbon and
             ! organic carbon aerosols):
             DO N=1, NAER
-               ! Skip sea salt aerosols:
-               IF ( N .ge. 4 .and. N .le. 5 ) GOTO 123
 
-               ! Skip is aerosol surface area is zero:
-               IF ( TAREA( JLOOP, N+NDUST ) .eq. 0 ) GOTO 123
+            ! Skip sea salt aerosols:
+            IF ( N .ge. 4 .and. N .le. 5 ) CYCLE
 
-               ! Get particle radius and convert from cm to m [m]:
-               XRADIUS = ERADIUS( JLOOP, N+NDUST )/1.d2
-               ! Get total available wet aerosol area and convert from
-               ! cm2/cm3 to
-               ! m2/m3 [m2/m3]:
-               XWAREA  = TAREA(   JLOOP, N+NDUST )*1.d2
+            ! Skip is aerosol surface area is zero:
+            IF ( TAREA( JLOOP, N+NDUST ) .eq. 0 ) CYCLE
 
-               ! First calculate IEPOX reaction rate in aerosol phase
-               ! [s^-1]:
-               IF ( SPC == IDTIEPOX ) THEN
-                  KSPC = XWAREA/( (XRADIUS/DIFF_N2O5) +
-     &                 (4.d0/(RHO * GAMMA_IEPOX)) )
-               ENDIF
+            ! Get particle radius and convert from cm to m [m]:
+            XRADIUS = ERADIUS( JLOOP, N+NDUST )/1.d2
+            ! Get total available wet aerosol area and convert from cm2/cm3 to
+            ! m2/m3 [m2/m3]:
+            XWAREA  = TAREA(   JLOOP, N+NDUST )*1.d2
 
-               ! Next calculate the change in concentration of IEPOX as
-               ! a result of
-               ! aerosol uptake. Sum over all aerosol types:
-               ! (1) IEPOX:
-               DELC = DELC +
-     &                 GASC * (1.d0 - DEXP( -KSPC * DTCHEM ) )
+            ! Calculate reaction rate in aerosol phase [s^-1]:
+            K_RATE = XWAREA /( (XRADIUS / DIFF_N2O5) +
+     &                       ( 4.d0 / ( RHO * GAMMAs(M) ) ) )
 
- 123           CONTINUE
-            ENDDO               ! aerosols
-            ! Check result over Southeast US:
-            !IF ( I .eq. 20 .and. J .eq. 32 .and. L .eq. 1 .and.
-            !     SPC .eq. IDTISOPN ) THEN
-               !PRINT*, '============================'
-               !PRINT*, 'ISOPN conc before uptake = ', GASC
-               !WRITE(*,*) 'DEBUG CARBON',  STT( I, J, L, SPC),
-               !     TRACER_MW_KG( SPC )
+            ! Calculate the change in gas-phase concentration as a result of
+            ! aerosol uptake. Sum over all aerosol types.
+            DEL = DEL + G_CONC * (1.d0 - DEXP( -K_RATE * DTCHEM ) )
 
-               !PRINT*, '============================'
-            !ENDIF
+            ENDDO   ! aerosols
 
-         ! ======================================================
-         !   Update gas-phase concentration of precursors [kg]:
-         ! ======================================================
-            GASC = GASC - DELC  ! [mol]
-            STT( I, J, L, SPC ) = MAX( GASC*TRACER_MW_KG(SPC),
-     &           SMALLNUM )     ! [kg]
+            ! Update gas-phase concentration of precursors [kg]:
+            G_CONC = G_CONC - DEL   ! [mol]
+            STT(I,J,L,IDTs(M)) =
+     &         MAX( G_CONC*TRACER_MW_KG(IDTs(M)),SMALLNUM )   ! [kg]
 
-            ! Check result over Southeast US:
-            !IF ( I .eq. 20 .and. J .eq. 32 .and. L .eq. 1 .and.
-            !     SPC .eq. IDTISOPN ) THEN
-               !PRINT*, '============================'
-               !PRINT*, 'ISOPN conc after uptake = ', GASC
-               !PRINT*, '============================'
-            !ENDIF
+            ! Eventually, use IS_AN to transfer AN mass lost to ONITA
+            !! IF ( IS_AN(M) ) THEN
+            !!    STT(I,J,L,IDTONITA) = ...
+            !! ENDIF
 
-         ENDDO                  !species
- 121     CONTINUE
-      ENDDO                     !I
-      ENDDO                     !J
-      ENDDO                     !L
+         ENDDO ! gas-phase uptake species
+
+      ENDDO
+      ENDDO
+      ENDDO
 !$OMP END PARALLEL DO
 
       ! Free pointer
