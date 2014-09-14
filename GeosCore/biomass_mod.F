@@ -667,8 +667,8 @@
             ! FIRE INJECTION VARIABLES
             ! Hardcoded levels for SEAC4RS fire injection heights
             ! krt, 11/26/13
-            BOTS = 18d0         ! closest to 3km in GEOS5
-            TOPS = 23d0         ! closest to 5km in GEOS5
+            BOTS = 19d0         ! closest to 3.5 km in GEOS5
+            TOPS = 24d0         ! closest to 5.4 km in GEOS5
 
             ! Fire injection scheme - krt, 11/26/13
             ! initialize emission fractions
@@ -700,9 +700,8 @@
             TOTPRESFTUS  = GET_PEDGE(I,J,BOTS) - GET_PEDGE(I,J,TOPS)
             DELTPRESUS = TOTPRESFTUS/(TOPS-BOTS+1)
                           
-            ! IF We are in the Western U.S. put emissions between 3 and 5km
-            IF ( NEI08_MASK(I,J) > 0.1d0 .and. 
-     &           GET_XMID(I,J,1) .lt. -98 ) THEN 
+            ! IF We are in the Western U.S. put emissions between 3.5 and 5.5 km
+            IF ( NEI08_MASK(I,J) > 0.1d0 ) THEN 
                   
                DO L=1,TOPS+1
                   EMIS_BL = 0d0
