@@ -1589,7 +1589,7 @@
       ! met fields become available (ltm, 11/14/13).
       IF ( ( GET_YEAR() .eq. 2012 .and. GET_MONTH() .ge. 4 ) .or. 
      &     ( GET_YEAR() .eq. 2013 .and. GET_MONTH() .le. 9 ) ) THEN 
-         BETA = ANN_AVG_FLASHRATE / 652.44105d0
+         BETA = ANN_AVG_FLASHRATE / 652.44105d0/ 2 !/2 krt, 3/17/14
       ENDIF
 
 #elif defined( MERRA ) && defined( GRID2x25 )
