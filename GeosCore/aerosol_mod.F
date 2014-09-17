@@ -461,18 +461,18 @@
       LSSALT = Input_Opt%LSSALT
       LSULF  = Input_Opt%LSULF
 
-      PRINT*, 'MAXVAL OC TRACERS'
-      PRINT*, MAXVAL( STT(:,:,:,IDTOCPI  ) )
-      PRINT*, MAXVAL( STT(:,:,:,IDTBBOCPI) )
-      PRINT*, MAXVAL( STT(:,:,:,IDTOCPO  ) )
-      PRINT*, MAXVAL( STT(:,:,:,IDTBBOCPO) )
-      PRINT*, MAXVAL( STT(:,:,:,IDTASOA  ) )
-      PRINT*, MAXVAL( STT(:,:,:,IDTBBSOA ) )
-
-      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_ILNOX) )
-      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_IHNOX) )
-      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_MLNOX) )
-      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_MHNOX) )
+!      PRINT*, 'MAXVAL OC TRACERS'
+!      PRINT*, MAXVAL( STT(:,:,:,IDTOCPI  ) )
+!      PRINT*, MAXVAL( STT(:,:,:,IDTBBOCPI) )
+!      PRINT*, MAXVAL( STT(:,:,:,IDTOCPO  ) )
+!      PRINT*, MAXVAL( STT(:,:,:,IDTBBOCPO) )
+!      PRINT*, MAXVAL( STT(:,:,:,IDTASOA  ) )
+!      PRINT*, MAXVAL( STT(:,:,:,IDTBBSOA ) )
+!
+!      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_ILNOX) )
+!      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_IHNOX) )
+!      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_MLNOX) )
+!      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_MHNOX) )
 
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
@@ -1586,12 +1586,12 @@
       !  ODAER(:,:,:,R+3*NRH) = 0.d0  !SS(accum)
       !  ODAER(:,:,:,R+4*NRH) = 0.d0  !SS(coarse)
 
-        PRINT*, 'RESULTS OF ODAER'
-        PRINT*, MAXVAL( ODAER(:,:,:,R      ) )
-        PRINT*, MAXVAL( ODAER(:,:,:,R+  NRH) )
-        PRINT*, MAXVAL( ODAER(:,:,:,R+2*NRH) )
-        PRINT*, MAXVAL( ODAER(:,:,:,R+3*NRH) )
-        PRINT*, MAXVAL( ODAER(:,:,:,R+4*NRH) )
+!        PRINT*, 'RESULTS OF ODAER'
+!        PRINT*, MAXVAL( ODAER(:,:,:,R      ) )
+!        PRINT*, MAXVAL( ODAER(:,:,:,R+  NRH) )
+!        PRINT*, MAXVAL( ODAER(:,:,:,R+2*NRH) )
+!        PRINT*, MAXVAL( ODAER(:,:,:,R+3*NRH) )
+!        PRINT*, MAXVAL( ODAER(:,:,:,R+4*NRH) )
 
       ENDDO
 
