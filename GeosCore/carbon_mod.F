@@ -2468,11 +2468,10 @@
                   STT( I, J, L, IDTGLYX ) = STT( I, J, L, IDTGLYX ) -
      &                                      XUPTK
 
-                  IF ( IDTSOAG > 0 ) THEN
-                  ! Update SOAG in the STT array
-                  STT( I, J, L, IDTSOAG ) = STT( I, J, L, IDTSOAG ) + 
-     &                                      XUPTK
-                  ENDIF
+                  IF ( IDTSOAG > 0 )
+                     ! Update SOAG in the STT array
+     &               STT( I, J, L, IDTSOAG ) = STT( I, J, L, IDTSOAG ) +
+     &                                         XUPTK
 
             ENDIF
 
@@ -2490,9 +2489,8 @@
       !=================================================================       
       ! Calculate dry-deposition
       !=================================================================
-      IF ( IDTSOAG > 0 ) THEN
-      CALL SOA_DEPO( STT(:,:,:,IDTSOAG), DRYSOAG, IDTSOAG, Input_Opt )
-      ENDIF
+      IF ( IDTSOAG > 0 )
+     &  CALL SOA_DEPO( STT(:,:,:,IDTSOAG), DRYSOAG, IDTSOAG, Input_Opt )
 
       ! Free pointer
       NULLIFY( STT )
@@ -2718,11 +2716,10 @@
                   STT( I, J, L, IDTMGLY ) = STT( I, J, L, IDTMGLY ) -
      &                                      XUPTK
 
-                  IF ( IDTSOAM > 0 ) THEN
-                  ! Update SOAM in the STT array
-                  STT( I, J, L, IDTSOAM ) = STT( I, J, L, IDTSOAM ) + 
-     &                                      XUPTK
-                  ENDIF
+                  IF ( IDTSOAM > 0 )
+                     ! Update SOAM in the STT array
+     &               STT( I, J, L, IDTSOAM ) = STT( I, J, L, IDTSOAM ) +
+     &                                         XUPTK
 
             ENDIF
 
@@ -2740,9 +2737,8 @@
       !=================================================================       
       ! Calculate dry-deposition
       !=================================================================
-      IF ( IDTSOAM > 0 ) THEN
-      CALL SOA_DEPO( STT(:,:,:,IDTSOAM), DRYSOAM, IDTSOAM, Input_Opt )
-      ENDIF
+      IF ( IDTSOAM > 0 )
+     &  CALL SOA_DEPO( STT(:,:,:,IDTSOAM), DRYSOAM, IDTSOAM, Input_Opt )
 
       ! Free pointer
       NULLIFY( STT )
@@ -6812,8 +6808,8 @@ ccc
       ! BIOGENIC_OC begins here!
       !=================================================================
 
-      PRINT*, 'BIOGENIC C EMISSIONS!'
-      PRINT*, IDXRIO2NO, IDXRIO2HO2
+!      PRINT*, 'BIOGENIC C EMISSIONS!'
+!      PRINT*, IDXRIO2NO, IDXRIO2HO2
 
 !
 !      ! SEAC4RS KLUDGE (skim, 6/27/14)
@@ -6933,10 +6929,10 @@ ccc
          ENDDO
 !$OMP END PARALLEL DO
 
-      PRINT*, 'AFTER FILLING BGSOA'
-      PRINT*, MAXVAL( BGSOA_EMIS(:,:,1) )
-      PRINT*, MINVAL( BGSOA_EMIS(:,:,1) )
-
+!      PRINT*, 'AFTER FILLING BGSOA'
+!      PRINT*, MAXVAL( BGSOA_EMIS(:,:,1) )
+!      PRINT*, MINVAL( BGSOA_EMIS(:,:,1) )
+!
       !=================================================================
       ! If secondary organic aerosols are turned on ...
       ! Then use CALTECH algorithm 
@@ -8525,14 +8521,14 @@ ccc
 
       ENDIF
 
-      PRINT*, 'EMITTING BIOGENIC SOA IN EMITHIGH'
-      PRINT*, IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      PRINT*, IDTBGSOA_MLNOX, IDTBGSOA_MHNOX 
-
-      PRINT*, MAXVAL( BGSOA_EMIS(:,:,1) )
-      PRINT*, MAXVAL( BGSOA_EMIS(:,:,2) )
-      PRINT*, MAXVAL( BGSOA_EMIS(:,:,3) )
-      PRINT*, MAXVAL( BGSOA_EMIS(:,:,4) )
+!      PRINT*, 'EMITTING BIOGENIC SOA IN EMITHIGH'
+!      PRINT*, IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+!      PRINT*, IDTBGSOA_MLNOX, IDTBGSOA_MHNOX 
+!
+!      PRINT*, MAXVAL( BGSOA_EMIS(:,:,1) )
+!      PRINT*, MAXVAL( BGSOA_EMIS(:,:,2) )
+!      PRINT*, MAXVAL( BGSOA_EMIS(:,:,3) )
+!      PRINT*, MAXVAL( BGSOA_EMIS(:,:,4) )
 
       IF ( LNLPBL ) THEN
 
@@ -9870,6 +9866,9 @@ ccc
       ! SOAG_CLOUD
       !=================================================================
 
+      ! Don't do this if GLYX is not a tracer!
+      IF ( IDTGLYX <= 0 ) RETURN
+
       ! Initialize GEOS-Chem tracer array [kg] from Chemistry State object
       ! (mpayer, 12/6/12)
       STT => State_Chm%Tracers
@@ -9992,8 +9991,9 @@ ccc
      &                                XUPTK
 
             ! Update SOAG in the STT array
-            STT( I, J, L, IDTSOAG ) = STT( I, J, L, IDTSOAG ) + 
-     &                                XUPTK
+            IF ( IDTSOAG > 0 )
+     &         STT( I, J, L, IDTSOAG ) = STT( I, J, L, IDTSOAG ) + 
+     &                                   XUPTK
 
             !==============================================================
             ! ND07 diagnostic: SOAG from GLYX in cloud [kg/timestep]
@@ -10094,6 +10094,9 @@ ccc
       !=================================================================
       ! SOAG_CLOUD
       !=================================================================
+
+      ! Don't do this if MGLY is not a tracer!
+      IF ( IDTMGLY <= 0 ) RETURN
 
       ! Initialize GEOS-Chem tracer array [kg] from Chemistry State object
       ! (mpayer, 12/6/12)
@@ -10215,8 +10218,9 @@ ccc
      &                                XUPTK
 
             ! Update SOAM in the STT array
-            STT( I, J, L, IDTSOAM ) = STT( I, J, L, IDTSOAM ) + 
-     &                                XUPTK
+            IF ( IDTSOAM > 0 )
+     &         STT( I, J, L, IDTSOAM ) = STT( I, J, L, IDTSOAM ) + 
+     &                                   XUPTK
 
             !==============================================================
             ! ND07 diagnostic: SOAM from MGLY in cloud [kg/timestep]
@@ -10440,8 +10444,8 @@ ccc
       ENDIF
       IF ( ( IDTBGSOA_ILNOX + IDTBGSOA_IHNOX + 
      &       IDTBGSOA_MLNOX + IDTBGSOA_MHNOX > 0 ) ) THEN
-         PRINT*, IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-         PRINT*, IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+!         PRINT*, IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
+!         PRINT*, IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
          PRINT*, 'ALLOCATED BGSOA_EMIS'
          ALLOCATE( BGSOA_EMIS( IIPAR, JJPAR, 4 ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'BGSOA_EMIS' )
