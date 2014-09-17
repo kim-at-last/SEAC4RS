@@ -1282,7 +1282,7 @@
             ! Also make sure we have the proper species
             IF ( TRIM( NAMEGAS(N) ) /= TRIM( RESERVED ) ) THEN
                IF ( am_I_Root ) THEN
-                  WRITE( 6, 200 ) TRIM( NAMEGAS(N) )
+                  WRITE( 6, 200 ) TRIM(NAMEGAS(N))//' '//TRIM(RESERVED)
                ENDIF
  200           FORMAT( 'Species mismatch for ', a )
                CALL ERROR_STOP( 'Species mismatch!', 
