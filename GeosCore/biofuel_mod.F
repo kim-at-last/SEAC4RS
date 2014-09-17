@@ -1025,11 +1025,11 @@
 !            IF ( (NN /= IDTPCOFNE) .and. (NN /= IDTPCOFSE) .and.
 !     &           (NN /= IDTPCOFW)  .and. (NN /= IDTPCOFRW) ) THEN
 !
-!            ! Biofuel emissions in [molec/cm3/s]
-!            BIOFUEL(N,I,J) = BIOFUEL_KG(N,I,J)                  * 
-!     &                       ( 6.023d23 / MOLWT(N)            ) /
-!     &                       ( 365d0 * 86400d0 * BOXVL(I,J,1,State_Met))
-!
+            ! Biofuel emissions in [molec/cm3/s]
+            BIOFUEL(N,I,J) = BIOFUEL_KG(N,I,J)                  * 
+     &                       ( 6.023d23 / MOLWT(N)            ) /
+     &                       ( 365d0 * 86400d0 * BOXVL(I,J,1,State_Met))
+
 !            ENDIF ! passive tracers
 !
 
