@@ -171,6 +171,8 @@
       LOGICAL :: LDAYBB3         ! Use GFED3 daily biomass burning?
       LOGICAL :: L3HRBB3         ! Use GFED3 3-hr biomass burning?
       LOGICAL :: LFINN           ! Use FINN biomass burning?
+      LOGICAL :: LQFED           ! Use QFED biomass burning?
+      LOGICAL :: LQFED_FINN      ! Use QFED&FINN biomass burning?
       LOGICAL :: LPECCA          ! PCEEA BVOC emission model (mpb,2009)
       LOGICAL :: LRETRO          ! RETRO anthropogenic emissions (wfr, 3/8/11)
 ![eml

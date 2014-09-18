@@ -2440,6 +2440,14 @@
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:33b' )
       READ( SUBSTRS(1:N), * ) LFINN
      
+      ! Use QFED biomass emissions?
+      CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:33b' )
+      READ( SUBSTRS(1:N), * ) LQFED
+
+      ! Use QFED biomass emissions on top of FINN?
+      CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:33b' )
+      READ( SUBSTRS(1:N), * ) LQFED_FINN
+
       ! Separator line
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:34' )
 
@@ -2589,6 +2597,8 @@
       LDAYBB3           = ( LDAYBB3        .and. LBIOMASS  )
       L3HRBB3           = ( L3HRBB3        .and. LBIOMASS  )
       LFINN             = ( LFINN          .and. LBIOMASS  )
+      LQFED             = ( LQFED          .and. LBIOMASS  )
+      LQFED_FINN        = ( LQFED_FINN     .and. LBIOMASS  )
 
       ! Other
       LLIGHTNOX         = ( LLIGHTNOX      .and. LEMIS     )
@@ -2939,6 +2949,10 @@
          L3HRBB3  = .FALSE.
       ENDIF
 
+      IF ( LQFED_FINN ) THEN
+         LFINN = .TRUE.
+         LQFED = .TRUE.
+      ENDIF
          !=================================================================
       ! Error checks
       !=================================================================
@@ -3013,6 +3027,8 @@
       Input_Opt%LDAYBB3        = LDAYBB3
       Input_Opt%L3HRBB3        = L3HRBB3
       Input_Opt%LFINN          = LFINN
+      Input_Opt%LQFED          = LQFED
+      Input_Opt%LQFED_FINN     = LQFED_FINN
       Input_Opt%LAEIC          = LAEIC
       Input_Opt%LLIGHTNOX      = LLIGHTNOX
       Input_Opt%LOTDLOC        = LOTDLOC
@@ -3096,6 +3112,8 @@
         WRITE( 6, 100 ) '    daily GFED3 emission?   : ', LDAYBB3
         WRITE( 6, 100 ) '    3hr GFED3 emission?     : ', L3HRBB3
         WRITE( 6, 100 ) ' Use FINN Biomass     ?     : ', LFINN
+        WRITE( 6, 100 ) ' Use QFED Biomass     ?     : ', LQFED
+        WRITE( 6, 100 ) ' Use FINN w/QFED Biomass  ? : ', LQFED_FINN
         WRITE( 6, 100 ) 'Use AIRCRAFT NOx from RCP?  : ', LRCPAIR
         WRITE( 6, 100 ) 'Turn on LIGHTNING NOx?      : ', LLIGHTNOX
         WRITE( 6, 100 ) 'Use OTD-LIS local redist?   : ', LOTDLOC

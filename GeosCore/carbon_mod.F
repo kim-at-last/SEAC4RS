@@ -5566,6 +5566,7 @@ c
       USE GFED2_BIOMASS_MOD,  ONLY : GFED2_IS_NEW
       USE GFED3_BIOMASS_MOD,  ONLY : GFED3_IS_NEW
       USE FINN_BIOMASS_MOD,   ONLY : FINN_IS_NEW
+      USE QFED_BIOMASS_MOD,   ONLY : QFED_IS_NEW
       USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
       USE GRID_MOD,           ONLY : GET_XMID, GET_YMID
 
@@ -5831,7 +5832,8 @@ c
       IF ( .not. USE_BOND_BIOBURN ) THEN
 
          IF ( GFED2_IS_NEW() .or. GFED3_IS_NEW() .or. 
-     &        ITS_A_NEW_MONTH() .or. FINN_IS_NEW() ) THEN 
+     &        ITS_A_NEW_MONTH() .or. FINN_IS_NEW() .or. 
+     &        QFED_IS_NEW() ) THEN 
             BIOB_BLKC = 0d0
             BIOB_ORGC = 0d0
             CALL BIOMASS_CARB_GEOS( Input_Opt )

@@ -111,6 +111,7 @@
       ! and is determined online FP (hotp 7/30/09)
       PUBLIC :: NBIOTRCE
       PUBLIC :: BIOMASS
+      PUBLIC :: BIOMASSQ
       PUBLIC :: BBFIRE
       PUBLIC :: BIOTRCE
 
@@ -138,8 +139,9 @@
       ! Arrays
       INTEGER              :: BIOTRCE(NBIOMAX)
       REAL*8,  ALLOCATABLE :: BIOMASS(:,:,:)
-      REAL*8,  ALLOCATABLE :: BBFIRE(:,:,:,:) !Added L dimension, (krt 2/7/14)
-
+      REAL*8,  ALLOCATABLE :: BIOMASSQ(:,:,:)
+      REAL*8,  ALLOCATABLE :: BBFIRE(:,:,:,:) 
+      
       ! Logical array to determine if an emission should be treated
       ! in setemis or elsewhere (hotp 8/3/09)
       ! make sure it saves it's value
@@ -219,6 +221,7 @@
       USE DIAG_MOD,           ONLY : AD28, AD29, AD32_bb
       ! Needed for the SEAC4RS campaign (skim, 7/27/13)
       USE FINN_BIOMASS_MOD,   ONLY : FINN_COMPUTE_BIOMASS
+      USE QFED_BIOMASS_MOD,   ONLY : QFED_COMPUTE_BIOMASS
       ! Needed for the SEAC4RS campagin (skim, 6/21/13)
       USE FLAMBE_BIOMASS_MOD, ONLY : FLAMBE_COMPUTE_BIOMASS
       USE GC_BIOMASS_MOD,     ONLY : GC_COMPUTE_BIOMASS
@@ -240,7 +243,7 @@
       USE TRACERID_MOD,       ONLY : IDTBCPO, IDTNH3, IDTOCPO, IDTSO2
       USE TRACERID_MOD,       ONLY : IDBBC, IDBNH3, IDBOC, IDBSO2
       USE TRACERID_MOD,       ONLY : IDBCO, IDBNO, IDBHNO3 ! HNO3 (evf,9/15/11)
-      USE TRACERID_MOD,       ONLY : IDBCO2,IDBPAN ! add for PAN (evf, 9/9/11)
+      USE TRACERID_MOD,       ONLY : IDBCO2,IDBPAN, IDBC2H6, IDBACET
       !USE TRACERID_MOD,       ONLY : IDBFIRE, IDTFIRE! add FIRE (evf, 8/20/12)
       !USE TRACERID_MOD,       ONLY : IDBEOH, IDTEOH ! add  EOH (evf, 1/19/12)
       !USE TRACERID_MOD,       ONLY : IDBAPINE, IDTAPINE! add for APINE (evf, 1/1
@@ -288,11 +291,14 @@
       LOGICAL, SAVE       :: USE_GFED2
       LOGICAL, SAVE       :: USE_GFED3
       LOGICAL, SAVE       :: USE_FINN
+      LOGICAL, SAVE       :: USE_QFED
+      LOGICAL, SAVE       :: USE_QFED_FINN
+      
       INTEGER             :: I,   J,  L, TOP,  N,  N_BIOB
       REAL*8              :: BXHT_CM, DTSRCE
       REAL*8              :: TEMP
       REAL*8              :: X,       Y
-
+      REAL*8              :: RATIO
       ! for fire diurnal cycle, krt, 2/28/14
       REAL*4           :: WRAP(24d0), ScFire
       INTEGER          :: NOXHOUR
@@ -312,7 +318,7 @@
       LOGICAL             :: LBIOMASS, LGFED2BB, LGFED3BB
       LOGICAL             :: L8DAYBB,  LSYNOPBB, L3HRBB
       LOGICAL             :: LDAYBB3,  L3HRBB3, LFINN
-      LOGICAL             :: LNLPBL
+      LOGICAL             :: LNLPBL, LQFED, LQFED_FINN
 
       !=================================================================
       ! COMPUTE_BIOMASS_EMISSIONS begins here!
@@ -335,6 +341,8 @@
       LDAYBB3             = Input_Opt%LDAYBB3
       L3HRBB3             = Input_Opt%L3HRBB3  
       LFINN               = Input_Opt%LFINN
+      LQFED               = Input_Opt%LQFED
+      LQFED_FINN          = Input_Opt%LQFED_FINN
       LNLPBL              = Input_Opt%LNLPBL
 
       ! If there are biomass emissions ...
@@ -348,7 +356,9 @@
             USE_GFED3 = LGFED3BB  .or. LDAYBB3 .or. L3HRBB3
             USE_GFED  = USE_GFED2 .or. USE_GFED3 
             USE_FINN  = LFINN 
-            IF ( LFINN ) USE_GFED = 0 
+            USE_QFED  = LQFED
+            USE_QFED_FINN  = LQFED_FINN 
+            IF ( LFINN.or. LQFED .or. LQFED_FINN ) USE_GFED = 0 
          
             ! CALL NEI08 to initialize mask for fire injection over U.S. 
             CALL GET_MASK_FORFIRE( RC )
@@ -504,17 +514,53 @@
 #endif
             ENDIF
          ! ---------------------------------
-         ! Now use the FINN inventory (7/27/13)
+         ! Now use the FINN and QFED inventories (7/27/13)
          ! ---------------------------------
+         !======================= FINN and QFED =============================
 
          ELSE IF ( ITS_A_FULLCHEM_SIM ) THEN 
             BIOMASS = 0d0
             BBFIRE = 0d0
+            BIOMASSQ = 0d0
+            RATIO    = 0d0
 
             WRITE(*,*) 'SEAC4RS Code - Calling FINN for Fire Injection'
        
             ! Compute the FINN emissions
             CALL FINN_COMPUTE_BIOMASS( YEAR, MONTH, BIOMASS )
+            
+            IF ( LQFED_FINN ) THEN
+               ! Compute the QFED biomass burning emissions (krt, 9/2/14)
+               CALL QFED_COMPUTE_BIOMASS( YEAR, MONTH, BIOMASSQ )
+                  ! CALCULATE CO RATIO QFED to FINN
+               RATIO = SUM(BIOMASSQ(:,:,IDBCO))/ SUM(BIOMASS(:,:,IDBCO))
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE(  N, RATIO ) 
+               DO N = 1, NBIOMAX
+                  ! MULTIPLY FINN SPECIES WITH QFED RATIO
+                  BIOMASS(:,:,N) = BIOMASS(:,:,N) * RATIO
+               ENDDO
+!$OMP END PARALLEL DO
+            ENDIF
+
+               ! Replace FINN species with QFED Species
+               BIOMASS(:,:,IDBCO  ) = BIOMASSQ(:,:,IDBCO) 
+               BIOMASS(:,:,IDBNO  ) = BIOMASSQ(:,:,IDBNO)              
+               BIOMASS(:,:,IDBOC  ) = BIOMASSQ(:,:,IDBOC) 
+               BIOMASS(:,:,IDBBC  ) = BIOMASSQ(:,:,IDBBC) 
+               BIOMASS(:,:,IDBSO2 ) = BIOMASSQ(:,:,IDBSO2) 
+               BIOMASS(:,:,IDBNH3 ) = BIOMASSQ(:,:,IDBNH3)
+               BIOMASS(:,:,IDBNO  ) = BIOMASSQ(:,:,IDBNO)              
+               BIOMASS(:,:,IDBACET ) = BIOMASSQ(:,:,IDBACET)  
+               BIOMASS(:,:,IDBC2H6 ) = BIOMASSQ(:,:,IDBC2H6)
+
+            IF ( LQFED .and. .not. LQFED_FINN ) THEN               
+               ! Compute the QFED biomass burning emissions (krt, 9/2/14)
+               CALL QFED_COMPUTE_BIOMASS( YEAR, MONTH, BIOMASSQ )
+               BIOMASS = BIOMASSQ
+            ENDIF
 
             ! Irrespective of inventory type, we need to scale biomass
             ! CO to account for CO production from VOC's that are not
@@ -603,7 +649,8 @@
                X = GET_XMID( I, J, 1 ) 
                Y = GET_YMID( I, J, 1 ) 
 
-               ! Scale the FINN fire emissions by region
+               ! ------ Scale the FINN fire emissions by region ---------
+               IF ( LFINN .and. .not. LQFED .and. .not. LQFED_FINN) THEN
                ! Based on MLR analysis, following Fisher et al. [2010]
                ! Temporary scale factors -
                !    waiting for full analysis from tagged CO or
@@ -636,11 +683,10 @@
 #else
                   BIOMASS(I,J,:) = BIOMASS(I,J,:) * 1.00
 #endif
-
+                  ENDIF
                ENDIF
-
             ENDDO
-            ENDDO
+         ENDDO
 !$OMP END PARALLEL DO
 
          ENDIF
@@ -700,7 +746,7 @@
             TOTPRESFTUS  = GET_PEDGE(I,J,BOTS) - GET_PEDGE(I,J,TOPS)
             DELTPRESUS = TOTPRESFTUS/(TOPS-BOTS+1)
                           
-            ! IF We are in the Western U.S. put emissions between 3.5 and 5.5 km
+            ! IF We are in the U.S. put emissions between 3.5 and 5.5km
             IF ( NEI08_MASK(I,J) > 0.1d0 ) THEN 
                   
                DO L=1,TOPS+1
@@ -1100,10 +1146,14 @@
 !     &                   19, 20, 21, 26, 30, 34, 35, 
 !     &                   55, 56, 57, 58, 59, 63, 64, 
 !     &                   66, 67, 1/)
-         ! Allocate array to hold monthly biomass emissions
+         ! Allocate array to hold biomass emissions
          ALLOCATE( BIOMASS( IIPAR, JJPAR,NBIOMAX ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'BIOMASS' )
          BIOMASS = 0d0
+         ! Allocate array to hold qfed biomass emissions
+         ALLOCATE( BIOMASSQ( IIPAR, JJPAR,NBIOMAX ), STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'BIOMASS' )
+         BIOMASSQ = 0d0
          ! Allocate array to hold monthly biomass emissions for fire inj
          ALLOCATE( BBFIRE( IIPAR, JJPAR, LLTROP,NBIOMAX ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'BBFIRE' )
@@ -1129,8 +1179,9 @@
       !=================================================================
       ! CLEANUP_BIOMASS begins here!
       !=================================================================
-      IF ( ALLOCATED( BIOMASS ) ) DEALLOCATE( BIOMASS )
-      IF ( ALLOCATED( BBFIRE  ) ) DEALLOCATE( BBFIRE )
+      IF ( ALLOCATED( BIOMASS  ) ) DEALLOCATE( BIOMASS  )
+      IF ( ALLOCATED( BIOMASSQ ) ) DEALLOCATE( BIOMASSQ )
+      IF ( ALLOCATED( BBFIRE   ) ) DEALLOCATE( BBFIRE   )
       ! Return to calling program
       END SUBROUTINE CLEANUP_BIOMASS
 

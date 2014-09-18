@@ -5797,6 +5797,7 @@
       USE CMN_SIZE_MOD
       USE ERROR_MOD,          ONLY : DEBUG_MSG
       USE FINN_BIOMASS_MOD,   ONLY : FINN_IS_NEW
+      USE QFED_BIOMASS_MOD,   ONLY : QFED_IS_NEW
       USE GFED2_BIOMASS_MOD,  ONLY : GFED2_IS_NEW
       USE GFED3_BIOMASS_MOD,  ONLY : GFED3_IS_NEW
       USE GIGC_ErrCode_Mod
@@ -6061,8 +6062,8 @@
       ENDIF
 
       IF(  ( GFED2_IS_NEW() .or. GFED3_IS_NEW() .or.
-     &       ITS_A_NEW_MONTH() .or. FINN_IS_NEW() ) .AND. 
-     &     ( LBIOMASS )  ) THEN 
+     &       ITS_A_NEW_MONTH() .or. FINN_IS_NEW() .or.
+     &     QFED_IS_NEW() ) .AND. ( LBIOMASS )  ) THEN 
          ESO2_bb = 0d0
          CALL GET_BIOMASS_SO2
          IF ( LPRT ) CALL DEBUG_MSG( '### EMISSSULFATE: GET_BM_SO2')

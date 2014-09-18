@@ -3,15 +3,15 @@
 !------------------------------------------------------------------------------
 !BOP
 !     
-! !MODULE: finn_biomass_mod
+! !MODULE: qfed_biomass_mod
 !     
-! !DESCRIPTION: Module FINN\_BIOMASS\_MOD contains routines and variables 
-!  used to incorporate FINN emissions into GEOS-Chem
+! !DESCRIPTION: Module QFED\_BIOMASS\_MOD contains routines and variables 
+!  used to incorporate QFED emissions into GEOS-Chem
 !\\   
 !\\   
 ! !INTERFACE: 
 !
-      MODULE FINN_BIOMASS_MOD
+      MODULE QFED_BIOMASS_MOD
 !
 ! !USES:
 !
@@ -21,54 +21,53 @@
 !
 ! !PUBLIC MEMBER FUNCTIONS:
 !
-      PUBLIC  :: FINN_COMPUTE_BIOMASS
-      PUBLIC  :: CLEANUP_FINN_BIOMASS
-      PUBLIC  :: FINN_IS_NEW
+      PUBLIC  :: QFED_COMPUTE_BIOMASS
+      PUBLIC  :: CLEANUP_QFED_BIOMASS
+      PUBLIC  :: QFED_IS_NEW
 !
 ! PRIVATE MEMBER FUNCTIONS:
 !
-      PRIVATE :: CHECK_FINN
-      PRIVATE :: FINN_AVAILABLE
-      PRIVATE :: READ_FINN
-      PRIVATE :: FINN_SCALE_FUTURE
-      PRIVATE :: FINN_TOTAL_Tg
-      PRIVATE :: INIT_FINN_BIOMASS
+      PRIVATE :: CHECK_QFED
+      PRIVATE :: QFED_AVAILABLE
+      PRIVATE :: READ_QFED
+      PRIVATE :: QFED_SCALE_FUTURE
+      PRIVATE :: QFED_TOTAL_Tg
+      PRIVATE :: INIT_QFED_BIOMASS
       PRIVATE :: REARRANGE_BIOM
 !
 ! !REMARKS:
-!  Emissions of biomass burning species are read at monthly or daily
+!  Emissions of biomass burning species are read at daily
 !  resolution. Note: no emission factors are used here - emissions of
-!  individual species are given in input files. Emissions on the FINN 0.5x0.5 
+!  individual species are given in input files. Emissions on the QFED 0.1x0.1 
 !  degree grid are regridded to the current GEOS-Chem or GCAP grid.
 !                                                                             .
-!  FINN biomass burning emissions are computed for the following gas-phase 
+!  QFED biomass burning emissions are computed for the following gas-phase 
 !  and aerosol-phase species:
 !                                                                             .
-!     (1 ) NOx  [  molec/cm2/s]     (13) BC   [atoms C/cm2/s]
-!     (2 ) CO   [  molec/cm2/s]     (14) OC   [atoms C/cm2/s]                  
-!     (3 ) ALK4 [atoms C/cm2/s]     (15) MGLY [  molec/cm2/s]    
-!     (4 ) ACET [atoms C/cm2/s]     (16) BENZ [atoms C/cm2/s]  
-!     (5 ) MEK  [atoms C/cm2/s]     (17) TOLU [atoms C/cm2/s]     
-!     (6 ) ALD2 [atoms C/cm2/s]     (18) C2H4 [atoms C/cm2/s]
-!     (7 ) PRPE [atoms C/cm2/s]     (19) C2H2 [atoms C/cm2/s]
-!     (8 ) C3H8 [atoms C/cm2/s]     (20) GLYC [  molec/cm2/s]
-!     (9 ) CH2O [  molec/cm2/s]     (21) HAC  [  molec/cm2/s]
-!     (10) C2H6 [atoms C/cm2/s]     (22) CO2  [  molec/cm2/s]
-!     (11) SO2  [  molec/cm2/s]     (23) CH4  [  molec/cm2/s]
-!     (12) NH3  [  molec/cm2/s]     (24) 
+!     (1 ) NO   [  molec/cm2/s]     (13) BC   [atoms C/cm2/s]
+!     (2 ) CO   [  molec/cm2/s]     (14) OC   [atoms C/cm2/s]                 
+!     (3 ) ALK4 [atoms C/cm2/s]     (15) CO2  [  molec/cm2/s]
+!     (4 ) ACET [atoms C/cm2/s]     (16) CH4  [  molec/cm2/s]
+!     (5 ) MEK  [atoms C/cm2/s]     
+!     (6 ) ALD2 [atoms C/cm2/s]     
+!     (7 ) PRPE [atoms C/cm2/s]     
+!     (8 ) C3H8 [atoms C/cm2/s]     
+!     (9 ) CH2O [  molec/cm2/s]    
+!     (10) C2H6 [atoms C/cm2/s]     
+!     (11) SO2  [  molec/cm2/s]     
+!     (12) NH3  [  molec/cm2/s]     
 !                                                                             .
 !  References:
 !  ============================================================================
-!  (1 ) Original FINN database from Christine Wiedinmyer
-!        http://bai.acd.ucar.edu/Data/fire/
-!  (2 ) Wiedinmyer, C., Akagi, S.K., Yokelson, R.J., Emmons, L.K.,
-!       Al-Saadi, J.A., Orlando, J.J., and Soja, A.J.: The Fire
-!       INventory from NCAR (FINN): a high resolution global model to
-!       estimate the emissions from open burning, Geoscientific Model
-!       Development, 4, 625-641, doi:10.5194/gmd-4-625-2011, 2011.
+!  (1 ) QFED info and files:
+!  Darmenov, A., and da Silva, A. M.: The Quick Fire Emissions Dataset (QFED) -
+!  Documentation of versions 2.1, 2.2 and 2.4, NASA TM-2013-104606, Vol. 32, 
+!  (http://gmao.gsfc.nasa.gov/pubs/tm/), 183 pp, 2013.
+!  (2 ) You can get 0.1 deg gridded data here:
+!   ftp://iesa@ftp.nccs.nasa.gov/aerosol/emissions/QFED/v2.4r6/0.1/
 !
 ! !REVISION HISTORY: 
-!  02 Jan 2013 - J. Mao & J.A. Fisher - Initial version, based on GFED3
+!  02 Sep 2014 - K. Travis - Initial version, based on GFED3
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -80,8 +79,7 @@
       !
       ! N_SPEC  : Number of species
       !=================================================================
-      ! Consider increasing this to 25 (skim, 7/27/13)
-      INTEGER,          PARAMETER   :: N_SPEC  = 23
+      INTEGER,          PARAMETER   :: N_SPEC  = 16
 
 !
 ! PRIVATE TYPES:
@@ -91,7 +89,7 @@
       !
       ! Scalars
       !
-      ! UPDATED         : flag to indicate if FINN emissions are updated
+      ! UPDATED         : flag to indicate if QFED emissions are updated
       ! UPDATED_MON     : flag to indicate if new month
       ! UPDATED_DAY     : flag to indicate if new day
       !                   - only set to true if daily emissions are used
@@ -99,10 +97,10 @@
       !
       ! Arrays
       !
-      ! FINN_SPEC_NAME  : Array for FINN biomass species names
-      ! FINN_SPEC_MOLWT : Array for FINN biomass species molecular wts
-      ! FINN_SPEC_UNIT  : Array for FINN biomass species emissions units
-      ! BIOMASS_MODEL   : Array for FINN species emissions on model grid
+      ! QFED_SPEC_NAME  : Array for QFED biomass species names
+      ! QFED_SPEC_MOLWT : Array for QFED biomass species molecular wts
+      ! QFED_SPEC_UNIT  : Array for QFED biomass species emissions units
+      ! BIOMASS_MODEL   : Array for QFED species emissions on model grid
       ! BIO_SAVE        : Index array to store IDBxxx values
       !=================================================================
 
@@ -113,9 +111,9 @@
       REAL*8                        :: SECONDS
 
       ! Arrays
-      CHARACTER(LEN=4), ALLOCATABLE :: FINN_SPEC_NAME(:)
-      REAL*8,           ALLOCATABLE :: FINN_SPEC_MOLWT(:)
-      CHARACTER(LEN=6), ALLOCATABLE :: FINN_SPEC_UNIT(:)
+      CHARACTER(LEN=7), ALLOCATABLE :: QFED_SPEC_NAME(:)
+      REAL*8,           ALLOCATABLE :: QFED_SPEC_MOLWT(:)
+      CHARACTER(LEN=6), ALLOCATABLE :: QFED_SPEC_UNIT(:)
       REAL*8,           ALLOCATABLE :: BIOMASS_MODEL(:,:,:)
       INTEGER,          ALLOCATABLE :: BIO_SAVE(:)
 
@@ -129,53 +127,51 @@
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: finn_is_new
+! !IROUTINE: qfed_is_new
 !
-! !DESCRIPTION: Function FINN\_IS\_NEW returns TRUE if FINN emissions 
+! !DESCRIPTION: Function QFED\_IS\_NEW returns TRUE if QFED emissions 
 !  have been updated.
 !\\
 !\\
 ! !INTERFACE:
 !
-      FUNCTION FINN_IS_NEW( ) RESULT( IS_UPDATED )
+      FUNCTION QFED_IS_NEW( ) RESULT( IS_UPDATED )
 !
 ! !RETURN VALUE:
 !
-      LOGICAL :: IS_UPDATED    ! =T if FINN is updated; =F otherwise
+      LOGICAL :: IS_UPDATED    ! =T if QFED is updated; =F otherwise
 !
 ! !REMARKS:
 !  Called from carbon_mod.f and sulfate_mod.f
 !
 ! !REVISION HISTORY: 
-!  02 Jan 2013 - J. Mao & J. Fisher - Initial version, based on GFED3
+!  02 Sep 2014 - K. Travis - Initial version, based on GFED3
 !EOP
 !------------------------------------------------------------------------------
 !BOC
       IS_UPDATED = UPDATED      
 
-      END FUNCTION FINN_IS_NEW
+      END FUNCTION QFED_IS_NEW
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: check_finn
+! !IROUTINE: check_qfed
 !
-! !DESCRIPTION: Subroutine CHECK\_FINN checks if we entered a new FINN period
+! !DESCRIPTION: Subroutine CHECK\_QFED checks if we entered a new QFED period
 !  since last emission timestep (ie, last call). The result depends
-!  on the emissions time step, and the FINN time period used, as well
+!  on the emissions time step, and the QFED time period used, as well
 !  as MMDD at beginning of the GEOS-Chem run
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE CHECK_FINN( DOY )
+      SUBROUTINE CHECK_QFED( DOY )
 !
 ! !USES:
 !
-!     Hardcode this for the moment (skim, 7/27/13)
-!     USE LOGICAL_MOD, ONLY : L1DAYBBF
       USE TIME_MOD,    ONLY : ITS_A_NEW_MONTH
       USE TIME_MOD,    ONLY : ITS_A_NEW_DAY
 !
@@ -185,11 +181,11 @@
 !
 ! !REMARKS:
 !  The routine computes the DOY at start of the 1-day period we are in, 
-!  if the 1-day FINN. option is on. Result is compared to previous value
+!  if the 1-day QFED. option is on. Result is compared to previous value
 !  to indicate if new data should be read.
 ! 
 ! !REVISION HISTORY: 
-!  02 Jan 2013 - J. Mao & J. Fisher - Initial version, based on GFED3
+!  02 Sep 2014 - K. Travis - Initial version, based on GFED3
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -209,31 +205,30 @@
       
       ! Check if it is a new day
       ! Use the daily emissions, hardcoded (skim, 7/27/13)
-      !IF ( L1DAYBBF ) THEN
-         IF ( ITS_A_NEW_DAY() ) THEN
-            UPDATED     = .TRUE.
-            UPDATED_DAY = .TRUE.
-         ENDIF
-      !ENDIF
+      IF ( ITS_A_NEW_DAY() ) THEN
+         UPDATED     = .TRUE.
+         UPDATED_DAY = .TRUE.
+      ENDIF
+      
 
-      END SUBROUTINE CHECK_FINN
+      END SUBROUTINE CHECK_QFED
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: finn_available
+! !IROUTINE: qfed_available
 !
-! !DESCRIPTION: Function FINN\_AVAILABLE checks an input YYYY year and MM
+! !DESCRIPTION: Function QFED\_AVAILABLE checks an input YYYY year and MM
 !  month against the available data dates.  If the requested YYYY and MM
-!  lie outside of the valid range of dates, then FINN\_AVAILABLE will return 
+!  lie outside of the valid range of dates, then QFED\_AVAILABLE will return 
 !  the last valid YYYY and MM.
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE FINN_AVAILABLE( YYYY, YMIN, YMAX, MM, MMIN, MMAX )
+      SUBROUTINE QFED_AVAILABLE( YYYY, YMIN, YMAX, MM, MMIN, MMAX )
 !
 ! !INPUT PARAMETERS: 
 !
@@ -242,11 +237,11 @@
 !
 ! !INPUT/OUTPUT PARAMETERS: 
 !
-      INTEGER, INTENT(INOUT)           :: YYYY         ! Year of FINN data
-      INTEGER, INTENT(INOUT), OPTIONAL :: MM           ! Month of FINN data
+      INTEGER, INTENT(INOUT)           :: YYYY         ! Year of QFED data
+      INTEGER, INTENT(INOUT), OPTIONAL :: MM           ! Month of QFED data
 ! 
 ! !REVISION HISTORY: 
-!  02 Jan 2013 - J. Mao & J. Fisher - Initial version, based on GFED3
+!  02 Sep 2014 - K. Travis - Initial version, based on GFED3
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -255,7 +250,6 @@
       IF ( YYYY == 2012 ) RETURN
 
       !!!!! Kludge - also have 2013 emissions for the SEAC4RS mission
-      ! (skim, 7/27/13)
       IF ( YYYY == 2013 ) RETURN
 
       ! Check year
@@ -265,7 +259,7 @@
          
          WRITE( 6, 100 ) YMAX, YMIN, YYYY
  100     FORMAT( 'YEAR > ', i4, ' or YEAR < ', i4, 
-     $        '. Using FINN biomass for ', i4)
+     $        '. Using QFED biomass for ', i4)
       ENDIF
       
 
@@ -277,26 +271,26 @@
             
             WRITE( 6, 200 ) MMIN, MMAX, MM
  200        FORMAT( ' ** WARNING ** : MONTH is not within ', i2,'-',
-     $              i2, '. Using FINN biomass for month #', i2)
+     $              i2, '. Using QFED biomass for month #', i2)
          ENDIF
       ENDIF
 
-      END SUBROUTINE FINN_AVAILABLE
+      END SUBROUTINE QFED_AVAILABLE
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: finn_compute_biomass
+! !IROUTINE: qfed_compute_biomass
 !
-! !DESCRIPTION: Subroutine FINN\_COMPUTE\_BIOMASS computes the monthly 
-!  FINN biomass burning emissions for a given year and month. 
+! !DESCRIPTION: Subroutine QFED\_COMPUTE\_BIOMASS computes the daily
+!  QFED biomass burning emissions for a given year and month. 
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE FINN_COMPUTE_BIOMASS( THIS_YYYY, THIS_MM, BIOM_OUT )
+      SUBROUTINE QFED_COMPUTE_BIOMASS( THIS_YYYY, THIS_MM, BIOM_OUT )
 !
 ! !USES:
 !
@@ -305,9 +299,7 @@
       USE JULDAY_MOD,      ONLY : JULDAY
       USE JULDAY_MOD,      ONLY : CALDATE
       USE LOGICAL_MOD,     ONLY : LFUTURE
-!      HARDCODE IN FOR NOW (skim, 7/27/13)
-!      USE LOGICAL_MOD,     ONLY : L1DAYBBF
-      USE LOGICAL_MOD,     ONLY : LQFED_FINN
+      USE LOGICAL_MOD,     ONLY : LQFED, LFINN, LQFED_FINN
       USE TIME_MOD,        ONLY : EXPAND_DATE
       USE TIME_MOD,        ONLY : GET_DAY
       USE TIME_MOD,        ONLY : GET_DAY_OF_YEAR
@@ -326,7 +318,7 @@
                                                              ! [molec/cm2/s]
 !
 ! !REVISION HISTORY: 
-!  02 Jan 2012 - J. Mao & J. Fisher - Initial version, based on GFED3
+!  02 Sep 2014 - K. Travis - Initial verson, based on GFED3
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -337,23 +329,22 @@
       INTEGER             :: N
       INTEGER             :: YYYY, MM, MM1, YYYY1
       INTEGER             :: YYYYMMDD, YYYYMMDD1, HHMMSS
-      REAL*8              :: ARRAY_FINN(IIPAR, JJPAR)
+      REAL*8              :: ARRAY_QFED(IIPAR, JJPAR)
       REAL*8              :: TAU0, TAU1
       REAL*8              :: JD,   JD1
       INTEGER             :: DD,   DD1,  DOY
       REAL*4              :: TMP
-      CHARACTER(LEN=255)  :: FILENAME,  FINN_DIR
+      CHARACTER(LEN=255)  :: FILENAME,  QFED_DIR
       CHARACTER(LEN=7  )  :: TIME_STR
       CHARACTER(LEN=4  )  :: SPEC_NAME
 
       !=================================================================
-      ! FINN_COMPUTE_BIOMASS begins here!
+      ! QFED_COMPUTE_BIOMASS begins here!
       !=================================================================
 
       ! First-time initialization
       IF ( FIRST ) THEN
-         CALL INIT_FINN_BIOMASS
-
+         CALL INIT_QFED_BIOMASS
          FIRST = .FALSE.
 
       ENDIF
@@ -364,8 +355,8 @@
       DD   = GET_DAY()
       DOY  = GET_DAY_OF_YEAR()
       
-      ! Check if we need to update FINN 
-      CALL CHECK_FINN( DOY )
+      ! Check if we need to update QFED 
+      CALL CHECK_QFED( DOY )
       
       ! If no updating is needed, module variable BIOMASS_MODEL
       ! from last update can be used
@@ -377,173 +368,122 @@
       ! Echo info
       WRITE( 6, '(a)' ) REPEAT( '=', 79 )
       WRITE( 6, '(a)' ) 
-     &  'F I N N   B I O M A S S   B U R N I N G   E M I S S I O N S'
+     &  'Q F E D   B I O M A S S   B U R N I N G   E M I S S I O N S'
 
       !=================================================================
-      ! Set-up for reading FINN daily/monthly emissions
+      ! Set-up for reading QFED daily emissions
       !=================================================================
       
       ! DAILY data
       !-------------------------------
-      ! Hardcode for the SEAC4RS campaign
-      IF ( .TRUE. ) THEN
-      !IF ( L1DAYBBF ) THEN
 
-         ! Check availability
-         CALL FINN_AVAILABLE( YYYY, 2006, 2007 )
+      ! Check availability
+      CALL QFED_AVAILABLE( YYYY, 2012, 2013 )
 
-         ! Create YYYYMMDD integer values
-         YYYYMMDD = YYYY*10000 + MM*100 + DD
+      ! Create YYYYMMDD integer values
+      YYYYMMDD = YYYY*10000 + MM*100 + DD
 
-         ! Use Julian dates to automatically increase year/month
-         JD  = JULDAY( YYYY, MM, DBLE(DD) )
-         JD1 = JD + 1d0
+      ! Use Julian dates to automatically increase year/month
+      JD  = JULDAY( YYYY, MM, DBLE(DD) )
+      JD1 = JD + 1d0
 
-         CALL CALDATE( JD1, YYYYMMDD1, HHMMSS )
-         CALL YMD_EXTRACT( YYYYMMDD1, YYYY1, MM1, DD1 )
+      CALL CALDATE( JD1, YYYYMMDD1, HHMMSS )
+      CALL YMD_EXTRACT( YYYYMMDD1, YYYY1, MM1, DD1 )
 
-         ! TAU value at start of this day
-         TAU0     = GET_TAU0( MM, DD, YYYY )
-         ! TAU value at start of next day
-         TAU1     = GET_TAU0( MM1, DD1, YYYY1 )
+      ! TAU value at start of this day
+      TAU0     = GET_TAU0( MM, DD, YYYY )
+      ! TAU value at start of next day
+      TAU1     = GET_TAU0( MM1, DD1, YYYY1 )
 
-         ! Directory with FINN emissions
+      ! Directory with QFED emissions
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-!%%% KLUDGE FOR SEAC4RS: Moved FINN directory to /as/cache (bmy, 10/31/13)
-         FINN_DIR = '/home/skim/FINN/FINN_files/'         
+         QFED_DIR = '/as/home/ktravis/Data/QFED/'
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         TIME_STR = 'daily'
-
-      ! MONTHLY data
-      !-------------------------------
-      ELSE 
-
-         CALL FINN_AVAILABLE( YYYY, 2006, 2007 )
-
-         ! Create YYYYMMDD integer values
-         YYYYMMDD = YYYY*10000 + MM*100 + 01
-
-         ! Time value is set to 1st of YYYY/MM.
-         DD       = 1
-
-         ! Get YYYY/MM value for next month
-         MM1      = MM + 1
-         YYYY1    = YYYY
-
-         ! Increment year if necessary
-         IF ( MM1 == 13 ) THEN
-            MM1   = 1
-            YYYY1 = YYYY + 1
-         ENDIF
-
-         ! TAU value at start of this month
-         TAU0     = GET_TAU0( MM, 1, YYYY )
-         ! TAU value at start of next month
-         TAU1     = GET_TAU0( MM1, 1, YYYY1 )
-
-         ! Directory with FINN emissions
-         FINN_DIR = 'FINN_201301/monthly/'
-         TIME_STR = 'monthly'
-
-      ENDIF
-
+         TIME_STR =  'YYYY' // '/MM/'
       !=================================================================
-      ! Calculate biomass species emissions on FINN grid
+      ! Calculate biomass species emissions on QFED grid
       ! and regrid to model grid
       !
       ! Emission are in [molec/cm2/s] and converted here to
       ! [molec/cm2/timeperiod] or [atoms C/cm2/timeperiod]
       !
       ! Units:
-      !  [  molec/cm2/month] : NOx,  CO,   CH2O, SO2,  NH3,  CO2
+      !  [  molec/cm2/month] : NO,   CO,   CH2O, SO2,  NH3,  CO2
       !  [atoms C/cm2/month] : ALK4, ACET, MEK,  ALD2, PRPE, C3H8,
-      !                        C2H6, BC,   OC
+      !                        C2H6, BC,   OC, C2H6
       !=================================================================
 
       ! Loop over biomass species 
       DO N = 1, N_SPEC
 
          ! Initialize temporary array
-         ARRAY_FINN = 0d0
+         ARRAY_QFED = 0d0
 
          ! Set filename for this species
-         SPEC_NAME = FINN_SPEC_NAME(N)
-!         FILENAME = TRIM( DATA_DIR_NATIVE ) // TRIM( FINN_DIR ) //
-!     &              TRIM( TIME_STR ) // '_' // TRIM( SPEC_NAME ) //
-!     &              '_YYYY_05x05.nc'
-         ! This will probably need to be updated once we get the
-         ! filenames (skim, 7/27/13)
-         FILENAME = TRIM( FINN_DIR ) //
-     &              TRIM( TIME_STR ) // '_' // TRIM( SPEC_NAME ) //
-     &              '_YYYY_05x05.nc'
+         SPEC_NAME = QFED_SPEC_NAME(N)
+!
+         FILENAME = TRIM( QFED_DIR ) //
+     &        TRIM( TIME_STR ) // '/qfed2.emis_' // TRIM( SPEC_NAME ) //
+     &              '.005.YYYYMMDD.nc4'
+
+         WRITE(*,*) 'FILENAME', FILENAME
          CALL EXPAND_DATE( FILENAME, YYYYMMDD, 000000 )
 
-         ! Don't waste time reading in files if we don't need them
-         IF ( LQFED_FINN .and. N .ge. 3 .and. N .le. 15 ) THEN
-            WRITE(*,*) 'USING QFED FOR: ', SPEC_NAME   
-         ELSE
-            ! Read FINN emissions for this species in [molec/cm2/s]
-            CALL READ_FINN( FILENAME, 'fire', ARRAY_FINN, YYYY, MM, DD )
-         ENDIF
+         ! Read QFED emissions for species in kg/m2/2 and convert to molecules/cm2/s
+         CALL READ_QFED(FILENAME,'biomass', ARRAY_QFED, YYYY, MM, DD, N)
 
          ! Add to biomass array
-         BIOMASS_MODEL(:,:,N) = ARRAY_FINN
+         BIOMASS_MODEL(:,:,N) = ARRAY_QFED
 
       ENDDO
 
       ! Compute future biomass emissions (if necessary)
-      ! If we are using both QFED and FINN, scaling will be 
-         ! done in QFED_BIOMASS_MOD.F
-      IF ( LFUTURE .and. .not. LQFED_FINN ) THEN
-         CALL FINN_SCALE_FUTURE( BIOMASS_MODEL )
+      IF ( LFUTURE ) THEN
+         CALL QFED_SCALE_FUTURE( BIOMASS_MODEL )
       ENDIF
 
       ! Print totals in Tg/time period
-      IF ( UPDATED_DAY ) THEN
-         WRITE( 6, 411 ) YYYY, MM, DD
- 411     FORMAT( 'FINN daily emissions for year, month, day: ',
-     &            i4, '/', i2.2, '/', i2.2, / )
-      ELSE
-         WRITE( 6, 410 ) YYYY, MM
- 410     FORMAT( 'FINN monthly emissions for year, month: ',
-     &            i4, '/', i2.2, / )
-      ENDIF
+      WRITE( 6, 411 ) YYYY, MM, DD
+ 411  FORMAT( 'QFED daily emissions for year, month, day: ',
+     &     i4, '/', i2.2, '/', i2.2, / )
+      
       ! Number of seconds in this period (day or month)
       ! (NOTE: its value will be saved until the next call)
       SECONDS  = ( TAU1 - TAU0 ) * 3600d0
 
-      CALL FINN_TOTAL_Tg( SECONDS )
-
+      CALL QFED_TOTAL_Tg( SECONDS )
+      
       ! Rearrange the species to the same order as in the IDBxxx (fp, 6/09)
-      ! BIOMASS_MODEL is indexed as FINN
+      ! BIOMASS_MODEL is indexed as QFED
       ! BIOM_OUT      is indexed as IDBs
       CALL REARRANGE_BIOM( BIOMASS_MODEL, BIOM_OUT )
 
       ! Echo info
       WRITE( 6, '(a)' ) REPEAT( '=', 79 )
 
-      END SUBROUTINE FINN_COMPUTE_BIOMASS
+      END SUBROUTINE QFED_COMPUTE_BIOMASS
 !EOC
 !------------------------------------------------------------------------------
 !         J. Fisher - U. Wollongong                                           !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: read_finn
+! !IROUTINE: read_qfed
 !
-! !DESCRIPTION: Subroutine READ\_FINN reads the FINN BB emissions at 0.5x0.5
+! !DESCRIPTION: Subroutine READ\_QFED reads the QFED BB emissions at 0.1x0.1
 !  degree resolution and regrids them to the current model resolution
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE READ_FINN( FILENAME, PARNAME, ARR, YYYY, MM, DD )
+      SUBROUTINE READ_QFED( FILENAME, PARNAME, ARR, YYYY, MM, DD, N )
 !
 ! !USES:
 !
       USE DIRECTORY_MOD,  ONLY: DATA_DIR_NATIVE => DATA_DIR_1x1
       USE NCDF_MOD,       ONLY: NC_READ
       USE REGRID_A2A_MOD, ONLY: DO_REGRID_A2A
+      USE ERROR_MOD,      ONLY: IT_IS_NAN
 
       USE CMN_SIZE_MOD          ! Size parameters
 
@@ -552,10 +492,11 @@
 !
       ! File and parameter to read
       CHARACTER(LEN=255),  INTENT(IN) :: FILENAME
-      CHARACTER(LEN=4),    INTENT(IN) :: PARNAME
+      CHARACTER(LEN=7),    INTENT(IN) :: PARNAME
       INTEGER,             INTENT(IN) :: YYYY
       INTEGER,             INTENT(IN) :: MM
       INTEGER,             INTENT(IN) :: DD
+      INTEGER,             INTENT(IN) :: N
 ! 
 ! !OUTPUT PARAMETERS:
 !
@@ -570,41 +511,57 @@
 !
 ! !LOCAL VARIABLES:
 !
-      INTEGER, PARAMETER    :: I_NATIVE = 720 ! 0.5 x 0.5 resolution
-      INTEGER, PARAMETER    :: J_NATIVE = 360 ! 0.5 x 0.5 resolution
+      INTEGER, PARAMETER    :: I_NATIVE = 3600 ! 0.1 x 0.1 resolution
+      INTEGER, PARAMETER    :: J_NATIVE = 1800 ! 0.1 x 0.1 resolution
       REAL*8                :: GENERIC_NATIVE(I_NATIVE,J_NATIVE,1)
       CHARACTER(LEN=255)    :: LLFILENAME
       REAL*8                :: INGRID(I_NATIVE,J_NATIVE)
       ! for ncdf-reading
       REAL*4, POINTER       :: NCARR(:,:,:) => NULL()
+      INTEGER               :: I, J
 
       !=================================================================
-      ! READ_FINN begins here!
+      ! READ_QFED begins here!
       !=================================================================
 
       ! Echo info
-      WRITE( 6, 100 ) TRIM( PARNAME ), TRIM( FILENAME )
- 100  FORMAT( '     - READ_FINN : Reading ', a , ' from ', a ) 
+      WRITE( 6, 100 ) TRIM( QFED_SPEC_NAME(N)), TRIM( FILENAME )
+ 100  FORMAT( '     - READ_QFED : Reading ', a , ' from ', a ) 
 
       ARR   = 0D0 
 
       CALL NC_READ ( NC_PATH = TRIM(FILENAME) ,
      &               PARA    = TRIM(PARNAME)  ,
-     &               ARRAY   = NCARR          ,
-     &               YEAR    = YYYY           ,
-     &               MONTH   = MM             ,
-     &               DAY     = DD              )
+     &               ARRAY   = NCARR, 
+     &               VERBOSE = .FALSE.       )
 
       ! Cast to REAL*8 before regridding
       GENERIC_NATIVE(:,:,1) = NCARR(:,:,1)
+      
+      ! Convert from kg/s/m2 to molecules/cm2/s
+      GENERIC_NATIVE = GENERIC_NATIVE * 6.022d23 / QFED_SPEC_MOLWT(N)
+     &     / 1.0d4
 
       ! Deallocate ncdf-array
       IF ( ASSOCIATED ( NCARR ) ) DEALLOCATE ( NCARR )
 
+!$OMP PARALLEL DO 
+!$OMP+DEFAULT( SHARED ) 
+!$OMP+PRIVATE( I, J )
+      DO J = 1, J_NATIVE
+      DO I = 1, I_NATIVE
+         IF (IT_IS_NAN(GENERIC_NATIVE(I,J,1))) THEN
+            GENERIC_NATIVE(I,J,1) = 0d0
+            !WRITE(*,*) 'NAN', I, J
+         ENDIF
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+
       ! File with lat/lon edges for regridding
       LLFILENAME = TRIM( DATA_DIR_NATIVE) //
      &             'MAP_A2A_Regrid_201203/' //
-     &             'MAP_A2A_latlon_generic05x05.nc'
+     &             'MAP_A2A_latlon_generic01x01.nc'
 
       ! Regrid to current model resolution
       INGRID = GENERIC_NATIVE(:,:,1)
@@ -613,23 +570,23 @@
      &                    netCDF=.TRUE.                    )
 
       ! Return to calling program
-      END SUBROUTINE READ_FINN
+      END SUBROUTINE READ_QFED
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: finn_scale_future
+! !IROUTINE: qfed_scale_future
 !
-! !DESCRIPTION: Subroutine FINN\_SCALE\_FUTURE applies the IPCC future 
-!  emissions scale factors to the FINN biomass burning emisisons in order 
+! !DESCRIPTION: Subroutine QFED\_SCALE\_FUTURE applies the IPCC future 
+!  emissions scale factors to the QFED biomass burning emisisons in order 
 !  to compute the future emissions of biomass burning for NOx, CO, and VOC's.  
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE FINN_SCALE_FUTURE( BB )
+      SUBROUTINE QFED_SCALE_FUTURE( BB )
 !
 ! !USES:
 !
@@ -665,7 +622,7 @@
       INTEGER :: I, J, N
       
       !=================================================================
-      ! FINN_SCALE_FUTURE begins here!
+      ! QFED_SCALE_FUTURE begins here!
       !=================================================================
 
       ! Test if it's a CO2 simulation outside of the loop
@@ -729,22 +686,22 @@
       ENDDO
 !$OMP END PARALLEL DO
 
-      END SUBROUTINE FINN_SCALE_FUTURE
+      END SUBROUTINE QFED_SCALE_FUTURE
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: finn_total_Tg
+! !IROUTINE: qfed_total_Tg
 !
-! !DESCRIPTION: Subroutine FINN\_TOTAL\_Tg prints the amount of biomass 
+! !DESCRIPTION: Subroutine QFED\_TOTAL\_Tg prints the amount of biomass 
 !  burning emissions that are emitted each month/day in Tg or Tg C. 
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE FINN_TOTAL_Tg( SECONDS )
+      SUBROUTINE QFED_TOTAL_Tg( SECONDS )
 !
 ! !USES:
 !
@@ -758,7 +715,7 @@
       REAL*8,  INTENT(IN)  :: SECONDS
 !
 ! !REVISION HISTORY: 
-!  02 Jan 2013 - J. Mao & J. Fisher - Initial version, based on GFED3
+!  02 Sep 2014 - K. Travis - Initial version, based on GFED3
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -771,23 +728,23 @@
       CHARACTER(LEN=6) :: UNIT
 
       !=================================================================
-      ! FINN_TOTAL_Tg begins here!
+      ! QFED_TOTAL_Tg begins here!
       !=================================================================
 
       ! Loop over biomass species
       DO N = 1, N_SPEC
 
          ! Initialize
-         NAME  = FINN_SPEC_NAME(N)
-         MOLWT = FINN_SPEC_MOLWT(N)
-         UNIT  = FINN_SPEC_UNIT(N)
+         NAME  = QFED_SPEC_NAME(N)
+         MOLWT = QFED_SPEC_MOLWT(N)
+         UNIT  = QFED_SPEC_UNIT(N)
          TOTAL = 0d0
 
          ! Loop over surface boxes
          DO J = 1, JJPAR
          DO I = 1, IIPAR
 
-            ! Convert to [Tg/finn-period] (or [Tg C/finn-period] for HC's)
+            ! Convert to [Tg/qfed-period] (or [Tg C/qfed-period] for HC's)
             CONV  = GET_AREA_CM2( I, J, 1 ) 
      &            * ( MOLWT / 6.023d23 ) * 1d-9 * SECONDS
 
@@ -801,21 +758,21 @@
  110     FORMAT( 'Sum Biomass ', a4, 1x, ': ', e12.5, 1x, a6 )
       ENDDO
 
-      END SUBROUTINE FINN_TOTAL_Tg
+      END SUBROUTINE QFED_TOTAL_Tg
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: init_finn_biomass
+! !IROUTINE: init_qfed_biomass
 !
-! !DESCRIPTION: Subroutine INIT\_FINN\_BIOMASS allocates all module arrays.  
+! !DESCRIPTION: Subroutine INIT\_QFED\_BIOMASS allocates all module arrays.  
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE INIT_FINN_BIOMASS
+      SUBROUTINE INIT_QFED_BIOMASS
 !
 ! !USES:
 !
@@ -823,21 +780,16 @@
       USE ERROR_MOD,       ONLY : ALLOC_ERR
       USE FILE_MOD,        ONLY : IOERROR
       USE LOGICAL_MOD,     ONLY : LDICARB
-!     Hardcode for the SEAC4RS campaign (skim, 7/27/13) 
-!     USE LOGICAL_MOD,     ONLY : L1DAYBBF
       USE TRACERID_MOD,    ONLY : IDBNO,   IDBCO,   IDBALK4
       USE TRACERID_MOD,    ONLY : IDBACET, IDBMEK,  IDBALD2
       USE TRACERID_MOD,    ONLY : IDBPRPE, IDBC3H8, IDBCH2O
       USE TRACERID_MOD,    ONLY : IDBC2H6, IDBBC,   IDBOC
       USE TRACERID_MOD,    ONLY : IDBSO2,  IDBNH3,  IDBCO2
-      USE TRACERID_MOD,    ONLY : IDBGLYX, IDBMGLY, IDBBENZ
-      USE TRACERID_MOD,    ONLY : IDBTOLU, IDBXYLE, IDBC2H4
-      USE TRACERID_MOD,    ONLY : IDBC2H2, IDBGLYC, IDBHAC
       USE TRACERID_MOD,    ONLY : IDBCH4
       USE CMN_SIZE_MOD          ! Size parameters
 ! 
 ! !REVISION HISTORY: 
-!  02 Jan 2013 - J. Mao & J. Fisher - Initial version, based on GFED3
+!  02 Sep 2014 - K. Travis - Initial version, based on GFED3
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -849,173 +801,138 @@
       CHARACTER(LEN=255) :: FILENAME
       
       !=================================================================
-      ! INIT_FINN_BIOMASS begins here!
+      ! INIT_QFED_BIOMASS begins here!
       !=================================================================
 
-      ! Allocate array to hold FINN species emissions on model grid
+      ! Allocate array to hold QFED species emissions on model grid
       ALLOCATE( BIOMASS_MODEL( IIPAR, JJPAR, N_SPEC ), STAT=AS )
       IF ( AS /= 0 ) CALL ALLOC_ERR( 'BIOMASS_MODEL' )
       BIOMASS_MODEL = 0d0
 
       ! Allocate array for species molecular weight
-      ALLOCATE( FINN_SPEC_MOLWT( N_SPEC ), STAT=AS )
-      IF ( AS /= 0 ) CALL ALLOC_ERR( 'FINN_SPEC_MOLWT' )
-      FINN_SPEC_MOLWT = 0d0
+      ALLOCATE( QFED_SPEC_MOLWT( N_SPEC ), STAT=AS )
+      IF ( AS /= 0 ) CALL ALLOC_ERR( 'QFED_SPEC_MOLWT' )
+      QFED_SPEC_MOLWT = 0d0
 
       ! Allocate array for species name
-      ALLOCATE( FINN_SPEC_NAME( N_SPEC ), STAT=AS )
-      IF ( AS /= 0 ) CALL ALLOC_ERR( 'FINN_SPEC_NAME' )
-      FINN_SPEC_NAME = ''
+      ALLOCATE( QFED_SPEC_NAME( N_SPEC ), STAT=AS )
+      IF ( AS /= 0 ) CALL ALLOC_ERR( 'QFED_SPEC_NAME' )
+      QFED_SPEC_NAME = ''
 
-      ! Allocate array for FINN biomass buning species mass units
-      ALLOCATE( FINN_SPEC_UNIT( N_SPEC ), STAT=AS )
-      IF ( AS /= 0 ) CALL ALLOC_ERR( 'FINN_SPEC_UNIT' )
-      FINN_SPEC_UNIT = ''
+      ! Allocate array for QFED biomass buning species mass units
+      ALLOCATE( QFED_SPEC_UNIT( N_SPEC ), STAT=AS )
+      IF ( AS /= 0 ) CALL ALLOC_ERR( 'QFED_SPEC_UNIT' )
+      QFED_SPEC_UNIT = ''
 
       !IDBs are now the same as the ones in TRACERID AND BIOMASS_MOD
-      !BIOSAVE INDEX IS THE LOCATION OF THE EMISSION IN THE FINN FILE
+      !BIOSAVE INDEX IS THE LOCATION OF THE EMISSION IN THE QFED FILE
       !(fp)
       ALLOCATE( BIO_SAVE( N_SPEC ), STAT=AS )
       IF ( AS /= 0 ) CALL ALLOC_ERR( 'BIO_SAVE' )
       BIO_SAVE = 0
 
       !=================================================================
-      ! Define FINN species names
+      ! Define QFED species names
       !=================================================================
-      FINN_SPEC_NAME(1)  = 'NOx'
-      FINN_SPEC_NAME(2)  = 'CO'
-      FINN_SPEC_NAME(3)  = 'ALK4'
-      FINN_SPEC_NAME(4)  = 'ACET'
-      FINN_SPEC_NAME(5)  = 'MEK'
-      FINN_SPEC_NAME(6)  = 'ALD2'
-      FINN_SPEC_NAME(7)  = 'PRPE'
-      FINN_SPEC_NAME(8)  = 'C3H8'
-      FINN_SPEC_NAME(9)  = 'CH2O'
-      FINN_SPEC_NAME(10) = 'C2H6'
-      FINN_SPEC_NAME(11) = 'BC'
-      FINN_SPEC_NAME(12) = 'OC'
-      FINN_SPEC_NAME(13) = 'SO2'
-      FINN_SPEC_NAME(14) = 'NH3'
-      FINN_SPEC_NAME(15) = 'CO2'
-      FINN_SPEC_NAME(16) = 'TOLU'
-      FINN_SPEC_NAME(17) = 'BENZ'
-      FINN_SPEC_NAME(18) = 'C2H2'
-      FINN_SPEC_NAME(19) = 'C2H4'
-      FINN_SPEC_NAME(20) = 'MGLY'
-      FINN_SPEC_NAME(21) = 'GLYC'
-      FINN_SPEC_NAME(22) = 'HAC'
-      FINN_SPEC_NAME(23) = 'CH4'
+      QFED_SPEC_NAME(1)  = 'no'
+      QFED_SPEC_NAME(2)  = 'co'
+      QFED_SPEC_NAME(3)  = 'alk4'
+      QFED_SPEC_NAME(4)  = 'acet'
+      QFED_SPEC_NAME(5)  = 'mek'
+      QFED_SPEC_NAME(6)  = 'ald2'
+      QFED_SPEC_NAME(7)  = 'c3h6'
+      QFED_SPEC_NAME(8)  = 'c3h8'
+      QFED_SPEC_NAME(9)  = 'ch2o'
+      QFED_SPEC_NAME(10) = 'c2h6'
+      QFED_SPEC_NAME(11) = 'bc'
+      QFED_SPEC_NAME(12) = 'oc'
+      QFED_SPEC_NAME(13) = 'so2'
+      QFED_SPEC_NAME(14) = 'nh3'
+      QFED_SPEC_NAME(15) = 'co2'
+      QFED_SPEC_NAME(16) = 'ch4'
 
       !=================================================================
       ! Define local ID flags and arrays for the names, units, 
-      ! and molecular weights of the FINN biomass species
+      ! and molecular weights of the QFED biomass species
       !=================================================================
-      ! Save correspondance between FINN species order (N) and 
+      ! Save correspondance between QFED species order (N) and 
       ! species order of the simulation (IDBxxxs).(ccc, 2/4/10)
       ! and also initialize arrays for mol wts and units
       DO N = 1, N_SPEC
-         SELECT CASE ( TRIM( FINN_SPEC_NAME(N) ) ) 
-            CASE( 'NOx'  )
+         SELECT CASE ( TRIM( QFED_SPEC_NAME(N) ) ) 
+            CASE( 'no'  )
                BIO_SAVE(N)         = IDBNO
-               FINN_SPEC_MOLWT(N) = 14d-3
-               FINN_SPEC_UNIT(N)  = '[Tg N]'
-            CASE( 'CO'   )
+               QFED_SPEC_MOLWT(N) = 14d-3
+               QFED_SPEC_UNIT(N)  = '[Tg N]'
+            CASE( 'co'   )
                BIO_SAVE(N)         = IDBCO
-               FINN_SPEC_MOLWT(N) = 28d-3
-               FINN_SPEC_UNIT(N)  = '[Tg  ]'
-            CASE( 'ALK4' )
+               QFED_SPEC_MOLWT(N) = 28d-3
+               QFED_SPEC_UNIT(N)  = '[Tg  ]'
+            CASE( 'alk4' )
                BIO_SAVE(N)         = IDBALK4
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'ACET' )
+               QFED_SPEC_MOLWT(N) = 12d-3
+               QFED_SPEC_UNIT(N)  = '[Tg C]'
+            CASE( 'acet' )
                BIO_SAVE(N)         = IDBACET
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'MEK'  )
+               QFED_SPEC_MOLWT(N) = 12d-3
+               QFED_SPEC_UNIT(N)  = '[Tg C]'
+            CASE( 'mek'  )
                BIO_SAVE(N)         = IDBMEK
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'ALD2' )
+               QFED_SPEC_MOLWT(N) = 12d-3
+               QFED_SPEC_UNIT(N)  = '[Tg C]'
+            CASE( 'ald2' )
                BIO_SAVE(N)         = IDBALD2
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'PRPE' )
+               QFED_SPEC_MOLWT(N) = 12d-3
+               QFED_SPEC_UNIT(N)  = '[Tg C]'
+            CASE( 'c3h6' )
                BIO_SAVE(N)         = IDBPRPE
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'C3H8' )
+               QFED_SPEC_MOLWT(N) = 12d-3
+               QFED_SPEC_UNIT(N)  = '[Tg C]'
+            CASE( 'c3h8' )
                BIO_SAVE(N)         = IDBC3H8
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'CH2O' )
+               QFED_SPEC_MOLWT(N) = 12d-3
+               QFED_SPEC_UNIT(N)  = '[Tg C]'
+            CASE( 'ch2o' )
                BIO_SAVE(N)         = IDBCH2O
-               FINN_SPEC_MOLWT(N) = 30d-3
-               FINN_SPEC_UNIT(N)  = '[Tg  ]'
-            CASE( 'C2H6' )
+               QFED_SPEC_MOLWT(N) = 30d-3
+               QFED_SPEC_UNIT(N)  = '[Tg  ]'
+            CASE( 'c2h6' )
                BIO_SAVE(N)         = IDBC2H6
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'SO2'  )
+               QFED_SPEC_MOLWT(N) = 12d-3
+               QFED_SPEC_UNIT(N)  = '[Tg C]'
+            CASE( 'so2'  )
                BIO_SAVE(N)         = IDBSO2
-               FINN_SPEC_MOLWT(N) = 64d-3
-               FINN_SPEC_UNIT(N)  = '[Tg  ]'
-            CASE( 'NH3'  )
+               QFED_SPEC_MOLWT(N) = 64d-3
+               QFED_SPEC_UNIT(N)  = '[Tg  ]'
+            CASE( 'nh3'  )
                BIO_SAVE(N)         = IDBNH3
-               FINN_SPEC_MOLWT(N) = 17d-3
-               FINN_SPEC_UNIT(N)  = '[Tg  ]'
-            CASE( 'BC'   )
+               QFED_SPEC_MOLWT(N) = 17d-3
+               QFED_SPEC_UNIT(N)  = '[Tg  ]'
+            CASE( 'bc'   )
                BIO_SAVE(N)         = IDBBC
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'OC'   )
+               QFED_SPEC_MOLWT(N) = 12d-3
+               QFED_SPEC_UNIT(N)  = '[Tg C]'
+            CASE( 'oc'   )
                BIO_SAVE(N)         = IDBOC
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'MGLY' )
-               BIO_SAVE(N)         = IDBMGLY
-               FINN_SPEC_MOLWT(N) = 72d-3
-               FINN_SPEC_UNIT(N)  = '[Tg  ]'
-            CASE( 'BENZ' )
-               BIO_SAVE(N)         = IDBBENZ
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'TOLU' )
-               BIO_SAVE(N)         = IDBTOLU
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'C2H4' )
-               BIO_SAVE(N)         = IDBC2H4
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'C2H2' )
-               BIO_SAVE(N)         = IDBC2H2
-               FINN_SPEC_MOLWT(N) = 12d-3
-               FINN_SPEC_UNIT(N)  = '[Tg C]'
-            CASE( 'GLYC' )
-               BIO_SAVE(N)         = IDBGLYC
-               FINN_SPEC_MOLWT(N) = 60d-3
-               FINN_SPEC_UNIT(N)  = '[Tg  ]'
-            CASE( 'HAC' )
-               BIO_SAVE(N)         = IDBHAC
-               FINN_SPEC_MOLWT(N) = 74d-3
-               FINN_SPEC_UNIT(N)  = '[Tg  ]'
-            CASE( 'CO2'  )
+               QFED_SPEC_MOLWT(N) = 12d-3
+               QFED_SPEC_UNIT(N)  = '[Tg C]'
+            CASE( 'co2'  )
                BIO_SAVE(N)         = IDBCO2
-               FINN_SPEC_MOLWT(N) = 44d-3
-               FINN_SPEC_UNIT(N)  = '[Tg  ]'
-            CASE( 'CH4' )
+               QFED_SPEC_MOLWT(N) = 44d-3
+               QFED_SPEC_UNIT(N)  = '[Tg  ]'
+            CASE( 'ch4' )
                BIO_SAVE(N)         = IDBCH4
-               FINN_SPEC_MOLWT(N) = 16d-3
-               FINN_SPEC_UNIT(N)  = '[Tg  ]'
+               QFED_SPEC_MOLWT(N) = 16d-3
+               QFED_SPEC_UNIT(N)  = '[Tg  ]'
             CASE DEFAULT
                ! Nothing
                BIO_SAVE(N)         = 0
 
-            WRITE(*,*) 'NAME',TRIM( FINN_SPEC_NAME(N) )
+            WRITE(*,*) 'NAME',TRIM( QFED_SPEC_NAME(N) )
          END SELECT
       ENDDO
 
-      END SUBROUTINE INIT_FINN_BIOMASS
+      END SUBROUTINE INIT_QFED_BIOMASS
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
@@ -1024,7 +941,7 @@
 !
 ! !IROUTINE: rearrange_biom
 !
-! !DESCRIPTION: Subroutine REARRANGE\_BIOM takes FINN emissions (which have 
+! !DESCRIPTION: Subroutine REARRANGE\_BIOM takes QFED emissions (which have 
 !  their own, unique ID numbers and associates them with the IDBxxxs of 
 !  tracerid\_mod.F.
 !\\
@@ -1044,10 +961,10 @@
 !
 ! !OUTPUT PARAMETERS:
 !
-      REAL*8, INTENT(OUT) :: BIOM_OUTM(IIPAR,JJPAR,NBIOMAX) !+1 from CO2
+      REAL*8, INTENT(OUT) :: BIOM_OUTM(IIPAR,JJPAR,NBIOMAX)
 ! 
 ! !REVISION HISTORY: 
-!  02 Jan 2013 - J. Mao and J. Fisher - Initial version, based on GFED3
+!  02 Sep 2014 - K. Travis - Initial version, based on GFED3
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -1056,7 +973,7 @@
 !
       INTEGER :: N
 
-      ! Loop over FINN species
+      ! Loop over QFED species
       DO N = 1, N_SPEC
 
          ! Save into array w/ proper ordering for GEOS-Chem
@@ -1073,29 +990,29 @@
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: cleanup_finn_biomass
+! !IROUTINE: cleanup_qfed_biomass
 !
-! !DESCRIPTION: Subroutine CLEANUP\_FINN\_BIOMASS deallocates all module 
+! !DESCRIPTION: Subroutine CLEANUP\_QFED\_BIOMASS deallocates all module 
 !  arrays.
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE CLEANUP_FINN_BIOMASS
+      SUBROUTINE CLEANUP_QFED_BIOMASS
 ! 
 ! !REVISION HISTORY: 
-!  02 Jan 2013 - J. Mao & J. Fisher - Initial version, based on GFED3
+!  02 Sep 2014 - K. Travis - Initial version, based on GFED3
 !EOP
 !------------------------------------------------------------------------------
 !BOC
       !=================================================================
-      ! CLEANUP_FINN_BIOMASS begins here!
+      ! CLEANUP_QFED_BIOMASS begins here!
       !=================================================================
-      IF ( ALLOCATED( FINN_SPEC_MOLWT ) ) DEALLOCATE( FINN_SPEC_MOLWT )
-      IF ( ALLOCATED( FINN_SPEC_NAME  ) ) DEALLOCATE( FINN_SPEC_NAME  )
+      IF ( ALLOCATED( QFED_SPEC_MOLWT ) ) DEALLOCATE( QFED_SPEC_MOLWT )
+      IF ( ALLOCATED( QFED_SPEC_NAME  ) ) DEALLOCATE( QFED_SPEC_NAME  )
       IF ( ALLOCATED( BIOMASS_MODEL   ) ) DEALLOCATE( BIOMASS_MODEL   )
       
-      END SUBROUTINE CLEANUP_FINN_BIOMASS
+      END SUBROUTINE CLEANUP_QFED_BIOMASS
 !EOC
 
-      END MODULE FINN_BIOMASS_MOD
+      END MODULE QFED_BIOMASS_MOD

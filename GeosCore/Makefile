@@ -352,7 +352,7 @@ biomass_mod.o               : biomass_mod.F                                  \
                               gfed2_biomass_mod.o     gfed3_biomass_mod.o    \
                               logical_mod.o           tracerid_mod.o         \
                               tracer_mod.o            finn_biomass_mod.o     \
-                              flambe_biomass_mod.o
+                              flambe_biomass_mod.o    qfed_biomass_mod.o
 
 BLKSLV.o                    : BLKSLV.F
 
@@ -397,7 +397,8 @@ carbon_mod.o                : carbon_mod.F                                   \
                               tracerid_mod.o          tracer_mod.o           \
                               tropopause_mod.o        vdiff_pre_mod.o        \
                               nei2008_anthro_mod.o    finn_biomass_mod.o     \
-                              biofuel_mod.o           sulfate_mod.o
+                              biofuel_mod.o           sulfate_mod.o          \
+			      qfed_biomass_mod.o
 
 ch3i_mod.o                  : ch3i_mod.F                                     \
                               biofuel_mod.o           biomass_mod.o          \
@@ -468,7 +469,8 @@ cleanup.o                   : cleanup.F                                      \
                               retro_mod.o             strat_chem_mod.o       \
                               global_bc_mod.o         global_oc_mod.o        \
                               diag53_mod.o            tomas_mod.o            \
-                              finn_biomass_mod.o      rcp_mod.o
+                              finn_biomass_mod.o      rcp_mod.o              \
+                              qfed_biomass_mod.o
 
 cldice_HBrHOBr_rxn.o        : cldice_HBrHOBr_rxn.F
 
@@ -986,6 +988,10 @@ pops_mod.o           	    : pops_mod.F    	                             \
 
 precipfrac.o                : precipfrac.F
 
+qfed_biomass_mod.o          : qfed_biomass_mod.F                             \
+			      future_emissions_mod.o  logical_mod.o          \
+                              tracer_mod.o            tracerid_mod.o
+
 RD_AOD.o                    : RD_AOD.F
 
 rd_js.o                     : rd_js.F
@@ -1102,7 +1108,8 @@ sulfate_mod.o               : sulfate_mod.F                                  \
                               uvalbedo_mod.o          vdiff_pre_mod.o        \
                               wetscav_mod.o           get_ndep_mod.o         \
                               tomas_mod.o             nei2008_anthro_mod.o   \
-			      finn_biomass_mod.o      rcp_mod.o
+			      finn_biomass_mod.o      rcp_mod.o              \
+			      qfed_biomass_mod.o
 
 tagged_co_mod.o             : tagged_co_mod.F                                \
                               biofuel_mod.o           biomass_mod.o          \
