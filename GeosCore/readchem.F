@@ -932,7 +932,7 @@
 ! (fp, 8/09)
             IF (SPECL(1).EQ.'N') NKGLYC(NCS,1)=NK !Flag GLYC 
             IF (SPECL(1).EQ.'O') NKGLYC(NCS,2)=NK !Flag GLYC 
-            IF (SPECL(1).EQ.'FF') NKHAC(NCS,1)  =NK !Flag HAC photolysis
+            IF (SPECL(1).EQ.'F') NKHAC(NCS,1)  =NK !Flag HAC photolysis
             IF (SPECL(1).EQ.'L') NKHAC(NCS,2)  =NK !Flag HAC photolysis
 
 !FP_ISOP FLAG FOR MCO3
@@ -1097,8 +1097,8 @@
                    NKSPECC( NNADDC(NCS),NCS) = NK
                ENDIF
 
-               ! F: HOC2H4O ------> HO2 + 2CH2O
-               IF (SPECL(1).EQ.'F') THEN
+               ! FF: HOC2H4O ------> HO2 + 2CH2O
+               IF (SPECL(1).EQ.'FF') THEN
                    NNADDF(NCS)               = NNADDF(NCS) + 1
                    NKSPECF( NNADDF(NCS),NCS) = NK
                ENDIF
