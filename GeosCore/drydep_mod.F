@@ -4558,31 +4558,6 @@
             XMW(NUMDEP)     = 0d0
             AIROSOL(NUMDEP) = .FALSE.
 
-         ! PMNN 
-         ELSE IF ( N == IDTPMNN ) THEN
-            NUMDEP          = NUMDEP + 1
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'PMNN'
-            NTRAIND(NUMDEP) = IDTPMNN
-            DEPNAME(NUMDEP) = 'PMNN'
-            HSTAR(NUMDEP)   = 1.0d+14 !same as HNO3
-!            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 1.0d0 !0.0d0
-            XMW(NUMDEP)     = 149d-3
-            AIROSOL(NUMDEP) = .FALSE.
-
-         ! PPN (uses same dep vel as PAN)
-         ELSE IF ( N == IDTPPN ) THEN
-            NUMDEP          = NUMDEP + 1
-            NDVZIND(NUMDEP) = NUMDEP
-            NTRAIND(NUMDEP) = IDTPPN
-            DEPNAME(NUMDEP) = 'PPN'
-            HSTAR(NUMDEP)   = 1.0d+14 !same as HNO3
-!            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 1.0d0 !0d0
-            XMW(NUMDEP)     = 135d-3
-            AIROSOL(NUMDEP) = .FALSE.
-        
          ! PMNN
          ELSE IF ( N == IDTPMNN ) THEN
             NUMDEP          = NUMDEP + 1
@@ -4610,7 +4585,7 @@
          ELSE IF ( N == IDTISN1 ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTISN1
-            NDVZIND(NUMDEP) = DRYDPAN !HNO3
+            NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'ISN1'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
@@ -4849,12 +4824,12 @@
          ELSE IF ( N == IDTISNP ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTISNP
-            NDVZIND(NUMDEP) = NUMDEP
+            NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'ISNP'
-            HSTAR(NUMDEP)   = 1.0d+14 !same as HNO3
+            HSTAR(NUMDEP)   = 0d0!1.0d+14 !same as HNO3
 !            HSTAR(NUMDEP)   = 3.4d2
-            F0(NUMDEP)      = 1.0d0
-            XMW(NUMDEP)     = 197d-3
+            F0(NUMDEP)      = 0d0!1.0d0
+            XMW(NUMDEP)     = 0d0!197d-3
             AIROSOL(NUMDEP) = .FALSE.
 
          ELSE IF ( N == IDTIAP ) THEN !peroxide from IAO2
@@ -4882,7 +4857,8 @@
          ELSE IF ( N == IDTMP ) THEN !methylhydroperoxide
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMP
-            NDVZIND(NUMDEP) = NUMDEP
+            NDVZIND(NUMDEP) = DRYDHNO3
+!            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'MP'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
@@ -5044,21 +5020,21 @@
             ! First species; ISOPND
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTISOPN
-            NDVZIND(NUMDEP) = NUMDEP
+            NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'ISOPND'
-            HSTAR(NUMDEP)   = 17d3 !ITO 2007
-            F0(NUMDEP)      = 1d0  !Karl et al. 2010(science)
-            XMW(NUMDEP)     = 147d-3
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0
             AIROSOL(NUMDEP) = .FALSE.
 
             ! Second species: ISOPNB
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTISOPN
-            NDVZIND(NUMDEP) = NUMDEP
+            NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'ISOPNB'
-            HSTAR(NUMDEP)   = 17d3 !ITO 2007
-            F0(NUMDEP)      = 1d0  !Karl et al. 2010(science)
-            XMW(NUMDEP)     = 147d-3
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0
             AIROSOL(NUMDEP) = .FALSE.
 
          ! NOTE: MMN is composed of 2 species (MACRN + MVKN)
@@ -5067,32 +5043,32 @@
             ! First species; MACRN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMMN
-            NDVZIND(NUMDEP) = NUMDEP
+            NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'MACRN'
-            HSTAR(NUMDEP)   = 17d3 !ITO 2007
-            F0(NUMDEP)      = 1d0  !Karl et al. 2010(science)
-            XMW(NUMDEP)     = 149d-3
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0
             AIROSOL(NUMDEP) = .FALSE.
        
             ! Second species: MVKN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMMN
-            NDVZIND(NUMDEP) = NUMDEP
+            NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'MVKN'
-            HSTAR(NUMDEP)   = 17d3 !ITO 2007
-            F0(NUMDEP)      = 1d0  !Karl et al. 2010(science) 
-            XMW(NUMDEP)     = 149d-3
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0
             AIROSOL(NUMDEP) = .FALSE.   
 
          !ETHLN (jaf, 2/26/14)
          ELSE IF ( N == IDTETHLN ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTETHLN
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'ETHLN'  !ITO 2007
-            HSTAR(NUMDEP)   = 17d3       
-            F0(NUMDEP)      = 1d0 !Karl et al. 2010(science)
-            XMW(NUMDEP)     = 105d-3
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'ETHLN'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0
             AIROSOL(NUMDEP) = .FALSE.   
 
          !DHDN (jaf, 5/21/14)
@@ -5110,11 +5086,11 @@
          ELSE IF ( N == IDTPROPNN ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTPROPNN
-            NDVZIND(NUMDEP) = NUMDEP
+            NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'PROPNN'  !NITROOXYACETONE IN SANDER TABLE
-            HSTAR(NUMDEP)   = 1d3       
-            F0(NUMDEP)      = 1d0 !Karl et al. 2010(science)
-            XMW(NUMDEP)     = 119d-3
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0
             AIROSOL(NUMDEP) = .FALSE.   
 
          !RIP
