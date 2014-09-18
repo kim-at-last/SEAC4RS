@@ -615,9 +615,9 @@
          ScNOx       = 0.794
          ScPM10      = 0.995
          ScPM25      = 0.975
-         ! Scale down on the basis of surface station data
-         ! NEI11 scale factor has a similar magnitude (skim, 6/27/14)
-         ScSO2       = 0.500
+         ! Scale down on the basis of surface station & wet deposition data
+         ! skim, 9/18/14
+         ScSO2       = 0.700
          !ScSO2       = 0.899
          ScVOC       = 0.905
          ScNH3       = 0.991
@@ -2158,9 +2158,9 @@
          ScNOx  = 0.794
          ScPM10 = 0.995
          ScPM25 = 0.975
-         ! Scale down on the basis of surface station data
-         ! NEI11 scale factor has a similar magnitude (skim, 6/27/14)
-         ScSO2  = 0.500
+         ! Scale down on the basis of surface station and wet deposition data
+         ! skim, 9/18/14
+         ScSO2  = 0.700
          !ScSO2  = 0.899
          ScVOC  = 0.905
          ScNH3  = 0.991
