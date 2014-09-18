@@ -301,6 +301,8 @@
       ! jpp, 6/5/09, adding IDDRY__ id's for dry deposition
       INTEGER            :: IDDRYHOBr, IDDRYHBr, IDDRYBrNO3
 
+      ! Lin et al. (2013)
+      INTEGER            :: IDIMAE, IDTIMAE
 
       ! added for aromatic (dkh, 10/06/06)  
       INTEGER            :: IDLBRO2H, IDLBRO2N  
@@ -930,6 +932,9 @@
 
             CASE ( 'MP'   )
                IDTMP    = N
+
+            CASE ( 'IMAE' )
+               IDTIMAE   = N  
 
             !--------------------------------
             ! Sulfur & nitrate aerosols
@@ -3406,6 +3411,7 @@
          IF ( NAMEGAS(I) == 'MPAN'   ) IDMPAN    = I
          IF ( NAMEGAS(I) == 'NIPAN'  ) IDNIPAN   = I
          IF ( NAMEGAS(I) == 'MPN'    ) IDMPN     = I
+         IF ( NAMEGAS(I) == 'IMAE'   ) IDIMAE    = I
          ! ++++++++++++++++++++++++++++++++++++++++++++++++++++++
          !jpp: for bromine
          IF ( NAMEGAS(I) == 'Br2'     ) IDBr2     = I
@@ -4698,6 +4704,7 @@
       IDENPAN   = 0
       IDMPAN    = 0
       IDNIPAN   = 0
+      IDIMAE    = 0
 
       IDDRYAPAN  = 0
       IDDRYENPAN = 0
@@ -4871,6 +4878,7 @@
       IDTGPAN   = 0
       IDTMPAN   = 0
       IDTNIPAN  = 0
+      IDTIMAE   = 0
            
       !(fp, 6/09)
       IDTAP      = 0
