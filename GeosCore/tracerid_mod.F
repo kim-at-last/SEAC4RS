@@ -829,10 +829,6 @@
                COUNT_BB = COUNT_BB + 1
                IDBHNO3  = COUNT_BB
 
-               !(fp) added for HNO3 (evf, 9/15/2011)             
-               COUNT_BB = COUNT_BB + 1
-               IDBHNO3   = COUNT_BB
-
             CASE ( 'H2O2' )
                IDTH2O2  = N
 
