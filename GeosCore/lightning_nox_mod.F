@@ -108,6 +108,7 @@
 !  20 Aug 2013 - R. Yantosca - Removed "define.h", this is now obsolete
 !  20 Mar 2014 - K. Travis   - Scaled down Geos-FP lightning by 2 at 4x5 and
 !          2x25 constrained by SEAC4RS NO profiles
+!  23 Jul 2014 - L. Murray   - Updated GEOS-FP reistribution files/scaling
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -221,6 +222,14 @@
       !=================================================================
       ! LIGHTNING begins here!
       !=================================================================
+
+      !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      ! Note: If you wish to adjust the lightning NOx yield, the 
+      ! recommended strategy is to do so by adjusting the parameters
+      ! RFLASH_MIDLAT (500 mol/flash) and RFLASH_TROPIC (260 mol/flash) 
+      ! in the module header, rather than applying scaling factors
+      ! elsewhere in the code. (ltm, 07/23/14)
+      !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
       ! First-time initialization
       IF ( FIRST ) THEN
@@ -1244,6 +1253,7 @@
 !  26 Sep 2013 - R. Yantosca - Remove SEAC4RS C-preprocessor switch
 !  26 Sep 2013 - R. Yantosca - Renamed GEOS_57 Cpp switch to GEOS_FP
 !  07 Nov 2013 - R. Yantosca - Now read files from lightning_NOx_201311 dir
+!  23 Jul 2014 - L. Murray   - Updated GEOS-FP redistribution files
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -1276,9 +1286,9 @@
 #endif
 
       ! OTD-LIS local redist filename for CTH parameterization
-      ! Now read from lightning_NOx_201301 for GEOS-Chem v9-02+ (bmy, 11/7/13)
+      ! Now read from lightning_NOx_201408 (ltm, 7/23/14)
       FILENAME = 
-     &        'lightning_NOx_201311/OTD-LIS-Local-Redist.CTH.v5.' // 
+     &        'lightning_NOx_201408/OTD-LIS-Local-Redist.CTH.v5.' // 
      &        TRIM( MODELNAME ) // '.' // GET_RES_EXT()
 
       ! Prefix directory to file name
@@ -1399,13 +1409,6 @@
 
          EMIS_LI_NOx(I,J,L)                = TMP
 
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-!%%% KLUDGE FOR SEAC4RS (bmy, 9/25/13)
-!%%% For SEAC4RS, knock the emissions down by a factor of 5. Keep code here.
-!%%%         ! ( skim, 8/15/13)
-!%%%         EMIS_LI_NOx(I,J,L)                = TMP / 5.0
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 #if defined( DEVEL ) 
          State_Chm%TRAC_TEND(I,J,L,IDTNO)  = TMP
 #endif
@@ -1467,6 +1470,8 @@
 !        temporary fixes. (bmy, 7/10/09)
 !  (7 ) Modification for GEOS-4 1 x 1.25 grid (lok, ltm, bmy, 1/13/10)
 !  (8 ) Reprocessed for error in CLDTOPS field; Updated for GEOS
+!  (9 ) Updated GEOS-FP redistribution factors and data directories
+!       (ltm, 7/24/14)
 !        5.1.0 vs. 5.2.0; MERRA added; (ltm, bmy, 1/25/11)
 !  10 Nov 2010 - R. Yantosca - Added ProTeX headers
 !  02 Feb 2012 - R. Yantosca - Compute BETA for MERRA 2 x 2.5
@@ -1549,11 +1554,12 @@
       !---------------------------------------
 
       ! Constrained with simulated "climatology" for
-      ! April 2012 - Sept 2013. Will need to be updated as more
-      ! met fields become available (ltm, 11/07/13).
+      ! April 2012 - May 2014. Will need to be updated as more
+      ! met fields become available (ltm, 07/23/14).
       IF ( ( GET_YEAR() .eq. 2012 .and. GET_MONTH() .ge. 4 ) .or.
-     &     ( GET_YEAR() .eq. 2013 .and. GET_MONTH() .le. 9 ) ) THEN
-         BETA = ANN_AVG_FLASHRATE / 82.003230d0 / 2 !/2 krt, 3/13/14
+     &     ( GET_YEAR() .eq. 2013 ) .or.
+     &     ( GET_YEAR() .eq. 2014 .and. GET_MONTH() .le. 5 ) ) THEN
+         BETA = ANN_AVG_FLASHRATE / 81.924504d0 / 2 ! divide by 2 -krt, 3/13/14
       ENDIF
 
 #elif defined( GEOS_FP ) && defined( GRID2x25 )
@@ -1563,11 +1569,12 @@
       !---------------------------------------
 
       ! Constrained with simulated "climatology" for
-      ! April 2012 - Sept 2013. Will need to be updated as more
-      ! met fields become available (ltm, 01/15/14).
+      ! April 2012 - May 2014. Will need to be updated as more
+      ! met fields become available (ltm, 07/23/14).
       IF ( ( GET_YEAR() .eq. 2012 .and. GET_MONTH() .ge. 4 ) .or.
-     &     ( GET_YEAR() .eq. 2013 .and. GET_MONTH() .le. 9 ) ) THEN
-         BETA = ANN_AVG_FLASHRATE / 257.93269d0/ 2 !/2 krt, 3/17/14
+    &     ( GET_YEAR() .eq. 2013 ) .or.    
+    &     ( GET_YEAR() .eq. 2014 .and. GET_MONTH() .le. 5 ) ) THEN
+         BETA = ANN_AVG_FLASHRATE / 258.88566d0/ 2 !divide by 2- krt, 3/17/14
       ENDIF
 
 #elif defined( GEOS_FP ) && defined( GRID025x0325 ) && defined( NESTED_CH )
@@ -1585,11 +1592,10 @@
       !---------------------------------------
       
       ! Constrained with simulated "climatology" for
-      ! April 2012 - Sept 2013. Will need to be updated as more
-      ! met fields become available (ltm, 11/14/13).
-      IF ( ( GET_YEAR() .eq. 2012 .and. GET_MONTH() .ge. 4 ) .or. 
-     &     ( GET_YEAR() .eq. 2013 .and. GET_MONTH() .le. 9 ) ) THEN 
-         BETA = ANN_AVG_FLASHRATE / 652.44105d0/ 2 !/2 krt, 3/17/14
+      ! April 2012 - May 2014. Will need to be updated as more
+      ! met fields become available (ltm, 07/23/14).
+      IF     ( GET_YEAR() .eq. 2013 ) THEN	
+         BETA = ANN_AVG_FLASHRATE / 689.68452d0/ 2 !/2 krt, 9/15/14
       ENDIF
 
 #elif defined( MERRA ) && defined( GRID2x25 )
@@ -1751,6 +1757,7 @@
 !        depreciated options. (ltm, bmy, 1/25/11)
 !  10 Nov 2010 - R. Yantosca - Added ProTeX headers
 !  01 Mar 2012 - R. Yantosca - Removed reference to GET_YEDGE
+!  23 Jul 2014 - L. Murray   - Updated data directory path
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -1809,7 +1816,7 @@
       !=================================================================
 
       ! Define filename
-      FILENAME = 'lightning_NOx_201101/light_dist.ott2010.dat'
+      FILENAME = 'lightning_NOx_201408/light_dist.ott2010.dat'
       FILENAME = TRIM( DATA_DIR ) // TRIM( FILENAME ) 
 
       ! Echo info
