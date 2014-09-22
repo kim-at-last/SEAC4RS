@@ -543,7 +543,6 @@
                   BIOMASS(:,:,N) = BIOMASS(:,:,N) * RATIO
                ENDDO
 !$OMP END PARALLEL DO
-            ENDIF
 
                ! Replace FINN species with QFED Species
                BIOMASS(:,:,IDBCO  ) = BIOMASSQ(:,:,IDBCO) 
@@ -555,6 +554,7 @@
                BIOMASS(:,:,IDBNO  ) = BIOMASSQ(:,:,IDBNO)              
                BIOMASS(:,:,IDBACET ) = BIOMASSQ(:,:,IDBACET)  
                BIOMASS(:,:,IDBC2H6 ) = BIOMASSQ(:,:,IDBC2H6)
+            ENDIF
 
             IF ( LQFED .and. .not. LQFED_FINN ) THEN               
                ! Compute the QFED biomass burning emissions (krt, 9/2/14)
