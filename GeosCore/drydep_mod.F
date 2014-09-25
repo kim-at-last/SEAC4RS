@@ -4513,17 +4513,26 @@
             AIROSOL(NUMDEP) = .FALSE.
 
          ! H2O2
+            !krt, 9/25/14 - deposit H2O2 like HNO3
+            ! on the basis of Wolfe et al, in prep
          ELSE IF ( N == IDTH2O2 ) THEN
             NUMDEP          = NUMDEP + 1
-            ! FP (6/2009)
-            DRYDH2O2        = NUMDEP
-            NDVZIND(NUMDEP) = NUMDEP
             NTRAIND(NUMDEP) = IDTH2O2
+            NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'H2O2'
-            HSTAR(NUMDEP)   = 1.0d+5
-            F0(NUMDEP)      = 1.0d0
-            XMW(NUMDEP)     = 34d-3
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 0d0
             AIROSOL(NUMDEP) = .FALSE.
+
+            !DRYDH2O2        = NUMDEP
+            !NDVZIND(NUMDEP) = NUMDEP
+            !NTRAIND(NUMDEP) = IDTH2O2
+            !DEPNAME(NUMDEP) = 'H2O2'
+            !HSTAR(NUMDEP)   = 1.0d+5
+            !F0(NUMDEP)      = 1.0d0
+            !XMW(NUMDEP)     = 34d-3
+            !AIROSOL(NUMDEP) = .FALSE.
 
          ! ACET
          ELSE IF ( N == IDTACET ) THEN
