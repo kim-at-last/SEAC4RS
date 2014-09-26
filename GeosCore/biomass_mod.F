@@ -723,8 +723,8 @@
                
             ! Latitude in the extratropics
             IF ( ABS( GET_YMID(I,J,1) ) .ge. 30 ) THEN
-               BLFRAC = 0.65d0
-               FTFRAC = 0.35d0
+               BLFRAC = 0.85d0
+               FTFRAC = 0.15d0
             ENDIF
 
             ! Latitude in the tropics
