@@ -397,9 +397,9 @@
 
       ! Directory with QFED emissions
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         QFED_DIR = '/as/home/ktravis/Data/QFED/'
+         QFED_DIR = '/as/data/geos/ExtData/HEMCO/QFED/v2014-09/'
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         TIME_STR =  'YYYY' // '/MM/'
+         TIME_STR =  '/MM/'
       !=================================================================
       ! Calculate biomass species emissions on QFED grid
       ! and regrid to model grid
