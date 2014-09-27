@@ -676,7 +676,11 @@
       SELECT CASE ( TRIM( CPD ) )
 
          CASE ( 'ISOP' )
-            EMFAC = AEF_ISOP(I,J)
+            ! Reduce MEGAN isoprene emissions by 1/3
+            ! Based on comparisons to observations over the SE US
+            !    & derived emission fluxes from Wolfe et al. 2014
+            ! skim, 9/27/14
+            EMFAC = 0.7 * AEF_ISOP(I,J)
          CASE ( 'MBOX' )
             EMFAC = AEF_MBOX(I,J)
          CASE ( 'MYRC' )
