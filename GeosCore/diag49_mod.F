@@ -1752,6 +1752,31 @@
             ENDDO
 !$OMP END PARALLEL DO
 
+         ELSE IF ( N == 125 ) THEN
+
+            ! Add Tropopause Height as a diagnostic
+            ! skim, 9/27/14
+
+            !-----------------------------------
+            ! Tropopause Height
+            !-----------------------------------
+            CATEGORY = 'DAO_FLDS'
+            UNIT     = 'hPa'     
+            GMNL     = 1
+            GMTRC    = 17            
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) = State_Met%TROPP(I,J)
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
          !-----------------------------------
          ! Add Anthropgenic NOX to ND49
          !(paulot,5/27/13)
