@@ -248,6 +248,7 @@
       !USE TRACERID_MOD,       ONLY : IDBEOH, IDTEOH ! add  EOH (evf, 1/19/12)
       !USE TRACERID_MOD,       ONLY : IDBAPINE, IDTAPINE! add for APINE (evf, 1/1
       USE PRESSURE_MOD,       ONLY : GET_PEDGE
+      USE ERROR_MOD,          ONLY : SAFE_DIV
       ! for fire injection (krt, 2/9/14)
       ! To allocate mask, need to call emissions
       USE NEI2008_ANTHRO_MOD, ONLY : GET_MASK_FORFIRE
@@ -298,7 +299,7 @@
       REAL*8              :: BXHT_CM, DTSRCE
       REAL*8              :: TEMP
       REAL*8              :: X,       Y
-      REAL*8              :: RATIO
+      REAL*8              :: RATIOQ, RATIOF, RATIO
       ! for fire diurnal cycle, krt, 2/28/14
       REAL*4           :: WRAP(24d0), ScFire
       INTEGER          :: NOXHOUR
@@ -522,7 +523,9 @@
             BIOMASS = 0d0
             BBFIRE = 0d0
             BIOMASSQ = 0d0
-            RATIO    = 0d0
+            RATIOQ    = 0d0
+            RATIOF    = 0d0
+            RATIO     = 0d0
 
             WRITE(*,*) 'SEAC4RS Code - Calling FINN for Fire Injection'
        
@@ -532,15 +535,37 @@
             IF ( LQFED_FINN ) THEN
                ! Compute the QFED biomass burning emissions (krt, 9/2/14)
                CALL QFED_COMPUTE_BIOMASS( YEAR, MONTH, BIOMASSQ )
-                  ! CALCULATE CO RATIO QFED to FINN
-               RATIO = SUM(BIOMASSQ(:,:,IDBCO))/ SUM(BIOMASS(:,:,IDBCO))
+               
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE(  I, J, RATIOQ, RATIOF ) 
+               ! CALCULATE CO RATIO QFED to FINN OVER THE U.S.
+               DO J = 1, JJPAR
+               DO I = 1, IIPAR
+                  IF ( NEI08_MASK(I,J) > 0.1d0 ) THEN 
+                     IF (BIOMASSQ(I,J,IDBCO) .gt. 0 )
+     &                    RATIOQ = RATIOQ+ BIOMASSQ(I,J,IDBCO)
+                     IF (BIOMASS(I,J,IDBCO) .gt. 0 ) 
+     &                    RATIOF = RATIOF+ BIOMASS(I,J,IDBCO)
+                  ENDIF
+               ENDDO
+               ENDDO
+!$OMP END PARALLEL DO
+               RATIO = RATIOQ/RATIOF
 
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
-!$OMP+PRIVATE(  N, RATIO ) 
-               DO N = 1, NBIOMAX
-                  ! MULTIPLY FINN SPECIES WITH QFED RATIO
-                  BIOMASS(:,:,N) = BIOMASS(:,:,N) * RATIO
+!$OMP+PRIVATE(  N, I, J ) 
+               ! MULTIPLY FINN SPECIES WITH QFED RATIO
+               DO J = 1, JJPAR
+               DO I = 1, IIPAR
+                  IF ( NEI08_MASK(I,J) > 0.1d0 ) THEN 
+                     DO N = 1, NBIOMAX
+                        BIOMASS(I,J,N) = BIOMASS(I,J,N) *
+     &                       SAFE_DIV(DBLE(RATIOQ),DBLE(RATIOF),0.d0)
+                     ENDDO
+                  ENDIF
+               ENDDO
                ENDDO
 !$OMP END PARALLEL DO
 
