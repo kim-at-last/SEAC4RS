@@ -242,10 +242,10 @@
       USE TIME_MOD,           ONLY : GET_DAY, GET_HOUR
       USE TRACERID_MOD,       ONLY : IDTBCPO, IDTNH3, IDTOCPO, IDTSO2
       USE TRACERID_MOD,       ONLY : IDBBC, IDBNH3, IDBOC, IDBSO2
-      USE TRACERID_MOD,       ONLY : IDBCO, IDBNO, IDBHNO3 ! HNO3 (evf,9/15/11)
+      USE TRACERID_MOD,       ONLY : IDBCO, IDBNO, IDBHNO3, IDBCH2O
       USE TRACERID_MOD,       ONLY : IDBCO2,IDBPAN, IDBC2H6, IDBACET
-      !USE TRACERID_MOD,       ONLY : IDBFIRE, IDTFIRE! add FIRE (evf, 8/20/12)
-      !USE TRACERID_MOD,       ONLY : IDBEOH, IDTEOH ! add  EOH (evf, 1/19/12)
+      USE TRACERID_MOD,       ONLY : IDBC3H8, IDBPRPE, IDBMEK, IDBALK4
+      USE TRACERID_MOD,       ONLY : IDBALD2 !IDBEOH, IDTEOH ! add  EOH (evf, 1/19/12)
       !USE TRACERID_MOD,       ONLY : IDBAPINE, IDTAPINE! add for APINE (evf, 1/1
       USE PRESSURE_MOD,       ONLY : GET_PEDGE
       USE ERROR_MOD,          ONLY : SAFE_DIV
@@ -536,10 +536,10 @@
                ! Compute the QFED biomass burning emissions (krt, 9/2/14)
                CALL QFED_COMPUTE_BIOMASS( YEAR, MONTH, BIOMASSQ )
                
+! ------ CALCULATE CO RATIO QFED to FINN OVER THE U.S. ----
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
 !$OMP+PRIVATE(  I, J, RATIOQ, RATIOF ) 
-               ! CALCULATE CO RATIO QFED to FINN OVER THE U.S.
                DO J = 1, JJPAR
                DO I = 1, IIPAR
                   IF ( NEI08_MASK(I,J) > 0.1d0 ) THEN 
@@ -551,18 +551,20 @@
                ENDDO
                ENDDO
 !$OMP END PARALLEL DO
-               RATIO = RATIOQ/RATIOF
+               
+               RATIO = SAFE_DIV(DBLE(RATIOQ),DBLE(RATIOF),0.d0)
 
+! ----- MULTIPLY FINN SPECIES WITH QFED RATIO -------------
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
 !$OMP+PRIVATE(  N, I, J ) 
-               ! MULTIPLY FINN SPECIES WITH QFED RATIO
+               
                DO J = 1, JJPAR
                DO I = 1, IIPAR
                   IF ( NEI08_MASK(I,J) > 0.1d0 ) THEN 
                      DO N = 1, NBIOMAX
-                        BIOMASS(I,J,N) = BIOMASS(I,J,N) *
-     &                       SAFE_DIV(DBLE(RATIOQ),DBLE(RATIOF),0.d0)
+                        IF (RATIO > 0 ) 
+     &                       BIOMASS(I,J,N) = BIOMASS(I,J,N) * RATIO
                      ENDDO
                   ENDIF
                ENDDO
@@ -570,15 +572,20 @@
 !$OMP END PARALLEL DO
 
                ! Replace FINN species with QFED Species
+               BIOMASS(:,:,IDBALK4) = BIOMASSQ(:,:,IDBALK4)
+               BIOMASS(:,:,IDBACET) = BIOMASSQ(:,:,IDBACET) 
+               BIOMASS(:,:,IDBMEK ) = BIOMASSQ(:,:,IDBMEK) 
+               BIOMASS(:,:,IDBALD2) = BIOMASSQ(:,:,IDBALD2) 
                BIOMASS(:,:,IDBCO  ) = BIOMASSQ(:,:,IDBCO) 
-               BIOMASS(:,:,IDBNO  ) = BIOMASSQ(:,:,IDBNO)              
-               BIOMASS(:,:,IDBOC  ) = BIOMASSQ(:,:,IDBOC) 
+               BIOMASS(:,:,IDBPRPE) = BIOMASSQ(:,:,IDBPRPE)              
+               BIOMASS(:,:,IDBC3H8) = BIOMASSQ(:,:,IDBC3H8)
+               BIOMASS(:,:,IDBCH2O) = BIOMASSQ(:,:,IDBCH2O)
+               BIOMASS(:,:,IDBC2H6) = BIOMASSQ(:,:,IDBC2H6)
                BIOMASS(:,:,IDBBC  ) = BIOMASSQ(:,:,IDBBC) 
+               BIOMASS(:,:,IDBOC  ) = BIOMASSQ(:,:,IDBOC) 
                BIOMASS(:,:,IDBSO2 ) = BIOMASSQ(:,:,IDBSO2) 
                BIOMASS(:,:,IDBNH3 ) = BIOMASSQ(:,:,IDBNH3)
                BIOMASS(:,:,IDBNO  ) = BIOMASSQ(:,:,IDBNO)              
-               BIOMASS(:,:,IDBACET ) = BIOMASSQ(:,:,IDBACET)  
-               BIOMASS(:,:,IDBC2H6 ) = BIOMASSQ(:,:,IDBC2H6)
             ENDIF
 
             IF ( LQFED .and. .not. LQFED_FINN ) THEN               
