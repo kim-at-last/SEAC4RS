@@ -144,8 +144,9 @@
       USE TRACERID_MOD, ONLY : IDTPRPE, IDTALK4!, IDTC2H4
       USE TRACERID_MOD, ONLY : IDTBENZ, IDTTOLU, IDTXYLE
       USE TRACERID_MOD, ONLY : IDTSO4, IDTCH2O
-      USE TRACERID_MOD, ONLY : IDTOCPO,  IDTBCPO 
-      !USE TRACERID_MOD, ONLY : IDTMOH, IDTEOH, IDTCH4
+      USE TRACERID_MOD, ONLY : IDTOCPO,  IDTBCPO
+      !USE TRACERID_MOD, ONLY : IDTMOH, IDTEOH!, IDTCH4
+      USE TRACERID_MOD, ONLY : IDTMEK, IDTC3H8, IDTACET !added 9/24/14, krt 
 !
 ! !INPUT PARAMETERS: 
 !
@@ -236,12 +237,29 @@
             ! [molec/cm2/s]
             VALUE = PRPE(I,J,L,IH)
 
+            ! IN NEI08, ALK4, C3H8, ACET and MEK 
+            ! are lumped into ALK4 - split here into
+            ! components based on NEI05
          ELSE IF ( N == IDTALK4 ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4(I,J,L,IH)
+            VALUE = ALK4(I,J,L,IH)*0.87
          
-         ELSE IF ( N == IDTTOLU ) THEN
+         ELSE IF ( N == IDTC3H8 ) THEN
+
+            ! [molec/cm2/s]
+            VALUE = ALK4(I,J,L,IH)*0.05
+
+         ELSE IF ( N == IDTACET ) THEN
+
+            ! [molec/cm2/s]
+            VALUE = ALK4(I,J,L,IH)*0.06
+         ELSE IF ( N == IDTMEK ) THEN
+
+            ! [molec/cm2/s]
+            VALUE = ALK4(I,J,L,IH)*0.02
+
+        ELSE IF ( N == IDTTOLU ) THEN
 
             ! [molec/cm2/s]
             VALUE = TOLU(I,J,L,IH)
