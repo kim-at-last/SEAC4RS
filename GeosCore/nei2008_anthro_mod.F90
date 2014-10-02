@@ -630,7 +630,10 @@
          ScNH3_NonAg = 0.952
       ELSEIF ( THISYEAR .ge. 2012 ) THEN ! scale based on 2010
          ScCO        = 0.820
-         ScNOx       = 0.794
+         ! To better model SEAC4RS reduce mobile NOx (Anderson et al etc)
+         !  Mobile NOx is 38% of total according to NEI for 2013
+         !  Scale down 50% of mobile = 0.38 & 0.5 = 0.19 (krt, 9/19/14)
+         ScNOx       = 0.794 * (1.000 - 0.190 )
          ScPM10      = 0.995
          ScPM25      = 0.975
          ! Scale down on the basis of surface station & wet deposition data
@@ -2173,7 +2176,10 @@
          ScNH3_NonAg = 0.952
       ELSEIF ( THISYEAR .ge. 2012 ) THEN ! scale based on 2010
          ScCO   = 0.820
-         ScNOx  = 0.794
+         ! To better model SEAC4RS reduce mobile NOx (Anderson et al etc)
+         !  Mobile NOx is 38% of total according to NEI for 2013
+         !  Scale down 50% of mobile = 0.38 & 0.5 = 0.19 (krt, 9/19/14)
+         ScNOx       = 0.794 * (1.000 - 0.190 )
          ScPM10 = 0.995
          ScPM25 = 0.975
          ! Scale down on the basis of surface station and wet deposition data
