@@ -399,7 +399,7 @@
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          QFED_DIR = '/as/data/geos/ExtData/HEMCO/QFED/v2014-09/'
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         TIME_STR =  '/MM/'
+         TIME_STR =  'YYYY/MM'
       !=================================================================
       ! Calculate biomass species emissions on QFED grid
       ! and regrid to model grid
@@ -426,7 +426,6 @@
      &        TRIM( TIME_STR ) // '/qfed2.emis_' // TRIM( SPEC_NAME ) //
      &              '.005.YYYYMMDD.nc4'
 
-         WRITE(*,*) 'FILENAME', FILENAME
          CALL EXPAND_DATE( FILENAME, YYYYMMDD, 000000 )
 
          ! Read QFED emissions for species in kg/m2/2 and convert to molecules/cm2/s
