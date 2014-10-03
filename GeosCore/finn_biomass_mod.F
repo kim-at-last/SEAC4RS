@@ -482,7 +482,7 @@
          IF ( LQFED_FINN .and. N .ge. 3 .and. N .le. 15 ) THEN
             WRITE(*,*) 'USING QFED FOR: ', SPEC_NAME   
          ! For SEAC4RS -- we aren't using TOLU, BENZ, C2H2, C2H4
-         ELSE IF ( N >= 16 and N <= 19 )THEN
+         ELSE IF ( N >= 16 .and. N <= 19 )THEN
             WRITE(*,*) 'No ',SPEC_NAME,' emissions for SEAC4RS'
          ELSE
             ! Read FINN emissions for this species in [molec/cm2/s]
