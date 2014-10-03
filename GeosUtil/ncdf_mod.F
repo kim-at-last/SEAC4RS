@@ -187,8 +187,8 @@
       CALL Ncop_Rd( fId, TRIM(NC_PATH) )
 
       ! Prompt some output (testing only)
-      WRITE( *, * ) '####################################'
-      WRITE( *, * ) 'Reading ', TRIM(NC_PATH)
+!      WRITE( *, * ) '####################################'
+!      WRITE( *, * ) 'Reading ', TRIM(NC_PATH)
 
       ! Echo info to stdout
       IF ( VERB ) THEN
@@ -341,9 +341,9 @@
       v_name = TRIM(PARA)
 
       ! Prompt some output (testing only)
-      WRITE( *, * ) 'Reading para ', TRIM(PARA)
-      WRITE( *, * ) '3D Array dimensions: ', II, ', ', JJ, ', ', LL
-      WRITE( *, * ) 'TIDX ', TIDX
+!      WRITE( *, * ) 'Reading para ', TRIM(PARA)
+!      WRITE( *, * ) '3D Array dimensions: ', II, ', ', JJ, ', ', LL
+!      WRITE( *, * ) 'TIDX ', TIDX
 
       ! Allocate the array
       ALLOCATE ( ARRAY(II,JJ,LL) )
@@ -444,7 +444,7 @@
       CALL NcCl( fId )
 
       ! Prompt some output (testing only)
-      WRITE( *, * ) '####################################'
+!      WRITE( *, * ) '####################################'
 
 
       ! Echo info to stdout
