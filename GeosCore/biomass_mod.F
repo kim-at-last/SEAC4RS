@@ -582,7 +582,7 @@
                BIOMASS(:,:,IDBCH2O) = BIOMASSQ(:,:,IDBCH2O)
                BIOMASS(:,:,IDBC2H6) = BIOMASSQ(:,:,IDBC2H6)
                BIOMASS(:,:,IDBBC  ) = BIOMASSQ(:,:,IDBBC) 
-               BIOMASS(:,:,IDBOC  ) = BIOMASSQ(:,:,IDBOC) 
+               BIOMASS(:,:,IDBOC  ) = 0.5 * BIOMASSQ(:,:,IDBOC) 
                BIOMASS(:,:,IDBSO2 ) = BIOMASSQ(:,:,IDBSO2) 
                BIOMASS(:,:,IDBNH3 ) = BIOMASSQ(:,:,IDBNH3)
                BIOMASS(:,:,IDBNO  ) = BIOMASSQ(:,:,IDBNO)              
@@ -755,8 +755,8 @@
                
             ! Latitude in the extratropics
             IF ( ABS( GET_YMID(I,J,1) ) .ge. 30 ) THEN
-               BLFRAC = 0.85d0
-               FTFRAC = 0.15d0
+               BLFRAC = 0.65d0
+               FTFRAC = 0.35d0
             ENDIF
 
             ! Latitude in the tropics
