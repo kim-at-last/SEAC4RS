@@ -109,7 +109,9 @@
       USE CMN_O3_MOD
       USE COMODE_MOD,         ONLY : ABSHUM, AIRDENS, ERADIUS, IXSAVE, 
      &                               IYSAVE, IZSAVE,  JLOP,    PRESS3,  
-     &                               REMIS,  T3,      TAREA,    CSPEC
+     &                               REMIS,  T3,      TAREA,    CSPEC,
+     &                               HPLUS_SAV,       NARAT_SAV, 
+     &                               SULRAT_SAV,      BISUL_SAV
       USE DAO_MOD,            ONLY : IS_ICE
       USE DIAG_MOD,           ONLY : AD22,   LTJV, AD52
       USE DRYDEP_MOD,         ONLY : DEPSAV, NUMDEP, DEPNAME, SHIPO3DEP
@@ -166,6 +168,12 @@
       ! New variables for new reations (jmao, 4/20/09)
       REAL*8  :: KHI1,KLO1,XYRAT1,BLOG1,FEXP1,KHI2,KLO2,XYRAT2,BLOG2
       REAL*8  :: FEXP2,KCO1,KCO2,KCO
+      ! New variable for heterogeneous uptake of GLYX: (eam, 9/14)
+      REAL*8  :: XRH
+      ! New variables for uptake of IEPOX and IMAE: (eam, 9/14)
+      INTEGER :: SPPIND
+      REAL*8  :: HSTAR,    H_PLUS,   MSO4,   MNO3,   MHSO4 
+      REAL*8  :: K_HPLUS,  K_NUC,    K_HSO4
       !FP_ISOP
       ! FP variables for isoprene chemistry (hotp 7/31/09)
       REAL*8   :: HAC_FRAC      
@@ -229,6 +237,9 @@
       ! For HONO chemistry (krt, 7/31/14)
       REAL*8  :: k0300, kINF300, kINFT, k0T
       REAL*4  :: nHI, mHI
+
+      ! Critical RH for uptake of GLYX, MGLYX, and GLYC:
+      REAL*8, PARAMETER :: CRITRH = 35.0d0
 
       ! Avoid array temporaries in CHECK_VALUE
       INTEGER            :: ERR_LOC(4)
@@ -943,6 +954,23 @@ c$$$     &              RRATE(KLOOP,NKHO2H2ONO2), RRATE(KLOOP, NKHO2H2O)
                   ENDDO
                ENDIF
 
+               ! -=-=-=-=-=-=-=-=-=-
+               ! Added for uptake of carbonyls, epoxides, and
+               ! alkyl nitrates (eam, 2014):
+               ! Define % RH:
+               XRH = State_Met%RH( IX, IY, IZ ) ![%]
+
+               ! Proton activity [unitless] and H+ concentration [M]
+               ! (assumed equivalent - for now):
+               H_PLUS = HPLUS_SAV(IX, IY, IZ) !GET_ISRINFO( IX, IY, IZ, 2 )
+               ! Sulfate concentration [M]:
+               MSO4   = SULRAT_SAV(IX, IY, IZ)!GET_ISRINFO( IX, IY, IZ, 4 )
+               ! Nitrate concentration [M]:
+               MNO3   = NARAT_SAV(IX, IY, IZ)!GET_ISRINFO( IX, IY, IZ, 5 )
+               ! Bisulfate (general acid) concentration [M]:
+               MHSO4  = BISUL_SAV(IX, IY, IZ)!GET_ISRINFO( IX, IY, IZ, 7 )
+               ! -=-=-=-=-=-=-=-=-=-
+
                ! Loop over sulfate and other aerosols
                DO N = 1, NDUST + NAER
 
@@ -1011,6 +1039,110 @@ c$$$     &              RRATE(KLOOP,NKHO2H2ONO2), RRATE(KLOOP, NKHO2H2O)
                      DUMMY3(KLOOP) = DUMMY3(KLOOP) +
      &                               ( XAREA / TOTAREA * XSTKCF )
 
+                  ! Begin EAM additions (9/14)
+                  ! Uptake and hydrolysis of glyoxal:
+                  ELSE IF ( NK == NKGLYX ) THEN
+
+                     ! Default value:
+                     XSTKCF = 0.D0
+
+                     ! Only consider inorganic aqueous aerosols
+                     ! with RH > 35%:
+                     IF ( N == 8 .AND. XRH >= CRITRH ) THEN
+
+                        ! Define gamma for GLYX:
+                        XSTKCF = 2.9d-3
+
+                     ENDIF
+
+                  ! Uptake and hydrolysis of glyoxal:
+                  ELSE IF ( NK == NKMGLY ) THEN
+
+                     ! Default value:
+                     XSTKCF = 0.D0
+
+                     ! Only consider inorganic aqueous aerosols
+                     ! with RH > 35%:
+                     IF ( N == 8 .and. XRH >= CRITRH ) THEN
+
+                        ! Define gamma for MGLY:
+                        XSTKCF = 2.9d-5
+
+                     ENDIF
+
+                  ! Uptake and hydrolysis of glycoaldehyde (NKGLYC
+                  ! is already used elsewhere):
+                  ELSE IF ( NK == NKGLYCO ) THEN
+
+                     ! Default value:
+                     XSTKCF = 0.D0
+
+                     ! Only consider inorganic aqueous aerosols
+                     ! with RH > 35%:
+                     IF ( N == 8 .and. XRH >= CRITRH ) THEN
+
+                        ! Define gamma for GLYC:
+                        XSTKCF = 2.9d-4
+
+                     ENDIF
+
+                  ! Uptake and hydrolysis of IEPOX:
+                  ELSE IF ( NK == NKIEPOX ) THEN
+
+                     ! Default values:
+                     XSTKCF = 0.D0
+
+                     ! Only consider inorganic aqueous aerosols
+                     ! with RH > 35%:
+                     IF ( N == 8 .AND. XRH >= CRITRH ) THEN
+
+                        ! Define Henry's Law constant:
+                        HSTAR = 1.7d8  ! (Gaston et al., 2014)
+
+                        ! Define first-order particle phase reaction rates 
+                        ! specific to IEPOX (from Gaston et al., 2014):
+                        K_HPLUS = 3.6d-2 
+                        K_NUC   = 2.d-4
+                        K_HSO4  = 7.3d-4
+
+                        ! Get GAMMA for IEPOX hydrolysis:
+                        XSTKCF = EPOXUPTK( XRADIUS, 
+     &                                     XAREA,  T3K(KLOOP), XSQM,    
+     &                                     HSTAR,  K_HPLUS,    H_PLUS,  
+     &                                     K_NUC,  MSO4,       MNO3,    
+     &                                     K_HSO4, MHSO4 )
+
+                     ENDIF
+
+                  ! Uptake and hydrolysis of IMAE:
+                  ELSE IF ( NK == NKIMAE ) THEN
+
+                     ! Default values:
+                     XSTKCF = 0.D0
+
+                     ! Only consider inorganic aqueous aerosols
+                     ! with RH > 35%:
+                     IF ( N == 8 .AND. XRH >= CRITRH ) THEN
+
+                        ! Define Henry's Law constant:
+                        HSTAR = 1.2d5 ! (Pye et al., 2013)
+
+                        ! Define first-order particle phase reaction rates 
+                        ! specific to IEPOX (from Pye et al., 2014):
+                        K_HPLUS = 1.2d-3  ! 30x slower than IEPOX 
+                                          ! (Piletic et al., 2013)
+                        K_NUC   = 6.7d-6  ! Assume others are also 30x slower.
+                        K_HSO4  = 2.4d-5
+
+                        ! Get GAMMA for IMAE hydrolysis:
+                        XSTKCF = EPOXUPTK( XRADIUS, 
+     &                                     XAREA,  T3K(KLOOP), XSQM,    
+     &                                     HSTAR,  K_HPLUS,    H_PLUS,  
+     &                                     K_NUC,  MSO4,       MNO3,    
+     &                                     K_HSO4, MHSO4 )
+
+                     ENDIF
+                  ! End EAM additions (9/14)
 
                   ELSE IF ( NK == NKBrNO3 ) THEN
 
@@ -2047,6 +2179,101 @@ c$$$     &              RRATE(KLOOP,NKHO2H2ONO2), RRATE(KLOOP, NKHO2H2O)
 
       ! Return to CALCRATE
       END FUNCTION HO2
+
+! *********************************************************************
+
+      FUNCTION EPOXUPTK( AERRAD, AERAREA, TEMP, SQMW,  HENRY,  
+     &                   KHPLUS, HPLUS,   KNUC, SULF,  NITR, 
+     &                   KGACID, BISULF) 
+     &         RESULT( GAMMA )
+
+      !=================================================================
+      ! Internal function EPOXUPTK computes the GAMMA sticking factor
+      ! for EPOXUPTK hydrolysis to form 2-methyltetrols (AITET).
+      ! (eam, 2014).
+      ! Calculation is only done for inorganic aqueous phase aerosols
+      ! 
+      ! This calculation uses the parameterization of Gaston et al., 
+      ! EST, 2014.
+      !
+      ! Redistribution of products (e.g. AITET) to yield organosulfates
+      ! and organonitrates is done in SOA_CHEMISTRY in carbon_mod.F.
+      ! This is only done for IEPOX and IMAE if it's an SOA simulation
+
+      ! Uses:
+      USE COMODE_LOOP_MOD,     ONLY : RGASLATM
+      
+      ! Arguments 
+      REAL*8,  INTENT(IN) :: AERRAD   ! Aerosol radius [cm]
+      REAL*8,  INTENT(IN) :: AERAREA  ! Aerosol surf. area [cm2/cm3]
+      REAL*8,  INTENT(IN) :: TEMP     ! Temperature [K]
+      REAL*8,  INTENT(IN) :: SQMW     ! Square root of the molecular weight
+      REAL*8,  INTENT(IN) :: HENRY    ! Henry's Law constant [M/atm]
+      REAL*8,  INTENT(IN) :: KHPLUS   ! 1st order rxn rate (acid-catalyzed ring
+                                      ! opening)
+      REAL*8,  INTENT(IN) :: HPLUS    ! Proton activity [unitless] and [H+] [M]
+      REAL*8,  INTENT(IN) :: KNUC     ! 1st order rxn rate due to specific 
+                                      ! nucleophiles (SO4, NO3)
+      REAL*8,  INTENT(IN) :: SULF     ! Sulfate concentration [M]
+      REAL*8,  INTENT(IN) :: NITR     ! Nitrate concentration [M]
+      REAL*8,  INTENT(IN) :: KGACID   ! 1st order rxn rate due to general acids
+                                      ! (bisulfate in this case)
+      REAL*8,  INTENT(IN) :: BISULF   ! Bisulfate concentration [M]
+
+      ! Local variables
+      REAL*8              :: AERVOL   ! Aerosol volume [cm3/cm3]
+      REAL*8              :: KPART ! Particle-phase reaction rate [1/s]
+      REAL*8              :: XMMS  ! Mean molecular speed [cm/s]
+      REAL*8              :: VAL1, VAL2, VAL3  ! Terms for calculating GAMMA
+
+      ! Local constants:
+      ! Gas-phase diffusion constant [cm2/s]:
+      REAL*8, PARAMETER   :: DIFF_N2O5_STD = 1.0d-1 
+      ! Mass accommodation coefficient [unitless]:
+      REAL*8, PARAMETER   :: MACOEFF = 1.0d-1
+
+      ! Function return value
+      REAL*8              :: GAMMA
+      
+      !=================================================================
+      ! EPOXUPTK begins here!
+      !=================================================================
+
+      ! Calculate aerosol volume (use formula in aerosol_mod.F):
+      AERVOL = (XAREA * XRADIUS)/3.d0
+
+      ! Calculate mean molecular speed [cm/s]:
+      XMMS = SQRT( (2.117d8 * TEMP) / (SQMW * SQMW) )
+
+      ! Calculate first-order particle-phase reaction rate:
+      ! (assume [H+] = proton activity)
+      KPART = ( KHPLUS*HPLUS ) + 
+     &        ( ( KNUC*SULF*HPLUS ) + ( KNUC*NITR*HPLUS ) ) +
+     &        ( KGACID*BISULF )
+
+      ! Calculate the first uptake parameterization term:
+      VAL1 = ( XRADIUS * XMMS )/( 4.d0 * DIFF_N2O5_STD )
+
+      ! Calculate the second uptake parameterization term:
+      VAL2 = ( 1.d0/MACOEFF )
+
+      ! Calculate the third uptake parameterization term:
+      VAL3 = 1.d0/
+     &       ( ( 4.d0 * AERVOL * RGASLATM * TEMP * HENRY * KPART )/
+     &         ( XRADIUS * XMMS ) )
+
+      ! Account for small reaction rates:
+      IF ( KPART .LT. 1.D-8 ) THEN
+         GAMMA = 0.D0
+      ELSE
+
+         ! Calculate the uptake coefficient:
+         GAMMA = 1.d0/( VAL1 + VAL2 + VAL3 )
+
+      ENDIF
+
+      ! Return to CALCRATE
+      END FUNCTION EPOXUPTK
 
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !

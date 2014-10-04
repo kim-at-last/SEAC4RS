@@ -571,12 +571,13 @@
       ! irreversible uptake of isoprene epoxides and uses southeast US a gamma
       ! (uptake coefficient) value similar to values obtained over the southeast
       ! US using CMAQ of 0.002.
-      IF ( .not. ( LSOA) ) THEN
-
-         CALL AEROSOL_UPTAKE( am_I_Root, Input_Opt,
-     &                        State_Met, State_Chm, RC )
-
-      ENDIF
+      ! EAM moved to calcrate.F (jaf, 9/14)
+!      IF ( .not. ( LSOA) ) THEN
+!
+!         CALL AEROSOL_UPTAKE( am_I_Root, Input_Opt,
+!     &                        State_Met, State_Chm, RC )
+!
+!      ENDIF
 
       !=================================================================
       ! Do chemistry for secondary organic aerosols 
@@ -631,29 +632,33 @@
       ! NOTE: We skip this for GEOS-5/MERRA met (skim, bmy, 1/14/10)
       CALL GET_VCLDF( State_Met )
 
-            ! Cloud uptake
-      CALL SOAG_CLOUD( State_Met, State_Chm )
-      IF ( prtDebug ) THEN
-         CALL DEBUG_MSG('### CHEMCARBON: a SOAG_CLOUD')
-      ENDIF
-            ! Cloud uptake
-      CALL SOAM_CLOUD( State_Met, State_Chm )
-      IF ( prtDebug ) THEN
-         CALL DEBUG_MSG('### CHEMCARBON: a SOAM_CLOUD')
-      ENDIF
+! EAM 9/30/2014 suggests these routines are problematic and should be
+! turned off.
+!            ! Cloud uptake
+!      CALL SOAG_CLOUD( State_Met, State_Chm )
+!      IF ( prtDebug ) THEN
+!         CALL DEBUG_MSG('### CHEMCARBON: a SOAG_CLOUD')
+!      ENDIF
+!            ! Cloud uptake
+!      CALL SOAM_CLOUD( State_Met, State_Chm )
+!      IF ( prtDebug ) THEN
+!         CALL DEBUG_MSG('### CHEMCARBON: a SOAM_CLOUD')
+!      ENDIF
 
-            ! Aqueous aerosol uptake
-      CALL SOAG_LIGGIO_DIFF( am_I_Root, Input_Opt,
-     &     State_Met, State_Chm, RC )
-      IF ( prtDebug ) THEN
-         CALL DEBUG_MSG('### CHEMCARBON: a SOAG_LIGGIO_DIFF')
-      ENDIF
-            ! Aqueous aerosol uptake
-      CALL SOAM_LIGGIO_DIFF( am_I_Root, Input_Opt,
-     &     State_Met, State_Chm, RC )
-      IF ( prtDebug ) THEN
-         CALL DEBUG_MSG( '### CHEMCARBON: a SOAM_LIGGIO_DIFF' )
-      ENDIF
+! EAM 9/30/2014 moved GLYX and MGLY uptake to calcrate.F so we turn it
+! off here.
+!            ! Aqueous aerosol uptake
+!      CALL SOAG_LIGGIO_DIFF( am_I_Root, Input_Opt,
+!     &     State_Met, State_Chm, RC )
+!      IF ( prtDebug ) THEN
+!         CALL DEBUG_MSG('### CHEMCARBON: a SOAG_LIGGIO_DIFF')
+!      ENDIF
+!            ! Aqueous aerosol uptake
+!      CALL SOAM_LIGGIO_DIFF( am_I_Root, Input_Opt,
+!     &     State_Met, State_Chm, RC )
+!      IF ( prtDebug ) THEN
+!         CALL DEBUG_MSG( '### CHEMCARBON: a SOAM_LIGGIO_DIFF' )
+!      ENDIF
 
       END SUBROUTINE CHEMCARBON
 !EOC
