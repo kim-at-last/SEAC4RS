@@ -1160,9 +1160,8 @@
          ! the AN global array, and increment counter
          SELECT CASE( TRIM( NAMEGAS(M) ) )
 
-           CASE ( 'ISOPNB', 'ISOPND', 'MVKN',  'MACRN',
-     &            'ISN1',   'MNO3',   'ISNO3', 'R4N2',
-     &            'PROPNN', 'ETHLN',  'DHDN' ) 
+           CASE ( 'ISOPNB', 'ISOPND', 'MVKN',  'MACRN', 'R4N2',
+     &            'ISN1',   'PROPNN', 'ETHLN', 'DHDN' ) 
 
                NPAN       = NPAN + 1
                P_AN(NPAN) = M
