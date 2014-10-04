@@ -6789,7 +6789,7 @@ ccc
       CHARACTER(LEN=255)          :: FILENAME
 
       ! Fraction of yield of OC (hydrophilic) from terpene emission
-      REAL*8, PARAMETER           :: FBIOG = 1.0d-1
+      REAL*8, PARAMETER           :: FBIOG = 5.0d-2
 
       ! SEAC4RS SOA tracers (jaf, 6/25/13)
       REAL*8                      :: EMIS_ISOP
@@ -8299,8 +8299,8 @@ ccc
       ! Adjust the emission ratio of SOA precursor to CO
       !    Based off of discussion with Jose Jimenez
       !    (skim, 6/13/14)
-      REAL*8, PARAMETER     :: ER_ANTHRO = 6.9D-2 / 2.1  ! Hayes   et al. [2014]
-      REAL*8, PARAMETER     :: ER_BIOB   = 1.3D-2 / 2.1  ! Cubison et al. [2013]
+      REAL*8, PARAMETER     :: ER_ANTHRO = 6.9D-2 / 2.03  ! Hayes   et al. [2014]
+      REAL*8, PARAMETER     :: ER_BIOB   = 1.3D-2 / 2.03  ! Cubison et al. [2013]
 
       INTEGER               :: I,     J,     L
       REAL*8                :: A_CM2, DTSRCE, CONV_ANTHRO, CONV_BIOB

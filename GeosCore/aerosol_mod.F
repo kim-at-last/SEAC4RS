@@ -527,8 +527,12 @@
 
             ! Hydrophobic OC [kg/m3] 
             ! Add the anthropognic and biomass burning POA (skim, 6/13/14)
-            OCPO(I,J,L) = ( STT(I,J,L,IDTOCPO) + STT(I,J,L,IDTBBOCPO) ) 
-     &                    * OCF / State_Met%AIRVOL(I,J,L)
+            OCPO(I,J,L) = ( 1.34 * STT(I,J,L,IDTOCPO)   + 
+     &                      1.64 * STT(I,J,L,IDTBBOCPO) )
+     &                    / State_Met%AIRVOL(I,J,L)
+
+!            OCPO(I,J,L) = ( STT(I,J,L,IDTOCPO) + STT(I,J,L,IDTBBOCPO) ) 
+!     &                    * OCF / State_Met%AIRVOL(I,J,L)
 
             IF ( LSOA ) THEN
 
@@ -571,26 +575,27 @@
 !     &                       State_Met%AIRVOL(I,J,L)
                ! Add the anthropogenic and biomass burning POA components
                ! (skim, 6/13/14)
-               OCPI(I,J,L) = STT(I,J,L,IDTOCPI) + STT(I,J,L,IDTBBOCPI)
+               OCPI(I,J,L) = 1.34 * STT(I,J,L,IDTOCPI) + 
+     &                       1.64 * STT(I,J,L,IDTBBOCPI)
 
                ! Add SEAC4RS SOA tracers if they are turned on
                ! For now assume the same correction factor for SOA
                ! aerosols as for POA, but this should be double checked.
                ! (jaf, 6/26/13)
                IF ( IDTASOA > 0 ) OCPI(I,J,L) = OCPI(I,J,L) + 
-     &                                           STT(I,J,L,IDTASOA)
+     &                                  2.03 * STT(I,J,L,IDTASOA)
                IF ( IDTBBSOA > 0 ) OCPI(I,J,L) = OCPI(I,J,L) + 
-     &                                           STT(I,J,L,IDTBBSOA)
+     &                                  2.03 * STT(I,J,L,IDTBBSOA)
                IF ( IDTBGSOA_ILNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) + 
-     &                                   STT(I,J,L,IDTBGSOA_ILNOX)
+     &                                  2.03 * STT(I,J,L,IDTBGSOA_ILNOX)
                IF ( IDTBGSOA_IHNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) +
-     &                                   STT(I,J,L,IDTBGSOA_IHNOX)
+     &                                  2.03 * STT(I,J,L,IDTBGSOA_IHNOX)
                IF ( IDTBGSOA_MLNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) +
-     &                                   STT(I,J,L,IDTBGSOA_MLNOX)
+     &                                  2.03 * STT(I,J,L,IDTBGSOA_MLNOX)
                IF ( IDTBGSOA_MHNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) +
-     &                                   STT(I,J,L,IDTBGSOA_MHNOX)
+     &                                  2.03 * STT(I,J,L,IDTBGSOA_MHNOX)
 
-               OCPI(I,J,L) = OCPI(I,J,L) * OCF / State_Met%AIRVOL(I,J,L)
+               OCPI(I,J,L) = OCPI(I,J,L) / State_Met%AIRVOL(I,J,L)
 !-----------
                   
             ENDIF
