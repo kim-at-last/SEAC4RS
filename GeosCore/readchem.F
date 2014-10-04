@@ -198,6 +198,21 @@
       ! Initialize flag for HO2 hydrolysis rxn (jaegle, 02/26/09)
       NKHO2          = 0
 
+      ! Initialize flag for GLYX hydrolysis rxn (eam, 2014)
+      NKGLYX         = 0
+
+      ! Initialize flag for MGLY hydrolysis rxn (eam, 2014)
+      NKMGLY         = 0
+
+      ! Initialize flag for GLYC hydrolysis rxn (eam, 2014)
+      NKGLYCO        = 0
+
+      ! Initialize flag for IEPOX hydrolysis rxn (eam, 2014)
+      NKIEPOX        = 0
+
+      ! Initialize flag for IMAE hydrolysis rxn (eam, 2014)
+      NKIMAE         = 0
+
       ! Initialize flag for BrNO3 hydrolysis rxn (jpp, 5/4/10)
       NKBrNO3        = 0
       ! Initialize flags for HOBr + HBr het. pseudo-rxns (jpp, 3/22/11)
@@ -1032,6 +1047,33 @@
                   IF ( XINP(1) == 'HO2' ) THEN
                      NKHO2 = NK
                   ENDIF
+
+                  ! EAM additions (09/29/14)
+                  ! Update for hydrolysis of GLYX:
+                  IF ( XINP(1) == 'GLYX' ) THEN
+                     NKGLYX = NK
+                  ENDIF
+
+                  ! Update for hydrolysis of MGLY:
+                  IF ( XINP(1) == 'MGLY' ) THEN
+                     NKMGLY = NK
+                  ENDIF
+                  
+                  ! Update for hydrolysis of GLYC:
+                  IF ( XINP(1) == 'GLYC' ) THEN
+                     NKGLYCO = NK
+                  ENDIF
+
+                  ! Update for hydrolysis of IEPOX:
+                  IF ( XINP(1) == 'IEPOX' ) THEN
+                     NKIEPOX = NK
+                  ENDIF
+
+                  ! Update for hydrolysis of IMAE:
+                  IF ( XINP(1) == 'IMAE' ) THEN
+                     NKIMAE = NK
+                  ENDIF
+                  ! End EAM additions
 
                   ! Same for BrNO3 hydrolysis rxn (jpp, 5/4/10)
                   IF ( XINP(1) == 'BrNO3' ) THEN

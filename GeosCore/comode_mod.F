@@ -58,6 +58,12 @@
       REAL*8,  ALLOCATABLE, PUBLIC :: VOLUME(:)      
       REAL*8,  ALLOCATABLE, PUBLIC :: WTAREA(:,:)
       REAL*8,  ALLOCATABLE, PUBLIC :: WERADIUS(:,:)
+      ! Begin EAM additions
+      REAL*8,  ALLOCATABLE, PUBLIC :: HPLUS_SAV(:,:,:)
+      REAL*8,  ALLOCATABLE, PUBLIC :: SULRAT_SAV(:,:,:)
+      REAL*8,  ALLOCATABLE, PUBLIC :: NARAT_SAV(:,:,:)
+      REAL*8,  ALLOCATABLE, PUBLIC :: BISUL_SAV(:,:,:)
+      ! End EAM additions
 !
 ! !PUBLIC MEMBER FUNCTIONS:
 ! 
@@ -246,6 +252,24 @@
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'WERADIUS' )
          WERADIUS = 0d0      
 
+         ! Begin EAM additions
+         ALLOCATE( HPLUS_SAV( IIPAR, JJPAR, LLPAR ) , STAT=AS )
+         IF ( AS /= 0  ) CALL ALLOC_ERR( 'HPLUS_SAV' )
+         HPLUS_SAV = 0d0
+      
+         ALLOCATE( SULRAT_SAV( IIPAR, JJPAR, LLPAR ) , STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'SULRAT_SAV' )
+         SULRAT_SAV = 0d0
+
+         ALLOCATE( NARAT_SAV( IIPAR, JJPAR, LLPAR ) , STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'NARAT_SAV' )
+         NARAT_SAV = 0d0
+
+         ALLOCATE( BISUL_SAV( IIPAR, JJPAR, LLPAR ) , STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'BISUL_SAV' )
+         BISUL_SAV = 0d0     
+         ! End EAM additions
+
       ENDIF
 
       !----------------------------------
@@ -298,6 +322,24 @@
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'WERADIUS' )
          WERADIUS = 0d0      
          
+         ! Begin EAM additions
+         ALLOCATE( HPLUS_SAV( IIPAR, JJPAR, LLPAR ) , STAT=AS )
+         IF ( AS /= 0  ) CALL ALLOC_ERR( 'HPLUS_SAV' )
+         HPLUS_SAV = 0d0
+      
+         ALLOCATE( SULRAT_SAV( IIPAR, JJPAR, LLPAR ) , STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'SULRAT_SAV' )
+         SULRAT_SAV = 0d0
+
+         ALLOCATE( NARAT_SAV( IIPAR, JJPAR, LLPAR ) , STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'NARAT_SAV' )
+         NARAT_SAV = 0d0
+
+         ALLOCATE( BISUL_SAV( IIPAR, JJPAR, LLPAR ) , STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'BISUL_SAV' )
+         BISUL_SAV = 0d0     
+         ! End EAM additions
+
       ENDIF
 
       END SUBROUTINE INIT_COMODE
@@ -348,6 +390,10 @@
       IF ( ALLOCATED( VOLUME        ) ) DEALLOCATE( VOLUME        )  
       IF ( ALLOCATED( WTAREA        ) ) DEALLOCATE( WTAREA        )
       IF ( ALLOCATED( WERADIUS      ) ) DEALLOCATE( WERADIUS      )
+      IF ( ALLOCATED( HPLUS_SAV     ) ) DEALLOCATE( HPLUS_SAV     )
+      IF ( ALLOCATED( SULRAT_SAV    ) ) DEALLOCATE( SULRAT_SAV    )
+      IF ( ALLOCATED( NARAT_SAV     ) ) DEALLOCATE( NARAT_SAV     )
+      IF ( ALLOCATED( BISUL_SAV     ) ) DEALLOCATE( BISUL_SAV     )
 
       END SUBROUTINE CLEANUP_COMODE
 !EOC

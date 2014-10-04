@@ -816,7 +816,7 @@ input_mod.o                 : input_mod.F                                    \
 
 isoropiaII_mod.o            : isoropiaII_mod.F                               \
                               global_hno3_mod.o       tracerid_mod.o         \
-                              tropopause_mod.o
+                              tropopause_mod.o        comode_mod.o
 
 jsparse.o                   : jsparse.F               comode_mod.o
 

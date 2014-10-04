@@ -313,6 +313,9 @@
       ! Gas constant [erg/K/mole]
       REAL*8, PARAMETER :: RGAS     = BOLTG * AVG
       
+      ! Gas constant in: [L.atm/K.mole]
+      REAL*8, PARAMETER :: RGASLATM = 8.2057d-2
+      
       ! Universal gas constant [g/cm2/s2/mole/K]
       REAL*8, PARAMETER :: RSTARG   = 8.31450d+07
 
@@ -429,6 +432,8 @@
      &                   NKHOROI(ICS),  NKHOROJ(ICS),
      &                   NKHNO4(ICS),   NKN2O5,       NKHO2, 
      &                   NKHO2H2O, NKHO2H2ONO2,
+     &                   NKGLYX,        NKMGLY,       NKGLYCO,
+     &                   NKIEPOX,       NKIMAE,
      &                   NKGLYC(ICS,2), NKHAC(ICS,2), NKMCO3(ICS,3),
      &                   NKBrNO3,       NKHOBr,       NK1HBr, 
      &                   NK2HOBr,       NK2HBr,       NNRO2HO2(ICS), 
