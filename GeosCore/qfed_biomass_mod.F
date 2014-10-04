@@ -335,7 +335,7 @@
       INTEGER             :: DD,   DD1,  DOY
       REAL*4              :: TMP
       CHARACTER(LEN=255)  :: FILENAME,  QFED_DIR
-      CHARACTER(LEN=7  )  :: TIME_STR
+      CHARACTER(LEN=9  )  :: TIME_STR
       CHARACTER(LEN=4  )  :: SPEC_NAME
 
       !=================================================================
@@ -399,7 +399,7 @@
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          QFED_DIR = '/as/data/geos/ExtData/HEMCO/QFED/v2014-09/'
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         TIME_STR =  '/MM/'
+         TIME_STR =  'YYYY/MM/'
       !=================================================================
       ! Calculate biomass species emissions on QFED grid
       ! and regrid to model grid
