@@ -378,9 +378,23 @@
          ELSE IF ( N == IDTALK4 ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4_WKEND(I,J,L,IH)
+            VALUE = ALK4_WKEND(I,J,L,IH)*0.87
          
-         ELSE IF ( N == IDTTOLU ) THEN
+         ELSE IF ( N == IDTC3H8 ) THEN
+
+            ! [molec/cm2/s]
+            VALUE = ALK4_WKEND(I,J,L,IH)*0.05
+
+         ELSE IF ( N == IDTACET ) THEN
+
+            ! [molec/cm2/s]
+            VALUE = ALK4_WKEND(I,J,L,IH)*0.06
+         ELSE IF ( N == IDTMEK ) THEN
+
+            ! [molec/cm2/s]
+            VALUE = ALK4_WKEND(I,J,L,IH)*0.02
+
+        ELSE IF ( N == IDTTOLU ) THEN
 
             ! [molec/cm2/s]
             VALUE = TOLU_WKEND(I,J,L,IH)
