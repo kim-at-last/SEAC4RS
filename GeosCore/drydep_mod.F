@@ -198,8 +198,9 @@
       INTEGER, PARAMETER :: MAXDEP    = 100     ! Max # of depositing species
 #else
       ! +3 for SEAC4RS SOA tracers (jaf, 6/24/13)
+      ! +2 for organic nitrate aerosols (jaf, 10/5/14)
       !INTEGER, PARAMETER :: MAXDEP    = 55      ! Max # of depositing species
-      INTEGER, PARAMETER :: MAXDEP    = 91      ! Max # of depositing species
+      INTEGER, PARAMETER :: MAXDEP    = 93      ! Max # of depositing species
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      ! SOAupdate: 55 to 105 jje (8/19/2010)
@@ -5841,6 +5842,27 @@
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3
+            AIROSOL(NUMDEP) = .TRUE.
+
+         ! Organic nitrate aerosols (jaf, 7/26/14)
+         ELSE IF ( N == IDTONITAam ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTONITAam
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'ONITAam'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 14d-3
+            AIROSOL(NUMDEP) = .TRUE.
+
+         ELSE IF ( N == IDTONITApm ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTONITApm
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'ONITApm'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 14d-3
             AIROSOL(NUMDEP) = .TRUE.
 
          !----------------------------------

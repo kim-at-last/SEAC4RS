@@ -515,6 +515,10 @@
       INTEGER            :: IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
       INTEGER            :: IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
 
+      ! Add organic nitrate aerosol tracers (jaf, 7/26/14)
+      INTEGER            :: IDTONITAam
+      INTEGER            :: IDTONITApm
+
       ! For tagged Hg simulation
       INTEGER              :: N_Hg_CATS
       INTEGER, ALLOCATABLE :: ID_Hg0(:),  ID_Hg2(:), ID_HgP(:)
@@ -1554,6 +1558,14 @@
 
             CASE ( 'BGSOA_MHNOX' )
                IDTBGSOA_MHNOX  = N
+
+            ! Add organic nitrate aerosol tracers (day/night) (jaf,
+            ! 7/26/14)
+            CASE ( 'ONITAam' )
+               IDTONITAam  = N
+
+            CASE ( 'ONITApm' )
+               IDTONITApm  = N
 
             !--------------------------------
             ! Tagged Ox Tracers
@@ -4903,6 +4915,10 @@
       IDTBGSOA_IHNOX = 0
       IDTBGSOA_MLNOX = 0
       IDTBGSOA_MHNOX = 0
+ 
+      ! Add organic nitrate aerosol tracer (jaf, 7/26/14)
+      IDTONITAam = 0
+      IDTONITApm = 0
  
       ! SOAupdate: convert all POA/POG to 1 and 2 (hotp 10/11/09)
        !semivolpoa (hotp 8/24/09)

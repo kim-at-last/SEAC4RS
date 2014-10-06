@@ -876,6 +876,10 @@
       USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
       USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
  
+      ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
+      USE TRACERID_MOD,       ONLY : IDTONITAam
+      USE TRACERID_MOD,       ONLY : IDTONITApm
+ 
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
       ! SOAupdate: update biogenics (new mtp) (hotp 5/24/10)
@@ -2149,6 +2153,7 @@
       ! Separate the BGSOA into its components (skim, 6/13/14)
       !------------------------------------------
       ELSE IF ( N == IDTASOA        .or. N == IDTBBSOA       .or.
+     &          N == IDTONITAam     .or. N == IDTONITApm     .or.
      &          N == IDTBGSOA_ILNOX .or. N == IDTBGSOA_IHNOX .or.
      &          N == IDTBGSOA_MLNOX .or. N == IDTBGSOA_MHNOX ) THEN
          CALL F_AEROSOL( KC, N, F, State_Met )
@@ -3372,6 +3377,9 @@
       USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
       USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
 
+      ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
+      USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
+ 
 #if defined( TOMAS )
       USE TRACERID_MOD, ONLY : IDTH2SO4,IDTNK1,   IDTSF1,  IDTSS1
       USE TRACERID_MOD, ONLY : IDTECIL1,IDTOCIL1, IDTOCOB1,IDTDUST1
@@ -4635,6 +4643,7 @@
          ! Separate BGSOA into its components (skim, 6/13/14)
          !--------------------------------------
          ELSE IF ( N == IDTASOA        .or. N == IDTBBSOA       .or.
+     &             N == IDTONITAam     .or. N == IDTONITApm     .or.
      &             N == IDTBGSOA_ILNOX .or. N == IDTBGSOA_IHNOX .or.
      &             N == IDTBGSOA_MLNOX .or. N == IDTBGSOA_MHNOX ) THEN
             RAINFRAC = GET_RAINFRAC( K_RAIN, F, DT )
@@ -4873,6 +4882,8 @@
       ! Separate the BGSOA tracer into its components (skim, 6/13/14)
       USE TRACERID_MOD, ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
       USE TRACERID_MOD, ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
+      USE TRACERID_MOD, ONLY : IDTONITAam, IDTONITApm
       ! SOAupdate: update biogenics (new mtp) (hotp 5/24/10)
       USE TRACERID_MOD, ONLY : IDTMTPA,  IDTLIMO,  IDTMTPO
       USE TRACERID_MOD, ONLY : IDTTSOA1, IDTTSOA2, IDTTSOA3
@@ -5408,6 +5419,7 @@
       ! Separate BGSOA into its components (skim, 6/13/14)
       !------------------------------
       ELSE IF ( N == IDTASOA        .or. N == IDTBBSOA       .or.
+     &          N == IDTONITAam     .or. N == IDTONITApm     .or.
      &          N == IDTBGSOA_ILNOX .or. N == IDTBGSOA_IHNOX .or.
      &          N == IDTBGSOA_MLNOX .or. N == IDTBGSOA_MHNOX ) THEN
          KIN      = .TRUE.
@@ -8479,6 +8491,8 @@
       ! Separate BGSOA tracer into components (skim, 6/13/14)
       USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
       USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
+      USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
       ! SOAudpate: update biogenics (new mtp) (hotp 5/24/10)
       USE TRACERID_MOD, ONLY : IDTMTPA,  IDTLIMO,  IDTMTPO
       USE TRACERID_MOD, ONLY : IDTTSOA1, IDTTSOA2, IDTTSOA3
@@ -8926,6 +8940,16 @@
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTBGSOA_MHNOX
 
+         ! Add organic nitrate aerosol tracers (jaf, 7/26/14)
+         ELSE IF ( N == IDTONITAam ) THEN
+            NSOL         = NSOL + 1
+            IDWETD(NSOL) = IDTONITAam
+
+         ! Add organic nitrate aerosol tracers (jaf, 7/26/14)
+         ELSE IF ( N == IDTONITApm ) THEN
+            NSOL         = NSOL + 1
+            IDWETD(NSOL) = IDTONITApm
+
          !-----------------------------
          ! Dust aerosol tracers
          !-----------------------------
@@ -9116,6 +9140,8 @@
       ! Separate BGSOA tracer into components (skim, 6/13/14)
       USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
       USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
+      USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
 #if defined( TOMAS )
       USE TRACERID_MOD,       ONLY : IDTNK1
       USE TOMAS_MOD,          ONLY : IBINS, IDIAG, ICOMP
@@ -9223,6 +9249,9 @@
             IF ( IDTBGSOA_IHNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
             IF ( IDTBGSOA_MLNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
             IF ( IDTBGSOA_MHNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
+            ! Add organic nitrate aerosols (jaf, 7/26/14)
+            IF ( IDTONITAam /= 0 ) NMAX = NMAX + 1         ! SEAC4RS SOA tracers
+            IF ( IDTONITApm /= 0 ) NMAX = NMAX + 1         ! SEAC4RS SOA tracers
 
          ENDIF
 
