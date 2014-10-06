@@ -681,7 +681,13 @@
             !    & derived emission fluxes from Wolfe et al. 2014
             ! skim, 9/27/14
 #if defined( GRID025x03125)
+             ! From kyu, at nested resolution we get 2.58 Tg C over the SEUS.
+             ! 0.7=1.81 Tg C (krt, 10/6/14)
             EMFAC = 0.7 * AEF_ISOP(I,J)
+#elseif defined ( GRID4x5)
+             ! From kyu, at 4x5 we get 2.21 Tg C over the SEUS.
+             !To constrain to 1.81 Tg, multiply by 0.82
+            EMFAC = 0.82 * AEF_ISOP(I,J)
 #else
             EMFAC = AEF_ISOP(I,J)
 #endif
