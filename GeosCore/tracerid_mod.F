@@ -273,6 +273,7 @@
       INTEGER            :: IDISNP, IDPMNN, IDMOBA, IDDHDN
       INTEGER            :: IDIAP,  IDINPN, IDMRP, IDPRPN
       INTEGER            :: IDPP,   IDR4P,  IDRA3P, IDRB3P, IDRP
+      INTEGER            :: IDHPALD !krt, 10/6/14
       ! IDs of aromatics not use (hotp 8/1/09)
 !      INTEGER            :: IDBENZ,  IDTOLU,   IDXYLE,  IDMONX
       INTEGER            :: IDC2H2, IDC2H4
@@ -332,7 +333,7 @@
       INTEGER :: IDTALD2,  IDTRCHO, IDTMVK,  IDTMACR, IDTPMN
       INTEGER :: IDTPPN,   IDTR4N2, IDTPRPE, IDTC3H8, IDTCH2O
       INTEGER :: IDTC2H6,  IDTN2O5, IDTHNO4, IDTMP, IDTDMS
-      INTEGER :: IDTOH
+      INTEGER :: IDTOH,    IDTHPALD
       !----------------------------------------------------------------
       ! SEAC4RS specific-change
       ! Separate POA into anthropogenic and biomass burning components
@@ -828,6 +829,9 @@
             CASE ( 'ISOP' )
                IDTISOP  = N
                
+            CASE ( 'HPALD' )
+               IDTHPALD  = N
+
             CASE ( 'HNO3' )
                IDTHNO3  = N
                COUNT_BB = COUNT_BB + 1
@@ -3367,6 +3371,7 @@
          IF ( NAMEGAS(I) == 'CO'     ) IDCO     = I
          IF ( NAMEGAS(I) == 'ALK4'   ) IDALK4   = I
          IF ( NAMEGAS(I) == 'ISOP'   ) IDISOP   = I
+         IF ( NAMEGAS(I) == 'HPALD'  ) IDHPALD  = I
 !        IF ( NAMEGAS(I) == 'APINE'  ) IDAPINE  = I
          IF ( NAMEGAS(I) == 'GLPAN'  ) IDGLPAN  = I
          IF ( NAMEGAS(I) == 'GPAN'   ) IDGPAN   = I
@@ -4550,6 +4555,7 @@
       IDCO      = 0
       IDALK4    = 0
       IDISOP    = 0
+      IDHPALD   = 0
 !      IDAPINE   = 0
 
       IDGLPAN   = 0
@@ -4783,6 +4789,7 @@
       IDTCO      = 0
       IDTALK4    = 0
       IDTISOP    = 0
+      IDTHPALD   = 0
       IDTHNO3    = 0
       IDTH2O2    = 0
       IDTACET    = 0
