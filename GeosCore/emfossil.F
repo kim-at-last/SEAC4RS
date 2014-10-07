@@ -968,7 +968,8 @@
          ! kyu 17 Feb 2014: Modified so that NEI is read in here instead
          ! of at the end so that we can add BRAVO and CAC emissions to
          ! it instead of having NEI overwrite them
-         ELSE IF ( LNEI08 ) THEN
+            ! Using Yaping inventory for C2H6 (krt, 10/6/14)
+         ELSE IF ( LNEI08 .and. NN .ne. IDTC2H6  ) THEN
              ! If we are over the USA ...
             IF ( NEI08_MASK( I, J ) > 0d0 ) THEN
                ! Flag for weekday or weekend for NEI/VISTAS emissions
