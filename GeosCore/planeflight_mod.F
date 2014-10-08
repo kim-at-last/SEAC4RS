@@ -620,6 +620,11 @@
                IF ( LINE == 'HG2_FRACP'  ) PVAR(N) = 4002
 
             !===========================================================
+            ! NEI08 Mask - krt, 10/08/14  PVAR:offset: 4000
+            !===========================================================
+            CASE ( 'MASK' )
+               IF ( LINE == 'MASK'  ) PVAR(N) = 4003
+            !===========================================================
             ! Save output for Glenn Wolfe - skim 8/16/13 PVAR offset: 5000
             !===========================================================
             CASE ( 'WOLF' )
@@ -1226,6 +1231,7 @@
       USE PRESSURE_MOD,       ONLY : GET_PEDGE, GET_PCENTER !skim, 12/06/13
       USE TIME_MOD,           ONLY : GET_TAU, GET_TS_DIAG, GET_TS_EMIS
       USE OCEAN_MERCURY_MOD,  ONLY : Fp, Fg !eds 10/27/11
+      USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK !krt, 10/8/14
 
       USE JV_CMN_MOD               ! ODAER, QAA, QAA_AOD
       USE DUST_MOD,           ONLY : ODMDUST !lei, 12/03/13
@@ -1703,6 +1709,8 @@
                   CASE ( 4002 )
                      VARI(V) = FP(I,J,LL) !L+1 sample 4/24/12
 
+                  CASE ( 4003 )
+                     VARI(V) = NEI08_MASK( I, J )!krt, 10/08/14                    
                   !=======================================================
                   ! Emission & deposition along flight track skim 8/16/13
                   !=======================================================
