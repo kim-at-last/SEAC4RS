@@ -684,7 +684,7 @@
              ! From kyu, at nested resolution we get 2.58 Tg C over the SEUS.
              ! 0.7=1.81 Tg C (krt, 10/6/14)
             EMFAC = 0.7 * AEF_ISOP(I,J)
-#elseif defined ( GRID4x5)
+#elif defined ( GRID4x5)
              ! From kyu, at 4x5 we get 2.21 Tg C over the SEUS.
              !To constrain to 1.81 Tg, multiply by 0.82
             EMFAC = 0.82 * AEF_ISOP(I,J)
