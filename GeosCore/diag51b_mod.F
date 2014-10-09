@@ -1980,7 +1980,7 @@
          !------------------------
          ! Save to bpch file
          !------------------------
-         IF ( LND51_HDF ) THEN
+         IF ( LND51b_HDF ) THEN
 #if   defined( USE_HDF5 )
             ! Only include this if we are linking to HDF5 library 
             ! (bmy, 12/21/09)
