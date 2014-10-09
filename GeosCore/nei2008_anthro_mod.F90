@@ -243,12 +243,13 @@
          ELSE IF ( N == IDTALK4 ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4(I,J,L,IH)*0.87
+            VALUE = ALK4(I,J,L,IH)*0.67
          
          ELSE IF ( N == IDTC3H8 ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4(I,J,L,IH)*0.05
+            ! Double emissions based on SEAC4RS data
+            VALUE = ALK4(I,J,L,IH)*0.05*5
 
          ELSE IF ( N == IDTACET ) THEN
 
@@ -378,12 +379,12 @@
          ELSE IF ( N == IDTALK4 ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4_WKEND(I,J,L,IH)*0.87
+            VALUE = ALK4_WKEND(I,J,L,IH)*0.67
          
          ELSE IF ( N == IDTC3H8 ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4_WKEND(I,J,L,IH)*0.05
+            VALUE = ALK4_WKEND(I,J,L,IH)*0.05*5
 
          ELSE IF ( N == IDTACET ) THEN
 
