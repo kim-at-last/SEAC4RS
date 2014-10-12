@@ -204,7 +204,9 @@
       USE TRACERID_MOD,       ONLY : IDTPAN,  IDTPMN,  IDTPPN,  IDTO3
       USE TRACERID_MOD,       ONLY : IDTR4N2, IDTSALA, IDTSALC, IDTNO2
 
-      USE CMN_FJX_MOD,        ONLY : ODAER, ODMDUST, NRH, NDUST
+      USE CMN_FJ_MOD,         ONLY : JPMAX, JPPJ      ! includes F77_CMN_SIZE
+      USE JV_CMN_MOD               ! ODAER,   QAA,    QAA_AOD
+
       USE CMN_O3_MOD	           ! SAVEOH
       USE CMN_GCTM_MOD             ! XTRA2
 !
