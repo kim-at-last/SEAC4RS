@@ -724,6 +724,10 @@
                      ENDIF
                   ENDDO
 
+                  ! make PO3 and LNOx into special cases kyu 7Oct2014
+                  IF ( TRIM( LINE ) == 'PO3' ) PVAR(N) = 996
+                  IF ( TRIM( LINE ) == 'LNOx' ) PVAR(N) = 995
+
                   ! Special flag for RO2 species
                   IF ( TRIM( LINE ) == 'RO2' ) PVAR(N) = 999
 
@@ -1237,7 +1241,7 @@
       USE DUST_MOD,           ONLY : ODMDUST !lei, 12/03/13
       USE COMODE_LOOP_MOD          ! CSPEC, etc.
       USE PBL_MIX_MOD,        ONLY : GET_PBL_TOP_m !skim, 12/06/13
-
+      USE DIAG_PL_MOD,        ONLY : OPE_PL ! kyu 7 Oct 2014  for OPE
       USE COMMSOIL_MOD             ! To get soil and fertilizer NOx emissions
                                    ! skim, 8/17/14
 !
@@ -1388,12 +1392,36 @@
                   ! SMVGEAR species
                   !-------------------------
                   !997 and 998 are now special flags for NOy and AN
-                  CASE ( 1:996) !( 1:998 )
+                  CASE ( 1:994) !( 1:998 ) originally 996 kyu 14/10/2014
 
                      ! Only archive where SMVGEAR chem is done
                      ! Save as mixing ratio [v/v]
                      IF ( JLOOP /= 0 ) THEN
                         VARI(V) = CSPEC(JLOOP,PVAR(V)) / AIRDENS(JLOOP)
+                     ENDIF
+
+                  ! kyu 07/10/2014
+                  !------------------------
+                  ! PO3
+                  !------------------------
+                  CASE ( 996 ) 
+                
+                     ! Only archive where SMVGEAR chem is done
+                     ! Save as mixing ratio [v/v]
+                     IF ( JLOOP /= 0 ) THEN
+                        VARI(V) = OPE_PL(I,J,L,1)
+                     ENDIF
+
+                  ! kyu 07/10/2014
+                  !--------------------------
+                  ! LNOx
+                  !--------------------------
+                  CASE ( 995 )
+
+                     ! Only archive where SMVGEAR is done
+                     ! Save as mixing ratio [v/v]
+                     IF ( JLOOP /= 0 ) THEN
+                        VARI(V) = OPE_PL(I,J,L,2)
                      ENDIF
 
                   ! FP 04/01/2010

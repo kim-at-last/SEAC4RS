@@ -28,6 +28,7 @@
       ! Arrays
       REAL*4,            PUBLIC, ALLOCATABLE :: AD65  (:,:,:,:)
       REAL*8,            PUBLIC, ALLOCATABLE :: FAM_PL(:,:,:,:)
+      REAL*8,            PUBLIC, ALLOCATABLE :: OPE_PL(:,:,:,:) !kyu
       CHARACTER(LEN=14), PUBLIC, ALLOCATABLE :: FAM_NAME(:)
 #if   defined( TOMAS )
       REAL*8,            PUBLIC, ALLOCATABLE :: H2SO4RATE(:,:,:) 
@@ -692,6 +693,13 @@
      &                              98.d-3 * State_Met%AIRVOL(I,J,L) *
      &                              1d6   / CHEMINTV
 #endif
+
+            ! Save PO3 and LNOx OPE array, kyu 7 Oct 2014
+            IF ( FAM_NAME(N) == 'PO3' ) 
+     &           OPE_PL(I,J,L,1) = FAM_PL(I,J,L,N)
+
+            IF ( FAM_NAME(N) == 'LNOx' )
+     &           OPE_PL(I,J,L,2) = FAM_PL(I,J,L,N)
 
             ! Zero each "fake" ND65 prod/loss family for next iteration
             CSPEC(JLOOP,IFAM(N)) = 0.0d0
@@ -1463,6 +1471,10 @@
       IF ( ITS_A_FULLCHEM_SIM() ) THEN
          ALLOCATE( FAM_PL( IIPAR, JJPAR, LD65, NFAM ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'FAM_PL' )
+         ! Allocate separate arrays so we can save out OPE along flight
+         ! track kyu 7 Oct. 2014
+         ALLOCATE( OPE_PL( IIPAR, JJPAR, LD65, 2 ), STAT=AS )
+         IF ( AS /= 0 ) CALL ALLOC_ERR( 'OPE_PL' )
       ENDIF
 
 #if   defined ( TOMAS )
@@ -1520,6 +1532,7 @@
       IF ( ALLOCATED( FAM_MEMB ) ) DEALLOCATE( FAM_MEMB )
       IF ( ALLOCATED( FAM_PL   ) ) DEALLOCATE( FAM_PL   )
       IF ( ALLOCATED( FAM_TYPE ) ) DEALLOCATE( FAM_TYPE )
+      IF ( ALLOCATED( OPE_PL   ) ) DEALLOCATE( OPE_PL   ) ! kyu
 #if   defined( TOMAS )
       IF ( ALLOCATED( H2SO4RATE) ) DEALLOCATE( H2SO4RATE)  !(win, 1/25/10)
 #endif
