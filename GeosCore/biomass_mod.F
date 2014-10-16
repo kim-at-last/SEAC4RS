@@ -356,8 +356,8 @@
             USE_GFED2 = LGFED2BB  .or. L8DAYBB .or. LSYNOPBB .or. L3HRBB
             USE_GFED3 = LGFED3BB  .or. LDAYBB3 .or. L3HRBB3
             USE_GFED  = USE_GFED2 .or. USE_GFED3 
-            USE_FINN  = LFINN 
-            USE_QFED  = LQFED
+            USE_FINN  = LFINN .or. LQFED_FINN 
+            USE_QFED  = LQFED .or. LQFED_FINN 
             USE_QFED_FINN  = LQFED_FINN 
             IF ( LFINN.or. LQFED .or. LQFED_FINN ) USE_GFED = 0 
          
@@ -530,11 +530,13 @@
             WRITE(*,*) 'SEAC4RS Code - Calling FINN for Fire Injection'
        
             ! Compute the FINN emissions
-            CALL FINN_COMPUTE_BIOMASS( YEAR, MONTH, BIOMASS )
+            IF ( USE_FINN ) 
+     &           CALL FINN_COMPUTE_BIOMASS(YEAR, MONTH, BIOMASS)
+            ! Compute the QFED biomass burning emissions (krt, 9/2/14)
+            IF ( USE_QFED )
+     &           CALL QFED_COMPUTE_BIOMASS(YEAR, MONTH, BIOMASSQ)
             
-            IF ( LQFED_FINN ) THEN
-               ! Compute the QFED biomass burning emissions (krt, 9/2/14)
-               CALL QFED_COMPUTE_BIOMASS( YEAR, MONTH, BIOMASSQ )
+            IF ( LQFED_FINN ) THEN 
                
 ! ------ CALCULATE CO RATIO QFED to FINN OVER THE U.S. ----
 !$OMP PARALLEL DO
@@ -588,9 +590,8 @@
                BIOMASS(:,:,IDBNO  ) = BIOMASSQ(:,:,IDBNO)              
             ENDIF
 
+            ! If we are just using QFED
             IF ( LQFED .and. .not. LQFED_FINN ) THEN               
-               ! Compute the QFED biomass burning emissions (krt, 9/2/14)
-               CALL QFED_COMPUTE_BIOMASS( YEAR, MONTH, BIOMASSQ )
                BIOMASS = BIOMASSQ
             ENDIF
 
@@ -648,7 +649,7 @@
             WRAP = (/0.58,0.58,0.57,0.57,0.57,0.57,0.57,0.57,0.57,2,4,7,
      &        10,13,16,17,12,7,4,0.57,0.57,0.57,0.57,0.57/)/(100d0/24d0)
 
-         ! ----------------Fire Emissions ---------------
+         ! ----------------Fire Injection ---------------
          ! Put 40% of NOx Biomass emissions into PAN
          ! and 20% into HNO3 (evf, 9/9/11, 9/15/11) per Alvarado et al, 2010
          ! Do not do this in the extratropics per Mauzerall et al, 1998
