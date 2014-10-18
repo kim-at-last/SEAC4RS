@@ -352,7 +352,8 @@ biomass_mod.o               : biomass_mod.F                                  \
                               gfed2_biomass_mod.o     gfed3_biomass_mod.o    \
                               logical_mod.o           tracerid_mod.o         \
                               tracer_mod.o            finn_biomass_mod.o     \
-                              flambe_biomass_mod.o    qfed_biomass_mod.o
+                              flambe_biomass_mod.o    qfed_biomass_mod.o     \
+                              nei2008_anthro_mod.o
 
 BLKSLV.o                    : BLKSLV.F
 
