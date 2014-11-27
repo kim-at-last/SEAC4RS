@@ -4999,11 +4999,13 @@
       !--------------------------
 
       ! Number of tracers depends on simulation type
-      IF ( ITS_A_TAGOX_SIM() ) THEN
+! This causes trouble for tracers set in drydep_mod.F to use IDTXXX in
+! NTRAIND when IDTXXX > NUMDEP. (jaf, 11/27/14)
+!      IF ( ITS_A_TAGOX_SIM() ) THEN
          N_TMP = N_TRACERS 
-      ELSE
-         N_TMP = NUMDEP
-      ENDIF
+!      ELSE
+!         N_TMP = NUMDEP
+!      ENDIF
 
       CALL SPLIT_ONE_LINE( SUBSTRS, N, -1, 'read_diagnostic_menu:46' )
       READ( SUBSTRS(1), * ) ND44
