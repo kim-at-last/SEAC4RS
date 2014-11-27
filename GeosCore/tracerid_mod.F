@@ -1565,10 +1565,10 @@
 
             ! Add organic nitrate aerosol tracers (day/night) (jaf,
             ! 7/26/14)
-            CASE ( 'ONITAam' )
+            CASE ( 'ONITAAM' )
                IDTONITAam  = N
 
-            CASE ( 'ONITApm' )
+            CASE ( 'ONITAPM' )
                IDTONITApm  = N
 
             !--------------------------------
@@ -2908,6 +2908,11 @@
 
             CASE DEFAULT
                ! Nothing
+               ! Doing nothing can be dangerous!! I suggest the run
+               ! should die with an error. At the very least we need a
+               ! message to the user. (jaf, 27 Nov 14)
+               CALL ERROR_STOP('TRACER '//TRIM(NAME)//' NOT FOUND',
+     &                         'tracerid_mod')
 
          END SELECT
       ENDDO
