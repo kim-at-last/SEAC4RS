@@ -109,6 +109,7 @@
 !  13 Aug 2013 - M. Sulprizio- Add farnesene emissions for updated SOA (H. Pye)
 !  20 Aug 2013 - R. Yantosca - Removed "define.h", this is now obsolete
 !  19 Mar 2014 - M. Sulprizio- Updated to allow for more than 75 tracers
+!  21 Apr 2014 - K. Travis - Add O3 deposition velocity
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -145,7 +146,7 @@
 
       INTEGER            :: IOFF,           JOFF,   LOFF
       INTEGER            :: I0,             J0
-      INTEGER            :: ND49_N_TRACERS, ND49_TRACERS(120)
+      INTEGER            :: ND49_N_TRACERS, ND49_TRACERS(206)
       INTEGER            :: ND49_IMIN,      ND49_IMAX
       INTEGER            :: ND49_JMIN,      ND49_JMAX
       INTEGER            :: ND49_LMIN,      ND49_LMAX
@@ -195,7 +196,7 @@
       USE TIME_MOD,           ONLY : GET_NYMD,           GET_NHMS
       USE TIME_MOD,           ONLY : GET_NYMD_DIAG,      GET_TS_DIAG
       USE TIME_MOD,           ONLY : GET_TAU,            GET_HOUR
-      USE TIME_MOD,           ONLY : ITS_A_NEW_DAY
+      USE TIME_MOD,           ONLY : ITS_A_NEW_DAY,      GET_LOCALTIME
       USE TIME_MOD,           ONLY : TIMESTAMP_STRING
       USE PBL_MIX_MOD,        ONLY : GET_PBL_TOP_L,      GET_PBL_TOP_m
       USE TRACER_MOD,         ONLY : XNUMOLAIR
@@ -203,6 +204,9 @@
       USE TRACERID_MOD,       ONLY : IDTHNO3, IDTHNO4, IDTN2O5, IDTNO
       USE TRACERID_MOD,       ONLY : IDTPAN,  IDTPMN,  IDTPPN,  IDTO3
       USE TRACERID_MOD,       ONLY : IDTR4N2, IDTSALA, IDTSALC, IDTNO2
+      USE TRACERID_MOD,       ONLY : IDTHPALD, IDTH2O2, IDTRIP, IDTIEPOX
+      USE TRACERID_MOD,       ONLY : IDTINPN, IDTISOPN, IDTMMN, IDTHAC
+      USE DIAG_MOD,           ONLY : AD44, AD44b     
 
       USE CMN_FJ_MOD,         ONLY : JPMAX, JPPJ      ! includes F77_CMN_SIZE
       USE JV_CMN_MOD               ! ODAER,   QAA,    QAA_AOD
@@ -401,6 +405,226 @@
                I = GET_I( X )
                Q(X,Y,K) = STT(I,J,L,N) * TCVV(N) / AD(I,J,L)
             ENDDO
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
+         ELSE IF ( N == 197 ) THEN
+
+            !-------------------------------------
+            ! O3 Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 2
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) = Q(X,Y,1) + ( AD44b(I,J,IDTO3) )
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
+
+         ELSE IF ( N == 198 ) THEN
+            
+            !-------------------------------------
+            ! HNO3 Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 7
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) =  Q(X,Y,1) + ( AD44b(I,J,IDTHNO3) )
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
+         ELSE IF ( N == 199 ) THEN
+            
+            !-------------------------------------
+            ! HAC Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 58
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) =  Q(X,Y,1) + ( AD44b(I,J,IDTHAC) )
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
+         ELSE IF ( N == 200 ) THEN
+            
+            !-------------------------------------
+            ! ISOPN Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 55
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) =  Q(X,Y,1) + ( AD44b(I,J,IDTISOPN) )
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
+         ELSE IF ( N == 201 ) THEN
+            
+            !-------------------------------------
+            ! MMN Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 60
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) =  Q(X,Y,1) + ( AD44b(I,J,IDTMMN) )
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
+         ELSE IF ( N == 202 ) THEN
+            
+            !-------------------------------------
+            ! H2O2 Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 8
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) =  Q(X,Y,1) + ( AD44b(I,J,IDTH2O2) )
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
+         ELSE IF ( N == 203 ) THEN
+            
+            !-------------------------------------
+            ! ISOPOOH Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 61
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) =  Q(X,Y,1) + ( AD44b(I,J,IDTRIP) )
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
+         ELSE IF ( N == 204 ) THEN
+            
+            !-------------------------------------
+            ! IEPOX Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 62
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) =  Q(X,Y,1) + ( AD44b(I,J,IDTIEPOX) )
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+
+         ELSE IF ( N == 205 ) THEN
+            
+            !-------------------------------------
+            ! HPALD Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 86
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) =  Q(X,Y,1) + ( AD44b(I,J,IDTHPALD) )
+            ENDDO
+            ENDDO
+!$OMP END PARALLEL DO
+         ELSE IF ( N == 206 ) THEN
+            
+            !-------------------------------------
+            ! INPN Deposition Velocity
+            !-------------------------------------
+            CATEGORY = 'DRYD-VEL'
+            UNIT     = ''           ! Let GAMAP pick the unit
+            GMNL     = ND49_NL
+            GMTRC    = 87
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, X, Y )
+            DO Y = 1, ND49_NJ
+               J = JOFF + Y
+            DO X = 1, ND49_NI
+               I = GET_I( X )
+               Q(X,Y,1) =  Q(X,Y,1) + ( AD44b(I,J,IDTINPN) )
             ENDDO
             ENDDO
 !$OMP END PARALLEL DO

@@ -22,7 +22,7 @@
       USE COMODE_MOD                            ! Large arrays for SMVGEAR
       USE COMODE_LOOP_MOD                       ! Formerly "comode.h"
       USE DAO_MOD                               ! Met field subroutines
-      USE DIAG_MOD,       ONLY : AD44, AD44_WOLF! Diagnostic arrays
+      USE DIAG_MOD,       ONLY : AD44, AD44b, AD44_WOLF! Diagnostic arrays
       USE DIRECTORY_MOD                         ! Data directory paths
       USE ERROR_MOD                             ! Error handling routines
       USE GET_POPSINFO_MOD                      ! For POPs simulation
@@ -547,6 +547,7 @@
             IF ( ND44 > 0 ) THEN 
 
                AD44(I,J,N,2) = AD44(I,J,N,2) + DVZ
+               AD44b(I,J,N) = DVZ
 
                ! Instantaneous deposition frequency (skim, 8/16/14)
                AD44_WOLF(I,J,N,2) = DVZ
@@ -4753,6 +4754,7 @@
          ELSE IF ( N == IDTHCOOH ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTHCOOH
+            DEPNAME(NUMDEP) = 'HCOOH'
             NDVZIND(NUMDEP) = NUMDEP
             HSTAR(NUMDEP)   = 5.6d3
             F0(NUMDEP)      = 0.0d0
