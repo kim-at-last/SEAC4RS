@@ -275,8 +275,8 @@
       INTEGER            :: IDPP,   IDR4P,  IDRA3P, IDRB3P, IDRP
       INTEGER            :: IDHPALD !krt, 10/6/14
       ! IDs of aromatics not use (hotp 8/1/09)
-!      INTEGER            :: IDBENZ,  IDTOLU,   IDXYLE,  IDMONX
-      INTEGER            :: IDC2H2, IDC2H4
+      INTEGER            :: IDBENZ,  IDTOLU,   IDXYLE,  IDMONX
+      INTEGER            :: IDC2H2, IDC2H4, IDEOH, IDMOH
       INTEGER            :: IDMBO, IDHC187
       INTEGER            :: IDAPAN, IDENPAN, IDMPAN, IDNIPAN
 
@@ -333,7 +333,7 @@
       INTEGER :: IDTALD2,  IDTRCHO, IDTMVK,  IDTMACR, IDTPMN
       INTEGER :: IDTPPN,   IDTR4N2, IDTPRPE, IDTC3H8, IDTCH2O
       INTEGER :: IDTC2H6,  IDTN2O5, IDTHNO4, IDTMP, IDTDMS
-      INTEGER :: IDTOH
+      INTEGER :: IDTOH,    IDTHPALD
       !----------------------------------------------------------------
       ! SEAC4RS specific-change
       ! Separate POA into anthropogenic and biomass burning components
@@ -352,7 +352,7 @@
       INTEGER :: IDTIEPOX, IDTMAP,  IDTNO2,  IDTNO3, IDTHNO2 
       INTEGER :: IDTISN1,  IDTMGLY, IDTETHLN,IDTGLYX, IDTHCOOH
       INTEGER :: IDTACTA,  IDTMAOP, IDTVRP,  IDTETP,  IDTATOOH
-      INTEGER :: IDTISNP,  IDTPMNN, IDTCH3Br, IDTAPINE, IDTHPALD
+      INTEGER :: IDTISNP,  IDTPMNN, IDTCH3Br, IDTAPINE
       INTEGER :: IDTIAP,   IDTINPN, IDTMRP,  IDTPRPN, IDTDHDN
       INTEGER :: IDTPP,    IDTR4P,  IDTRA3P, IDTRB3P, IDTRP
 
@@ -363,7 +363,7 @@
       INTEGER :: IDTAHS,  IDTLET,   IDTNH4aq,IDTSO4aq
       INTEGER :: IDTBENZ, IDTTOLU,  IDTXYLE,IDTMONX
       INTEGER :: IDTSOAG, IDTSOAM,  IDTC2H2, IDTC2H4
-      INTEGER :: IDTMBO,  IDTAP, IDTHC187
+      INTEGER :: IDTMBO,  IDTAP, IDTHC187, IDTEOH, IDTMOH
       INTEGER :: IDTAPAN, IDTENPAN, IDTMPAN, IDTNIPAN
       INTEGER :: IDTGLPAN, IDTGPAN, IDTPYPAN
 
@@ -558,7 +558,7 @@
       INTEGER            :: IDECHBr3, IDECH2Br2, IDEBr2      
       ! krt, 6/2/13 - for additional NEI08 emissions
       INTEGER            :: IDENO2, IDEHNO2 
-      ! INTEGER          :: IDEMOH, IDEEOH, IDECH4
+      INTEGER            :: IDEMOH, IDEEOH
       INTEGER            :: IDEAPINE
 
       ! SEAC4RS tracers (jaf, 6/13/13)
@@ -1456,6 +1456,13 @@
 
             CASE ( 'HC187' )
                IDTHC187   = N
+
+            CASE ( 'EOH' )
+               IDTEOH   = N
+
+            CASE ( 'MOH' )
+               IDTMOH   = N
+
             !--------------------------------
             ! new PAN species
             !--------------------------------
@@ -3036,6 +3043,14 @@
             NEMANTHRO = NEMANTHRO + 1
             IDEACTA   = NEMANTHRO
           ENDIF
+         IF ( IDTEOH > 0 ) THEN
+            NEMANTHRO = NEMANTHRO + 1
+            IDEMOH   = NEMANTHRO
+          ENDIF
+         IF ( IDTMOH > 0 ) THEN
+            NEMANTHRO = NEMANTHRO + 1
+            IDEMOH   = NEMANTHRO
+          ENDIF
          !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
          ! SEAC4RS tracers (jaf, 6/13/13)
@@ -3170,6 +3185,8 @@
       IF ( IDERCHO /= 0 )  IDEMS(IDERCHO) = IDTRCHO
       IF ( IDEHCOOH /= 0 ) IDEMS(IDEHCOOH)= IDTHCOOH
       IF ( IDEACTA /= 0 )  IDEMS(IDEACTA) = IDTACTA
+      IF ( IDEEOH /= 0 )  IDEMS(IDEEOH) = IDTEOH
+      IF ( IDEMOH /= 0 )  IDEMS(IDEMOH) = IDTMOH
       ! SEAC4RS tracers (jaf, 6/13/13)
       ! Remove passive tracers (skim, 5/23/14)
       ! IF ( IDEPCOFNE /= 0 ) IDEMS(IDEPCOFNE) = IDTPCOFNE
@@ -3245,6 +3262,8 @@
          WRITE( 6, 120 ) 'IDEC2H2 ', IDEC2H2
          WRITE( 6, 120 ) 'IDERCHO ', IDERCHO
          WRITE( 6, 120 ) 'IDEHCOOH', IDEHCOOH
+         WRITE( 6, 120 ) 'IDEEOH', IDEMOH
+         WRITE( 6, 120 ) 'IDEMOH', IDEEOH
          WRITE( 6, 120 ) 'IDEACTA ', IDEACTA
          ! Remove passive tracers (skim, 5/23/14)
          !WRITE( 6, 120 ) 'IDEPCOFNE', IDEPCOFNE
@@ -3539,11 +3558,12 @@
          IF ( NAMEGAS(I) == 'DRYNH3'   ) IDDRYNH3  = I
          IF ( NAMEGAS(I) == 'DRYAPINE' ) IDDRYAPINE = I
 
-!-Not used. (ccc, 01/27/10)
-!         IF ( NAMEGAS(I) == 'BENZ'   ) IDBENZ   = I 
-!         IF ( NAMEGAS(I) == 'TOLU'   ) IDTOLU   = I 
-!         IF ( NAMEGAS(I) == 'XYLE'   ) IDXYLE   = I 
-!         IF ( NAMEGAS(I) == 'MONX'   ) IDMONX   = I 
+         IF ( NAMEGAS(I) == 'BENZ'   ) IDBENZ   = I 
+         IF ( NAMEGAS(I) == 'TOLU'   ) IDTOLU   = I 
+         IF ( NAMEGAS(I) == 'XYLE'   ) IDXYLE   = I 
+         IF ( NAMEGAS(I) == 'MONX'   ) IDMONX   = I 
+         IF ( NAMEGAS(I) == 'EOH'    ) IDEOH    = I 
+         IF ( NAMEGAS(I) == 'MOH'    ) IDMOH    = I 
          ! ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
          IF ( NAMEGAS(I) == 'DRYAPAN' )  IDDRYAPAN  = I
@@ -4646,12 +4666,12 @@
       IDHO2     = 0
       IDHC1     = 0
 
- !- Not used (ccc, 01/27/10)
-!      IDBENZ    = 0
-!      IDTOLU    = 0
-!      IDXYLE    = 0
-!      IDMONX    = 0
-
+      IDBENZ    = 0
+      IDTOLU    = 0
+      IDXYLE    = 0
+      IDMONX    = 0
+      IDEOH     = 0
+      IDMOH     = 0
       IDDRYNO2   = 0
       IDDRYO3    = 0
       IDDRYPAN   = 0
@@ -4855,6 +4875,8 @@
       IDTGLYX    = 0
       IDTMGLY    = 0
       IDTHCOOH   = 0
+      IDTEOH     = 0
+      IDTMOH     = 0
       IDTACTA    = 0
       IDTMAOP    = 0
       IDTVRP     = 0
@@ -5411,6 +5433,7 @@
       IDENO     = 0
       IDENO2    = 0 !krt, 6/12/13
       IDEHNO2   = 0 !krt, 6/12/13
+      IDEHCOOH  = 0
       IDEO3     = 0
       IDECO     = 0
       IDEPRPE   = 0
@@ -5440,7 +5463,8 @@
       ! SOAudpate: for gas phase NAP chemistry (hotp 6/24/09)
       ! semivolpoa5: IVOCs (hotp 3/30/09)
       IDENAP    = 0
-
+      IDEEOH    = 0
+      IDEMOH    = 0
       ! SEAC4RS tracers (jaf, 6/13/13)
       ! Remove passive tracers (skim, 5/23/14)
       !IDEPCOFNE  = 0

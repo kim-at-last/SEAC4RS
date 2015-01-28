@@ -5892,6 +5892,7 @@
       LOGICAL       :: LSHIPSO2
       LOGICAL       :: LAEIC
       LOGICAL       :: LNEI08
+      LOGICAL       :: LNEI11
       LOGICAL       :: ITS_AN_AEROSOL_SIM
       INTEGER       :: N_TRACERS
 
@@ -5915,6 +5916,7 @@
       LSHIPSO2           = Input_Opt%LSHIPSO2
       LAEIC              = Input_Opt%LAEIC
       LNEI08             = Input_Opt%LNEI08
+      LNEI11             = Input_Opt%LNEI11
       ITS_AN_AEROSOL_SIM = Input_Opt%ITS_AN_AEROSOL_SIM
       N_TRACERS          = Input_Opt%N_TRACERS
 
@@ -6527,6 +6529,8 @@
       USE NEI2005_ANTHRO_MOD, ONLY : NEI05_MASK => USA_MASK
       USE NEI2008_ANTHRO_MOD, ONLY : GET_NEI2008_ANTHRO
       USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
+      USE NEI2011_ANTHRO_MOD, ONLY : GET_NEI2011_ANTHRO
+      USE NEI2011_ANTHRO_MOD, ONLY : NEI11_MASK => USA_MASK
       USE PBL_MIX_MOD,    ONLY     : GET_FRAC_OF_PBL,  GET_PBL_TOP_L
       USE PRESSURE_MOD,   ONLY     : GET_PEDGE
       USE TIME_MOD,       ONLY     : GET_TS_EMIS,      GET_DAY_OF_YEAR 
@@ -6594,6 +6598,7 @@
 !                              the local time at each grid box.  (Formerly,
 !                              this had been done w/r/t the GMT time.
 !  26 Jun 2013 - K. Travis   - Added NEI08 emissions
+!  20 Jan 2015 - K. Travis   - Added NEI11 emissions
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -6623,7 +6628,7 @@
 
       ! For fields from Input_Opt
       LOGICAL                :: LHIST,    LNLPBL, LBRAVO, LNEI99  
-      LOGICAL                :: LSHIPSO2, LCAC,   LNEI05, LNEI08
+      LOGICAL                :: LSHIPSO2, LCAC,LNEI05, LNEI08, LNEI11
       INTEGER                :: N_TRACERS
       REAL*8                 :: XNUMOL(Input_Opt%N_TRACERS)
 
@@ -6657,6 +6662,7 @@
       LCAC      = Input_Opt%LCAC
       LNEI05    = Input_Opt%LNEI05
       LNEI08    = Input_Opt%LNEI08
+      LNEI11    = Input_Opt%LNEI11
       N_TRACERS = Input_Opt%N_TRACERS
       XNUMOL    = Input_Opt%XNUMOL(1:N_TRACERS)
 
@@ -6825,12 +6831,6 @@
                DOW_LT       = GET_DAY_OF_WEEK_LT( I, J, 1 )
                WEEKDAY      = ( DOW_LT > 0 .and. DOW_LT < 6 )
 
-               ! Determine if we should use weekday or weekend NEI
-               ! emissions at grid box (I,J,L).  Since NEI is over
-               ! the US, then weekend is Sat/Sun.
-               DOW_LT  = GET_DAY_OF_WEEK_LT( I, J, 1 )
-               WEEKDAY = ( DOW_LT > 0 .and. DOW_LT < 6 )
-
                ! Read USA SO2 emissions in [molec/cm2/s]
                DO L = 1, NOXLEVELS
 
@@ -6860,10 +6860,22 @@
                   IF ( L .gt. 3 ) CYCLE
                  AN = GET_NEI2008_ANTHRO( I, J, L, IH, IDTSO2, WEEKDAY )
 
-                 ! Convert anthro SO2 from [molec/cm2/s] to [kg/box/s]
-                 SO2an(I,J,L) =  AN * AREA_CM2 / XNUMOL(IDTSO2)
-               ENDDO
+                    ! Convert anthro SO2 from [molec/cm2/s] to [kg/box/s]
+                     SO2an(I,J,L) =  AN * AREA_CM2 / XNUMOL(IDTSO2)
+                  ENDDO
+               ENDIF
             ENDIF
+           
+            ! updated to NEI11
+            IF ( LNEI11 .and. .not. LHIST ) THEN
+               IF (NEI11_MASK(I,J) > 0d0 ) THEN
+                  ! READ SO2 in [molec/cm2/s]
+                  DO L=1,NOXLEVELS
+                     IF ( L .gt. 6 ) CYCLE
+                     AN = GET_NEI2011_ANTHRO( I, J, L, IH, IDTSO2 )
+                     SO2an(I,J,L) = AN* AREA_CM2/ XNUMOL(IDTSO2)
+                  ENDDO
+               ENDIF
             ENDIF
 
          ENDDO
@@ -6999,6 +7011,8 @@
       USE NEI2005_ANTHRO_MOD, ONLY : NEI05_MASK => USA_MASK
       USE NEI2008_ANTHRO_MOD, ONLY : GET_NEI2008_ANTHRO
       USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
+      USE NEI2011_ANTHRO_MOD, ONLY : GET_NEI2011_ANTHRO
+      USE NEI2011_ANTHRO_MOD, ONLY : NEI11_MASK => USA_MASK
       USE DIAG_MOD,           ONLY : AD13_SO4_an,     AD13_SO4_bf
       USE EPA_NEI_MOD,        ONLY : GET_EPA_ANTHRO,  GET_EPA_BIOFUEL
       USE EPA_NEI_MOD,        ONLY : GET_USA_MASK
@@ -7064,6 +7078,7 @@
 !  26 Jun 2013 - K. Travis   - Added NEI08 emissions
 !  13 Dec 2013 - M. Sulprizio- Bug fix: Make sure we apply NEI05 emissions when
 !                              NEI05_MASK > 0, not NEI05_MASK < 0 (J. Fisher)
+!  14 Dec 2014 - K. Travis   - Added NEI11 emissions
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -7087,7 +7102,7 @@
 
       ! For fields from Input_Opt
       LOGICAL                :: LHIST,  LNLPBL, LBRAVO  
-      LOGICAL                :: LNEI99, LCAC, LNEI05, LNEI08
+      LOGICAL                :: LNEI99, LCAC, LNEI05, LNEI08, LNEI11
       INTEGER                :: N_TRACERS
       REAL*8                 :: XNUMOL(Input_Opt%N_TRACERS)
 
@@ -7111,6 +7126,7 @@
       LCAC      = Input_Opt%LCAC
       LNEI05    = Input_Opt%LNEI05      
       LNEI08    = Input_Opt%LNEI08
+      LNEI11    = Input_Opt%LNEI11
       N_TRACERS = Input_Opt%N_TRACERS
       XNUMOL    = Input_Opt%XNUMOL(1:N_TRACERS)
 
@@ -7303,20 +7319,32 @@
                   WEEKDAY      = ( DOW_LT > 0 .and. DOW_LT < 6 )
                 
                   ! Read SO4 emissions in [g/cm2/s]
-                  DO L = 1, NOXLEVELS
+                   DO L = 1, NOXLEVELS
 
-                     IF ( L .gt. 3 )  CYCLE
-
-                     EPA_AN    = GET_NEI2008_ANTHRO( I, J, L, IH, 
-     &                                               IDTSO4, WEEKDAY )
-
+                      IF ( L .gt. 3 )  CYCLE
+                      EPA_AN    = GET_NEI2008_ANTHRO( I, J, L, IH, 
+     &                     IDTSO4, WEEKDAY )
                      ! convert to kg/box
-                     SO4an(I,J,L) = EPA_AN * AREA_CM2 / 1d3
-                  ENDDO
-                  SO4bf(I,J)   = 0d0
-                  
-               ENDIF
-            ENDIF
+                      SO4an(I,J,L) = EPA_AN * AREA_CM2 / 1d3
+                   ENDDO
+                   SO4bf(I,J)   = 0d0
+                ENDIF
+             ENDIF
+
+             IF ( LNEI11 .and. .not. LHIST ) THEN
+                IF ( NEI11_MASK( I, J) > 0d0 ) THEN
+                
+                  ! Read SO4 emissions in [g/cm2/s]
+                   DO L = 1, NOXLEVELS
+
+                      IF ( L .gt. 6 )  CYCLE
+                      EPA_AN    = GET_NEI2011_ANTHRO(I,J,L,IH,IDTSO4)
+                     ! convert to kg/box
+                      SO4an(I,J,L) = EPA_AN * AREA_CM2 / 1d3
+                   ENDDO
+                   SO4bf(I,J)   = 0d0
+                ENDIF
+             ENDIF
    
             !=============================================================
             ! Do PBL mixing of emissions
@@ -7933,6 +7961,8 @@
       USE NEI2005_ANTHRO_MOD, ONLY : NEI05_MASK => USA_MASK
       USE NEI2008_ANTHRO_MOD, ONLY : GET_NEI2008_ANTHRO
       USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
+      USE NEI2011_ANTHRO_MOD, ONLY : GET_NEI2011_ANTHRO
+      USE NEI2011_ANTHRO_MOD, ONLY : NEI11_MASK => USA_MASK
       USE DIAG_MOD,           ONLY : AD13_NH3_an, AD13_NH3_bb
       USE DIAG_MOD,           ONLY : AD13_NH3_bf, AD13_NH3_na
       USE GIGC_ErrCode_Mod
@@ -7999,6 +8029,7 @@
 !                              this had been done w/r/t the GMT time.
 !  26 Jun 2013 - K. Travis   - Added NEI08 emissions
 !  22 Jul 2013 - M. Sulprizio- Now copy LRCP from Input_Opt
+!  13 Dec 2014 - K. Travis   - Added NEI11 emissions
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -8013,12 +8044,13 @@
       REAL*8                 :: NH3an(IIPAR,JJPAR,NOXLEVELS)
       REAL*8                 :: NEI2005(IIPAR,JJPAR,NOXLEVELS)
       REAL*8                 :: NEI2008(IIPAR,JJPAR,NOXLEVELS)
+      REAL*8                 :: NEI2011(IIPAR,JJPAR,NOXLEVELS)
       REAL*8                 :: NH3bf(IIPAR,JJPAR)
       REAL*8                 :: NH3na(IIPAR,JJPAR)
       REAL*8                 :: TEMPEMISS(LLTROP)
       
       ! For fields from Input_Opt
-      LOGICAL                :: LNEI99, LCAC, LNEI05, LNEI08, LNLPBL
+      LOGICAL                :: LNEI99,LCAC,LNEI05,LNEI08,LNEI11,LNLPBL
       LOGICAL                :: LRCP
       INTEGER                :: N_TRACERS
       REAL*8                 :: XNUMOL(Input_Opt%N_TRACERS)
@@ -8041,6 +8073,7 @@
       LCAC      = Input_Opt%LCAC
       LNEI05    = Input_Opt%LNEI05
       LNEI08    = Input_Opt%LNEI08
+      LNEI11    = Input_Opt%LNEI11
       LRCP      = Input_Opt%LRCP
       N_TRACERS = Input_Opt%N_TRACERS
       XNUMOL    = Input_Opt%XNUMOL(1:N_TRACERS)
@@ -8173,12 +8206,6 @@
                ! the US, then weekend is Sat/Sun.
                DOW_LT       = GET_DAY_OF_WEEK_LT( I, J, 1 )
                WEEKDAY      = ( DOW_LT > 0 .and. DOW_LT < 6 )
-             
-               ! Determine if we should use weekday or weekend NEI
-               ! emissions at grid box (I,J,L).  Since NEI is over
-               ! the US, then weekend is Sat/Sun.
-               DOW_LT  = GET_DAY_OF_WEEK_LT( I, J, 1 )
-               WEEKDAY = ( DOW_LT > 0 .and. DOW_LT < 6 )
 
                DO L = 1, NOXLEVELS 
 
@@ -8196,29 +8223,39 @@
 
             ! If we are using NEI 2008 over North America
             IF ( LNEI08 ) THEN
-            IF ( NEI08_MASK( I, J ) > 0d0 ) THEN
+               IF ( NEI08_MASK( I, J ) > 0d0 ) THEN
                ! Determine if we should use weekday or weekend NEI
                ! emissions at grid box (I,J,L).  Since NEI is over
                ! the US, then weekend is Sat/Sun.
-               DOW_LT       = GET_DAY_OF_WEEK_LT( I, J, 1 )
-               WEEKDAY      = ( DOW_LT > 0 .and. DOW_LT < 6 )
-               
-               DO L = 1, NOXLEVELS 
-                  IF ( L .le. 3 ) THEN
-                  ! Read NH3 anthro emissions in [molec NH3/cm2/s]                  
-                     EPA_AN = GET_NEI2008_ANTHRO( I, J, L, IH, IDTNH3, 
-     &                    WEEKDAY )
-     
+                  DOW_LT       = GET_DAY_OF_WEEK_LT( I, J, 1 )
+                  WEEKDAY      = ( DOW_LT > 0 .and. DOW_LT < 6 )
+                  DO L = 1,NOXLEVELS 
+                     IF ( L .le. 3 ) THEN
+                  ! Read NH3 anthro emissions in [molec NH3/cm2/s]              
+                        EPA_AN = GET_NEI2008_ANTHRO(I, J, L, IH, IDTNH3, 
+     &                       WEEKDAY )
                   ! Convert from [molec NH3/cm2/s] to [kg NH3/box/sec]
-                     NH3an(I,J,L) = EPA_AN * AREA_CM2 / XNUMOL(IDTNH3)
-                  ENDIF
-               ENDDO 
-
+                        NH3an(I,J,L) = EPA_AN * AREA_CM2 /XNUMOL(IDTNH3)
+                     ENDIF
+                  ENDDO 
                ! Also overwrite natural emissions so that crop NH3
                ! emissions aren't double-counted (jaf, 12/2/13)
-               NH3na(I,J) = ENH3_na_orig(I,J)
-
+                  NH3na(I,J) = ENH3_na_orig(I,J)
+               ENDIF
             ENDIF
+
+            ! If we are using NEI 2011 over North America
+            IF ( LNEI11 ) THEN
+               IF ( NEI11_MASK( I, J ) > 0d0 ) THEN
+                  DO L = 1, NOXLEVELS 
+                     IF ( L .le. 6 ) THEN
+                  ! Read NH3 anthro emissions in [molec NH3/cm2/s]              
+                        EPA_AN = GET_NEI2011_ANTHRO(I, J, L, IH, IDTNH3)
+                  ! Convert from [molec NH3/cm2/s] to [kg NH3/box/sec]
+                        NH3an(I,J,L) = EPA_AN * AREA_CM2 /XNUMOL(IDTNH3)
+                     ENDIF
+                  ENDDO 
+               ENDIF
             ENDIF
 
             !=============================================================
@@ -11011,6 +11048,7 @@
 !  22 Dec 2011 - M. Payer    - Added ProTeX headers
 !  26 Jun 2013 - K. Travis   - Added NEI08 emissions
 !  22 Jul 2013 - M. Sulprizio- Now copy LRCP from Input_Opt
+!  13 Dec 2014 - K. Travis   - Added NEI11 emissions
 !EOP
 !------------------------------------------------------------------------------
 !BOC

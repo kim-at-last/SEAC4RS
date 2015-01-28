@@ -129,6 +129,8 @@ MODULE GIGC_Input_Opt_Mod
      LOGICAL                     :: LNEI08
      LOGICAL                     :: LNEI08CARB
      LOGICAL                     :: LSCALE2MASAGE
+     LOGICAL                     :: LNEI11
+     LOGICAL                     :: LNEI11CARB
      LOGICAL                     :: LRETRO
      LOGICAL                     :: LNEI99
      LOGICAL                     :: LICARTT
@@ -802,6 +804,8 @@ CONTAINS
     Input_Opt%LNEI08                 = .FALSE.
     Input_Opt%LNEI08CARB             = .FALSE.
     Input_Opt%LSCALE2MASAGE          = .FALSE.
+    Input_Opt%LNEI11                 = .FALSE.
+    Input_Opt%LNEI11CARB             = .FALSE.
     Input_Opt%LRETRO                 = .FALSE.
     Input_Opt%LNEI99                 = .FALSE.
     Input_Opt%LICARTT                = .FALSE.

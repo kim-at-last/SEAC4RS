@@ -400,8 +400,14 @@
       !-----------------------------------------------------------------
       ! For GEOS 05x0666 files
       !-----------------------------------------------------------------
-      INTEGER, PARAMETER :: I05x0666   = 540 
-      INTEGER, PARAMETER :: J05x0666   = 361
+      INTEGER, PARAMETER :: I05x0666   = 540
+      INTEGER, PARAMETER :: J05x0666   = 361 
+
+      !-----------------------------------------------------------------
+      ! For GEOS 025x03125 files
+      !-----------------------------------------------------------------
+      INTEGER, PARAMETER :: I025x03125 = 1152 
+      INTEGER, PARAMETER :: J025x03125 = 720  
 
       !-----------------------------------------------------------------
       ! For GFED3
@@ -502,9 +508,9 @@
       ! NOXLEVELS = Number of levels of anthro NOx emission 
       !             (e.g. surface and 100m)
       ! NOXEXTENT = Highest sigma level that receives anthro NOx emission 
-      ! Need to set NOXLEVELS to 5 for NEI05 and 3 for NEI08 (krt)
-      INTEGER, PARAMETER :: NOXLEVELS = 5
-      INTEGER, PARAMETER :: NOXEXTENT = 5 
+      ! Need to set NOXLEVELS to 6 for NEI11 for NEI05 and 3 for NEI08 (krt)
+      INTEGER, PARAMETER :: NOXLEVELS = 6
+      INTEGER, PARAMETER :: NOXEXTENT = 6 
 
       ! MAXFAM -- Max number of families for prod and loss output
       INTEGER, PARAMETER :: MAXFAM = 40

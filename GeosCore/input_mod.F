@@ -2334,6 +2334,14 @@
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
       READ( SUBSTRS(1:N), * ) LSCALE2MASAGE
 
+      ! Include NEI2011 emissions?
+      CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
+      READ( SUBSTRS(1:N), * ) LNEI11
+
+      ! Include NEI2011 OC/BC emissions?
+      CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
+      READ( SUBSTRS(1:N), * ) LNEI11CARB
+
       ! Use RETRO emissions? (wfr, 3/8/11)
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:11' )
       READ( SUBSTRS(1:N), * ) LRETRO
@@ -2568,6 +2576,8 @@
       LNEI05            = ( LNEI05         .and. LANTHRO   )
       LNEI08            = ( LNEI08         .and. LANTHRO   )
       LNEI08CARB        = ( LNEI08CARB     .and. LANTHRO   )
+      LNEI11            = ( LNEI11         .and. LANTHRO   )
+      LNEI11CARB        = ( LNEI11CARB     .and. LANTHRO   )
       LSCALE2MASAGE     = ( LSCALE2MASAGE  .and. LANTHRO   )
       LRETRO            = ( LRETRO         .and. LANTHRO   )
       LNEI99            = ( LNEI99         .and. LANTHRO   )
@@ -2737,6 +2747,21 @@
          WRITE( 6, '(a)' ) REPEAT( '=', 79 )
          ENDIF
       ENDIF
+      ! NEI11 safety swith. If LNEI11CARB is turned on but LNEI11 is
+      ! turned off, this will cause an error (because arrays are not
+      ! allocated, etc.). For now, just turn off LNEI11CARB and print a
+      ! warning message. Whoever wants to fix this in a more robust way
+      ! is welcome to do so. (jaf, 12/17/13)
+      IF ( LNEI11CARB .and. ( .not. LNEI11 ) ) THEN
+         LNEI11CARB = .FALSE.
+         IF ( am_I_Root ) THEN
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         WRITE( 6, '(a)' ) 'WARNING! NEI11 emissions are turned off, so'
+         WRITE( 6, '(a)' ) 'we also turn off NEI11 OC/BC emissions'
+         WRITE( 6, '(a)' ) 'in order to avoid crashing GEOS-Chem!'
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         ENDIF
+      ENDIF
 
       !=================================================================
       ! Enforce emissions options for Nested China on native GEOS-5 grid
@@ -2753,6 +2778,8 @@
       LNEI05   = .FALSE.
       LNEI08   = .FALSE.
       LNEI08CARB = .FALSE.
+      LNEI11   = .FALSE.
+      LNEI11CARB = .FALSE.
       LSCALE2MASAGE = .FALSE.
       LVISTAS  = .FALSE.
       LICARTT  = .FALSE.
@@ -2781,6 +2808,8 @@
       LNEI05   = .FALSE.
       LNEI08   = .FALSE.
       LNEI08CARB = .FALSE.
+      LNEI11   = .FALSE.
+      LNEI11CARB = .FALSE.
       LSCALE2MASAGE = .FALSE.
       LVISTAS  = .FALSE.
       LICARTT  = .FALSE.
@@ -3006,6 +3035,8 @@
       Input_Opt%LNEI08         = LNEI08
       Input_Opt%LNEI08CARB     = LNEI08CARB
       Input_Opt%LSCALE2MASAGE  = LSCALE2MASAGE
+      Input_Opt%LNEI11         = LNEI11
+      Input_Opt%LNEI11CARB     = LNEI11CARB
       Input_Opt%LRETRO         = LRETRO
       Input_Opt%LNEI99         = LNEI99
       Input_Opt%LICARTT        = LICARTT
@@ -3083,6 +3114,8 @@
         WRITE( 6, 100 ) '  Use EPA/NEI 2008          : ', LNEI08
         WRITE( 6, 100 ) '  Use EPA/NEI 2008 OC/BC    : ', LNEI08CARB
         WRITE( 6, 100 ) '  Scale NEI Ag NH3 to MASAGE: ', LSCALE2MASAGE
+        WRITE( 6, 100 ) '  Use EPA/NEI 2011          : ', LNEI11
+        WRITE( 6, 100 ) '  Use EPA/NEI 2011 OC/BC    : ', LNEI11CARB
         WRITE( 6, 100 ) '  Use RETRO emissions       : ', LRETRO
         WRITE( 6, 100 ) '  Use AEIC emissions        : ', LAEIC
         WRITE( 6, 100 ) '  Use RCP emissions         : ', LRCP
@@ -8740,6 +8773,8 @@
       LNEI08         = .FALSE.
       LNEI08CARB     = .FALSE.
       LSCALE2MASAGE  = .FALSE.
+      LNEI11         = .FALSE.
+      LNEI11CARB     = .FALSE.
       LOTDLOC        = .FALSE.
       LSHIPSO2       = .FALSE.
       LSOILNOX       = .FALSE.

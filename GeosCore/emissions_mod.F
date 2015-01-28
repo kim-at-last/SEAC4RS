@@ -58,6 +58,7 @@
 !                              EPA/NEI05 anthro emissions are selected.
 !  13 Feb 2013 - K. Travis - Add option for "nei2008_anthro_mod.f"
 !  20 Aug 2013 - R. Yantosca - Removed "define.h", this is now obsolete
+!  13 Dec 2014 - K. Travis - Add option for nei2011
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -117,6 +118,7 @@
       USE NEI2005_ANTHRO_MOD,     ONLY : EMISS_NEI2005_ANTHRO_05x0666
       USE NEI2008_ANTHRO_MOD,     ONLY : EMISS_NEI2008_ANTHRO
       USE NEI2008_ANTHRO_MOD,     ONLY : EMISS_NEI2008_ANTHRO_NATIVE
+      USE NEI2011_ANTHRO_MOD,     ONLY : EMISS_NEI2011_ANTHRO
       USE PARANOX_MOD,            ONLY : READ_PARANOX_LUT
       USE POPS_MOD,               ONLY : EMISSPOPS  !(clf, 2/1/2011)
       USE RCP_MOD,                ONLY : LOAD_RCP_EMISSIONS !cdh
@@ -132,6 +134,7 @@
       USE TIME_MOD,               ONLY : GET_YEAR, GET_HOUR
       USE TIME_MOD,               ONLY : ITS_A_NEW_MONTH
       USE TIME_MOD,               ONLY : ITS_A_NEW_YEAR
+      USE TIME_MOD,               ONLY : ITS_A_NEW_DAY
       USE TRACERID_MOD,           ONLY : IDTSO2, IDTC2H6
       USE VISTAS_ANTHRO_MOD,      ONLY : EMISS_VISTAS_ANTHRO
 
@@ -248,6 +251,7 @@
       LOGICAL :: LCAC
       LOGICAL :: LNEI05
       LOGICAL :: LNEI08
+      LOGICAL :: LNEI11
       LOGICAL :: LARCSHIP
       LOGICAL :: LEDGARSHIP
       LOGICAL :: LEMEPSHIP
@@ -294,6 +298,7 @@
       LCAC               = Input_Opt%LCAC
       LNEI05             = Input_Opt%LNEI05
       LNEI08             = Input_Opt%LNEI08
+      LNEI11             = Input_Opt%LNEI11
       LARCSHIP           = Input_Opt%LARCSHIP
       LEDGARSHIP         = Input_Opt%LEDGARSHIP
       LEMEPSHIP          = Input_Opt%LEMEPSHIP
@@ -453,6 +458,12 @@
      &            am_I_Root, Input_Opt, State_Chm, RC )
 #endif
          ENDIF
+
+         ! Read NEI2011 (USA) emissions every day
+         IF ( LNEI11 .AND. ITS_A_NEW_DAY() ) THEN
+            CALL EMISS_NEI2011_ANTHRO( ! Use NEI11 anthro
+     &           am_I_Root, Input_Opt, State_Chm, RC )
+         ENDIF
             
          ! Read ICOADS ship emissions once per month (cklee, 7/09/09)
          IF ( LICOADSSHIP .and. ITS_A_NEW_MONTH() ) THEN
@@ -579,6 +590,12 @@
      &           am_I_Root, Input_Opt, State_Chm, RC )
 
 #endif
+         ENDIF
+
+         ! Read NEI2011 (USA) emissions every day
+         IF ( LNEI11 .AND. ITS_A_NEW_DAY() ) THEN
+            CALL EMISS_NEI2011_ANTHRO( ! Use NEI11 anthro
+     &           am_I_Root, Input_Opt, State_Chm, RC )
          ENDIF
 
          ! Read EMEP (Europe) emissions once per year
@@ -735,6 +752,12 @@
             CALL EMISS_NEI2008_ANTHRO(           ! Use NEI08 anthro,  global
      &           am_I_Root, Input_Opt, State_Chm, RC )
 #endif
+         ENDIF
+
+         ! Read NEI2011 (USA) emissions every day
+         IF ( LNEI11 .AND. ITS_A_NEW_DAY() ) THEN
+            CALL EMISS_NEI2011_ANTHRO( ! Use NEI11 anthro
+     &           am_I_Root, Input_Opt, State_Chm, RC )
          ENDIF
 
          ! Read EPA (Europe) emissions once per year
@@ -921,6 +944,12 @@
             CALL EMISS_NEI2008_ANTHRO(           ! Use NEI08 anthro,  global
      &          am_I_Root, Input_Opt, State_Chm, RC )
 #endif
+         ENDIF
+
+         ! Read NEI2011 (USA) emissions every day
+         IF ( LNEI11 .AND. ITS_A_NEW_DAY() ) THEN
+            CALL EMISS_NEI2011_ANTHRO( ! Use NEI11 anthro
+     &           am_I_Root, Input_Opt, State_Chm, RC )
          ENDIF
 
          ! Read EMEP (Europe) emissions once per year

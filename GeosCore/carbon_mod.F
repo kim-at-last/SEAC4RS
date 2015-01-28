@@ -5573,6 +5573,7 @@ c
       USE FINN_BIOMASS_MOD,   ONLY : FINN_IS_NEW
       USE QFED_BIOMASS_MOD,   ONLY : QFED_IS_NEW
       USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
+      USE NEI2011_ANTHRO_MOD, ONLY : NEI11_MASK => USA_MASK
       USE GRID_MOD,           ONLY : GET_XMID, GET_YMID
 
       USE GIGC_ErrCode_Mod
@@ -5669,6 +5670,7 @@ c
       REAL*8               :: OCSRC(IIPAR,JJPAR,LLTROP,2)
       ! Add source term for biomass burning POA (skim, 6/19/14)
       REAL*8               :: BBSRC(IIPAR,JJPAR,LLTROP,2)
+      REAL*8               :: USMASK(IIPAR,JJPAR)       !evf, krt, 2/7/14
 
 #if   defined( TOMAS )
       ! more variables (win, 9/4/07)
@@ -5704,6 +5706,7 @@ c
       LOGICAL         :: LSOA
       LOGICAL         :: LRCP
       LOGICAL         :: LNEI08CARB
+      LOGICAL         :: LNEI11CARB
       LOGICAL         :: LNLPBL
 
       ! Pointers
@@ -5735,7 +5738,11 @@ c
       LSOA      = Input_Opt%LSOA
       LRCP      = Input_Opt%LRCP
       LNEI08CARB= Input_Opt%LNEI08CARB
+      LNEI11CARB= Input_Opt%LNEI11CARB
       LNLPBL    = Input_Opt%LNLPBL
+
+      IF ( LNEI08CARB ) USMASK = NEI08_MASK
+      IF ( LNEI11CARB ) USMASK = NEI11_MASK
 
       ! Initialize GEOS-Chem tracer array [kg] from Chemistry State object
       ! (mpayer, 12/6/12)
@@ -5756,6 +5763,7 @@ c
          WRITE( 6, 112 )
          WRITE( 6, 113 )
          IF ( LNEI08CARB ) WRITE( 6, 114 )
+         IF ( LNEI11CARB ) WRITE( 6, 115 )
          
          ! Monthly or annual BIOMASS emissions?
          IF ( USE_BOND_BIOBURN ) THEN
@@ -5774,6 +5782,7 @@ c
  112     FORMAT( 'w/ North American emissions having imposed'         )
  113     FORMAT( '   seasonality following Park et al [2003]'         )
  114     FORMAT( 'w/ North American emissions from NEI08             ')
+ 115     FORMAT( 'w/ North American emissions from NEI11             ')
  120     FORMAT( 'w/ BIOMASS emissions from Bond et al [2004]'        )
  130     FORMAT( 'w/ BIOMASS emissions from GEOS-CHEM inventory'      )
         
@@ -5827,8 +5836,17 @@ c
       ! Overwrite the T. Bond [2004] emissions over North America with
       ! monthly mean anthro emissions from NEI08 (K. Travis, J. Fisher)
       IF ( LNEI08CARB .AND. ITS_A_NEW_HOUR() ) THEN
-         CALL ANTHRO_CARB_NEI08
-         IF ( LPRT ) CALL DEBUG_MSG( '###EMISSCARB: a A_CRB_NEI08' )
+         CALL ANTHRO_CARB_NEI08( Input_Opt )
+         IF ( LPRT ) CALL DEBUG_MSG( '###EMISSCARB: a A_CRB_NEI' )
+      ENDIF
+      !-----------------------------------
+      ! Read hourly NEI11 emissions
+      !-----------------------------------
+      ! Overwrite the T. Bond [2004] emissions over North America with
+      ! anthro emissions from NEI11 (K. Travis)
+      IF ( LNEI11CARB .AND. ITS_A_NEW_HOUR() ) THEN
+         CALL ANTHRO_CARB_NEI11( Input_Opt )
+         IF ( LPRT ) CALL DEBUG_MSG( '###EMISSCARB: a A_CRB_NEI' )
       ENDIF
 
       !-----------------------------------
@@ -7850,10 +7868,10 @@ ccc
 
 !------------------------------------------------------------------------------
 
-      SUBROUTINE ANTHRO_CARB_NEI08
+      SUBROUTINE ANTHRO_CARB_NEI08( Input_Opt )
 !
 !******************************************************************************
-!  Subroutine ANTHRO_CARB_NEI08 computes weekday / weekend hourly anthropogenic
+!  Subroutine ANTHRO_CARB_NEI computes weekday / weekend hourly anthropogenic
 !  emissions of BLACK CARBON (aka ELEMENTAL CARBON) and ORGANIC CARBON and 
 !  separates these into HYDROPHILIC and HYDROPHOBIC components.
 !
@@ -7871,12 +7889,15 @@ ccc
       USE TIME_MOD,             ONLY : GET_HOUR, GET_TS_EMIS
       USE TIME_MOD,             ONLY : GET_DAY_OF_WEEK_LT
       USE TRACERID_MOD,         ONLY : IDTOCPO, IDTBCPO
+      USE GIGC_Input_Opt_Mod,   ONLY : OptInput
 
       USE CMN_SIZE_MOD             ! Size parameters
+      TYPE(OptInput), INTENT(IN)    :: Input_Opt   ! Input Options object
 !
 ! !LOCAL VARIABLES:
 !
       LOGICAL                       :: WEEKDAY
+      LOGICAL                       :: LNEI08CARB
       INTEGER                       :: I, J, L, DOW_LT, IH
       REAL*8                        :: AREA_CM2, DTSRCE
       REAL*8                        :: OCNEI08, BCNEI08
@@ -7918,12 +7939,12 @@ ccc
             ! Loop over levels to capture all emissions, but for now add
             ! all emissions to surface box for consistency with previous
             ! carbon emissions
-            DO L = 1, NOXLEVELS
+               DO L = 1, NOXLEVELS
 
-               IF ( L > 3 ) EXIT
+                  IF ( L > 3 ) EXIT
 
-               ! Get area
-               AREA_CM2 = GET_AREA_CM2( I, J, L )
+               ! Getarea
+                  AREA_CM2 = GET_AREA_CM2( I, J, L )
 
                ! Get emissions in [g/cm2/s] and convert to [kg C/box/dt]
                OCNEI08 = OCNEI08
@@ -7959,7 +7980,115 @@ ccc
 
       ! Return to calling program
       END SUBROUTINE ANTHRO_CARB_NEI08
+!EOC
+!BOC
+      SUBROUTINE ANTHRO_CARB_NEI11( Input_Opt )
+!
+!******************************************************************************
+!  Subroutine ANTHRO_CARB_NEI11 computes hourly anthropogenic
+!  emissions of BLACK CARBON (aka ELEMENTAL CARBON) and ORGANIC CARBON and 
+!  separates these into HYDROPHILIC and HYDROPHOBIC components.
+!
+!  We also assume that 20% of BC and 50% of OC from anthropogenic 
+!  emissions are hydrophilic (soluble) and the rest are hydrophobic.
+!
+!  NOTES:
+!  13 Dec 2014 - K.Travis  - Initial version
+!******************************************************************************
+!
+      ! References to F90 modules
+      USE GRID_MOD,             ONLY : GET_AREA_CM2
+      USE NEI2011_ANTHRO_MOD,   ONLY : NEI11_MASK => USA_MASK
+      USE NEI2011_ANTHRO_MOD,   ONLY : GET_NEI2011_ANTHRO
+      USE TIME_MOD,             ONLY : GET_HOUR, GET_TS_EMIS
+      USE TIME_MOD,             ONLY : GET_DAY_OF_WEEK_LT
+      USE TRACERID_MOD,         ONLY : IDTOCPO, IDTBCPO
+      USE GIGC_Input_Opt_Mod,   ONLY : OptInput
 
+      USE CMN_SIZE_MOD             ! Size parameters
+      TYPE(OptInput), INTENT(IN)    :: Input_Opt   ! Input Options object
+!
+! !LOCAL VARIABLES:
+!
+      INTEGER                       :: I, J, L, IH
+      REAL*8                        :: AREA_CM2, DTSRCE
+      REAL*8                        :: OCNEI11, BCNEI11
+
+      ! Hydrophilic fraction of BLACK CARBON aerosol
+      REAL*8, PARAMETER             :: FHB = 0.2d0
+
+      ! Hydrophilic fraction of ORGANIC CARBON aerosol
+      REAL*8, PARAMETER             :: FHO = 0.5d0
+
+      !=================================================================
+      ! ANTHRO_CARB_NEI11 begins here!
+      !=================================================================
+
+      ! Get hour
+      IH = GET_HOUR() + 1 ! to increment from 1 to 24
+
+      ! DTSRCE is the emission timestep in seconds
+      DTSRCE = GET_TS_EMIS() * 60d0
+
+!$OMP PARALLEL DO
+!$OMP+DEFAULT( SHARED )
+!$OMP+PRIVATE( I, J, L, AREA_CM2, OCNEI11, BCNEI11 )
+      DO J = 1, JJPAR
+      DO I = 1, IIPAR
+
+         ! Initialize
+         OCNEI11  = 0d0
+         BCNEI11  = 0d0
+         AREA_CM2 = 0d0
+
+         IF ( NEI11_MASK(I,J) > 0d0 ) THEN
+
+            ! Loop over levels to capture all emissions, but for now add
+            ! all emissions to surface box for consistency with previous
+            ! carbon emissions
+               DO L = 1, NOXLEVELS
+
+                  IF ( L > 6 ) EXIT
+
+                  ! Getarea
+                  AREA_CM2 = GET_AREA_CM2( I, J, L )
+
+               ! Get emissions in [g/cm2/s] and convert to [kg C/box/dt]
+               OCNEI11 = OCNEI11
+     &                 + GET_NEI2011_ANTHRO( I,J,L,IH,IDTOCPO )
+     &                 * AREA_CM2 * 1d-3 * DTSRCE
+               BCNEI11 = BCNEI11
+     &                 + GET_NEI2011_ANTHRO( I,J,L,IH,IDTBCPO )
+     &                 * AREA_CM2 * 1d-3 * DTSRCE
+
+            ENDDO
+
+            ! Hydrophilic ORGANIC CARBON from NEI08 or NEI11
+            ANTH_ORGC(I,J,1) = OCNEI11 * FHO
+
+            ! Hydrophobic ORGANIC CARBON from NEI08 or NEI11
+            ANTH_ORGC(I,J,2) = OCNEI11 * ( 1.d0 - FHO )
+
+            ! Hydrophilic BLACK CARBON from NEI08 or NEI11
+            ANTH_BLKC(I,J,1) = BCNEI11 * FHB
+
+            ! Hydrophobic BLACK CARBON from NEI08 or NEI11
+            ANTH_BLKC(I,J,2) = BCNEI11 * ( 1.d0 - FHB )
+
+            ! NEI08 and NEI11 anthropogenic emissions also contain biofuel
+            ! emissions, so zero these in mask region.
+            BIOF_ORGC(I,J,:) = 0d0
+            BIOF_BLKC(I,J,:) = 0d0
+
+         ENDIF
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+
+      ! Return to calling program
+      END SUBROUTINE ANTHRO_CARB_NEI11
+!EOC
+!BOC
 !------------------------------------------------------------------------------
 
       SUBROUTINE BIOMASS_CARB_TBOND( Input_Opt )
@@ -8283,6 +8412,7 @@ ccc
       USE PBL_MIX_MOD,          ONLY : GET_PBL_TOP_L
       USE GRID_MOD,             ONLY : GET_XMID, GET_YMID
       USE NEI2008_ANTHRO_MOD,   ONLY : NEI08_MASK => USA_MASK
+      USE NEI2011_ANTHRO_MOD,   ONLY : NEI11_MASK => USA_MASK
 
 !
 ! !INPUT PARAMETERS:

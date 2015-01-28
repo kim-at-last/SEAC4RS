@@ -353,7 +353,7 @@ biomass_mod.o               : biomass_mod.F                                  \
                               logical_mod.o           tracerid_mod.o         \
                               tracer_mod.o            finn_biomass_mod.o     \
                               flambe_biomass_mod.o    qfed_biomass_mod.o     \
-                              nei2008_anthro_mod.o
+                              nei2008_anthro_mod.o    nei2011_anthro_mod.o
 
 BLKSLV.o                    : BLKSLV.F
 
@@ -399,7 +399,7 @@ carbon_mod.o                : carbon_mod.F                                   \
                               tropopause_mod.o        vdiff_pre_mod.o        \
                               nei2008_anthro_mod.o    finn_biomass_mod.o     \
                               biofuel_mod.o           sulfate_mod.o          \
-			      qfed_biomass_mod.o
+			      qfed_biomass_mod.o      nei2011_anthro_mod.o
 
 ch3i_mod.o                  : ch3i_mod.F                                     \
                               biofuel_mod.o           biomass_mod.o          \
@@ -610,7 +610,8 @@ emfossil.o                  : emfossil.F                                     \
                               streets_anthro_mod.o    tracer_mod.o           \
                               tracerid_mod.o          vistas_anthro_mod.o    \
 			      retro_mod.o             c2h6_mod.o             \
-                              nei2008_anthro_mod.o    rcp_mod.o
+                              nei2008_anthro_mod.o    rcp_mod.o              \
+			      nei2011_anthro_mod.o
 
 emissdr.o                   : emissdr.F                                      \
                               acetone_mod.o           aeic_mod.o             \
@@ -637,7 +638,8 @@ emissions_mod.o             : emissions_mod.F                                \
                               RnPbBe_mod.o            seasalt_mod.o          \
                               streets_anthro_mod.o    sulfate_mod.o          \
                               tagged_co_mod.o         tracerid_mod.o         \
-                              vistas_anthro_mod.o     nei2008_anthro_mod.o
+                              vistas_anthro_mod.o     nei2008_anthro_mod.o   \
+			      nei2011_anthro_mod.o
 
 epa_nei_mod.o               : epa_nei_mod.F                                  \
                               future_emissions_mod.o  scale_anthro_mod.o     \
@@ -936,6 +938,11 @@ nei2008_anthro_mod.o        : nei2008_anthro_mod.F90                         \
                               scale_anthro_mod.o      tracerid_mod.o         \
                               tracer_mod.o    
 
+nei2011_anthro_mod.o        : nei2011_anthro_mod.F90                         \
+                              future_emissions_mod.o  logical_mod.o          \
+                              scale_anthro_mod.o      tracerid_mod.o         \
+                              tracer_mod.o          
+
 NOABS.o                     : NOABS.F
 
 ocean_mercury_mod.o         : ocean_mercury_mod.F                            \
@@ -1058,7 +1065,8 @@ setemis.o                   : setemis.F                                      \
                               emep_mod.o              lightning_nox_mod.o    \
                               paranox_mod.o           pbl_mix_mod.o          \
                               rcp_mod.o               tracerid_mod.o         \
-                              tropopause_mod.o        nei2008_anthro_mod.o   
+                              tropopause_mod.o        nei2008_anthro_mod.o   \
+			      nei2011_anthro_mod.o
 
 setmodel.o                  : setmodel.F
 
@@ -1110,7 +1118,7 @@ sulfate_mod.o               : sulfate_mod.F                                  \
                               wetscav_mod.o           get_ndep_mod.o         \
                               tomas_mod.o             nei2008_anthro_mod.o   \
 			      finn_biomass_mod.o      rcp_mod.o              \
-			      qfed_biomass_mod.o
+			      qfed_biomass_mod.o      nei2011_anthro_mod.o
 
 tagged_co_mod.o             : tagged_co_mod.F                                \
                               biofuel_mod.o           biomass_mod.o          \
