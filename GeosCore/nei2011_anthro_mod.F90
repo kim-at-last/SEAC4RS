@@ -74,9 +74,10 @@
       REAL*8,  ALLOCATABLE         :: T_ALK4_MON(:)
       REAL*8,  ALLOCATABLE         :: T_ACET_MON(:)
       REAL*8,  ALLOCATABLE         :: T_MACR_MON(:)
-      REAL*8,  ALLOCATABLE         :: T_MVK_MON(:)
+      REAL*8,  ALLOCATABLE         :: T_MEK_MON(:)
       REAL*8,  ALLOCATABLE         :: T_PRPE_MON(:)
       REAL*8,  ALLOCATABLE         :: T_TOLU_MON(:)
+      REAL*8,  ALLOCATABLE         :: T_BENZ_MON(:)
       REAL*8,  ALLOCATABLE         :: T_XYLE_MON(:)
       REAL*8,  ALLOCATABLE         :: T_EOH_MON(:)
       REAL*8,  ALLOCATABLE         :: T_MOH_MON(:)
@@ -106,7 +107,7 @@
       REAL*8,  ALLOCATABLE        :: BCPO(:,:,:,:)
       REAL*8,  ALLOCATABLE        :: SO4(:,:,:,:) 
       REAL*8,  ALLOCATABLE        :: MACR(:,:,:,:) 
-      REAL*8,  ALLOCATABLE        :: MVK(:,:,:,:) 
+      REAL*8,  ALLOCATABLE        :: MEK(:,:,:,:) 
       REAL*8,  ALLOCATABLE        :: C3H8(:,:,:,:) 
       REAL*8,  ALLOCATABLE        :: ACET(:,:,:,:) 
 
@@ -143,12 +144,12 @@
 !
       USE GRID_MOD,     ONLY : GET_AREA_M2
       USE TRACERID_MOD, ONLY : IDTCO, IDTNO,IDTNO2, IDTHNO2 
-      USE TRACERID_MOD, ONLY : IDTSO2, IDTNH3, IDTMACR, IDTMVK
+      USE TRACERID_MOD, ONLY : IDTSO2, IDTNH3, IDTMACR
       USE TRACERID_MOD, ONLY : IDTALD2, IDTRCHO, IDTC2H6
       USE TRACERID_MOD, ONLY : IDTPRPE, IDTALK4!, IDTC2H4
       USE TRACERID_MOD, ONLY : IDTBENZ, IDTTOLU, IDTXYLE
       USE TRACERID_MOD, ONLY : IDTSO4, IDTCH2O
-      USE TRACERID_MOD, ONLY : IDTOCPO,  IDTBCPO
+      USE TRACERID_MOD, ONLY : IDTOCPO,  IDTBCPO, IDTMEK
       USE TRACERID_MOD, ONLY : IDTMOH, IDTEOH!, IDTCH4
       USE TRACERID_MOD, ONLY : IDTMEK, IDTC3H8, IDTACET !added 9/24/14, krt 
 !
@@ -224,12 +225,10 @@
       ELSE IF ( N == IDTACET ) THEN
             ! [molec/cm2/s]
          VALUE = ACET(I,J,L,IH)
-      ELSE IF ( N == IDTMACR ) THEN
+      ELSE IF ( N == IDTMEK ) THEN
             ! [molec/cm2/s]
-         VALUE = MACR(I,J,L,IH)
-      ELSE IF ( N == IDTMVK ) THEN
-         ! [molec/cm2/s]
-         VALUE = MVK(I,J,L,IH)
+         VALUE = MEK(I,J,L,IH)
+      ! NOT EMITTING MACR AT THIS TIME
       ELSE IF ( N == IDTTOLU ) THEN
          ! [molec/cm2/s]
          VALUE = TOLU(I,J,L,IH)
@@ -331,9 +330,9 @@
       USE GIGC_State_Chm_Mod, ONLY : ChmState
       USE NCDF_MOD,          ONLY : NC_READ
       USE TRACERID_MOD,      ONLY : IDTCO, IDTNO, IDTHNO2, IDTNO2 
-      USE TRACERID_MOD,      ONLY : IDTSO2, IDTNH3, IDTMACR, IDTMVK
-      USE TRACERID_MOD,      ONLY : IDTALD2, IDTRCHO, IDTC2H6
-      USE TRACERID_MOD,      ONLY : IDTPRPE, IDTALK4!, IDTC2H4
+      USE TRACERID_MOD,      ONLY : IDTSO2, IDTNH3, IDTMACR, IDTACET
+      USE TRACERID_MOD,      ONLY : IDTALD2, IDTRCHO, IDTC2H6, IDTMEK
+      USE TRACERID_MOD,      ONLY : IDTPRPE, IDTALK4, IDTC3H8!, IDTC2H4
       USE TRACERID_MOD,      ONLY : IDTBENZ, IDTTOLU, IDTXYLE
       USE TRACERID_MOD,      ONLY : IDTSO4, IDTCH2O, IDTOCPO, IDTBCPO
       USE TRACERID_MOD,      ONLY : IDTEOH, IDTMOH
@@ -454,14 +453,14 @@
 
       SPCLIST =    (/ 'CO','NO','NO2','HONO','SO2','SULF', 'NH3', &
            'ACROLEIN','ALD2', 'ALDX', 'ETHA', 'FORM','IOLE', 'OLE', &
-           'PAR', 'TOL', 'XYL', 'POC', 'PEC','PSO4','BENZENE','EOH','MOH'/)
+           'PAR', 'TOL', 'XYL', 'POC', 'PEC','PSO4','BENZENE','ETOH','MEOH'/)
 
       ! File with lat/lon edges for regridding
       LLFILENAME = TRIM( DATA_DIR_1x1) // &
                   'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos025x03125.nc'
 
       ! Base data directory
-      DATA_DIR_NEI =  '/as/cache/2015-01/krt/'// &
+      DATA_DIR_NEI =  '/as/cache/2015-02/krt/'// &
            'NEI11_025x03125_2011'
      
       ! Get month
@@ -519,7 +518,7 @@
          SNo = SPECIES_ID( KLM ) 
 
          ! Skip undefined tracers
-         IF ( SNo == 0 ) CYCLE
+         !IF ( SNo == 0 ) CYCLE
 
          ! Read variable from netCDF files
          ! Units are in kg/m2/s
@@ -594,10 +593,10 @@
          IF ( TRIM(SId) == 'CO') THEN !CO
             CO = ( TMP * XNUMOL(IDTCO) / 1E4 )  * ScCO
             ! USE VALUES FROM BORBON ET AL, 2013 (JGR) FOR UNKNOWN VOCS
-            WRITE(*,*) 'USING BORBON ET AL, 2013 for C3H8, ACET, MVK'
-            C3H8 = CO * 1.12E-02 * 3.0 ! FOR 3 CARBONS
-            ACET = CO * 1.18E-02 * 3.0 ! FOR 3 CARBONS
-            MVK = CO * 2.40E-04
+            !WRITE(*,*) 'USING BORBON ET AL, 2013 for C3H8, ACET'
+            !C3H8 = CO * 1.12E-02 * 3.0 ! FOR 3 CARBONS
+            !ACET = CO * 1.18E-02 * 3.0 ! FOR 3 CARBONS
+            !MVK = CO * 2.40E-04
          ELSEIF ( TRIM(SId) == 'NO') THEN !NO  !convert from kg/m2/s of NO
             NO  = ( TMP * XNUMOL(IDTNO) / 1E4 )  * ScNOx
          ELSEIF ( TRIM(SId) == 'NO2') THEN !NO2
@@ -622,14 +621,25 @@
             PRPEa = ( TMP * XNUMOL(IDTPRPE)/1E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'OLE' ) THEN !PRPE
             PRPEb = ( TMP * XNUMOL(IDTPRPE)/1E4 ) * ScVOC
-         ELSEIF ( TRIM(SId) == 'PAR' ) THEN !ALK4
-            ALK4 = ( TMP * XNUMOL(IDTALK4)/1E4 ) * ScVOC
+         ELSEIF ( TRIM(SId) == 'PAR' ) THEN 
+            ! I used the graph of the top 50 VOCs from the following paper:
+            ! http://www.epa.gov/ttnchie1/software/speciate/atmospheric.pdf
+            ! And determined the PAR weighting from the following report:
+            ! http://www.camx.com/publ/pdfs/cb05_final_report_120805.pdf
+            ! I then determined the fraction by carbon of PAR for each of the
+            !  following species.
+            ! Note that it will not add to 100% since some species are double
+            ! counted (benzene) (krt, 2/3/15)
+            ACET = ( TMP * 0.06 * XNUMOL(IDTACET)/1E4 ) * ScVOC
+            C3H8 = ( TMP * 0.03 * XNUMOL(IDTC3H8)/1E4 ) * ScVOC
+            MEK  = ( TMP * 0.02 * XNUMOL(IDTMEK)/1E4  ) * ScVOC
+            ALK4 = ( TMP * 0.87 * XNUMOL(IDTALK4)/1E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'BENZENE' ) THEN !BENZ
-            BENZ =  ( TMP * XNUMOL(IDTBENZ) / 1E4) *ScVOC
+            BENZ =  ( TMP * XNUMOL(IDTALD2)*3 / 1E4) *ScVOC
          ELSEIF ( TRIM(SId) == 'TOL' ) THEN !TOLU
-            TOLU =  ( TMP * XNUMOL(IDTTOLU) / 1E4) *ScVOC
+            TOLU =  ( TMP * XNUMOL(IDTALD2)*3.5 / 1E4) *ScVOC
          ELSEIF ( TRIM(SId) == 'XYL') THEN !XYLE
-            XYLE  =  ( TMP * XNUMOL(IDTXYLE) / 1E4) *ScVOC
+            XYLE  =  ( TMP * XNUMOL(IDTALD2)*4 / 1E4) *ScVOC
          ELSEIF ( TRIM(SId) == 'FORM') THEN !CH2O
             CH2O =  ( TMP * XNUMOL(IDTCH2O) / 1E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'PSO4') THEN !SO4 - scale to SO2
@@ -641,10 +651,10 @@
             ! Species not currently used
 !         ELSEIF ( TRIM(SId) == 'C2H4') THEN !C2H4 - no scaling
 !            C2H4       = TMP
-         ELSEIF ( TRIM(SId) == 'MOH') THEN !MOH - no scaling
-            IF (IDTMOH .gt. 0 ) MOH   =  ( TMP * XNUMOL(IDTMOH)/ 1E4 ) * ScVOC
-         ELSEIF ( TRIM(SId) == 'EOH') THEN !EOH - no scaling
-            IF (IDTEOH .gt. 0 ) EOH   = ( TMP * XNUMOL(IDTEOH)/ 1E4 ) * ScVOC
+         ELSEIF ( TRIM(SId) == 'MEOH') THEN !MOH - no scaling
+            MOH   =  ( TMP * XNUMOL(IDTALD2)*0.5/ 1E4 ) * ScVOC
+         ELSEIF ( TRIM(SId) == 'ETOH') THEN !EOH - no scaling
+            EOH   = ( TMP * XNUMOL(IDTALD2)/ 1E4 ) * ScVOC
          ENDIF
       ENDDO
 
@@ -891,8 +901,8 @@
       USE TRACERID_MOD, ONLY : IDTCO, IDTNO,IDTNO2, IDTHNO2 
       USE TRACERID_MOD, ONLY : IDTSO2, IDTNH3, IDTSO4, IDTMACR
       USE TRACERID_MOD, ONLY : IDTALD2, IDTRCHO, IDTC2H6, IDTC3H8
-      USE TRACERID_MOD, ONLY : IDTPRPE, IDTALK4, IDTACET, IDTMVK
-      USE TRACERID_MOD, ONLY : IDTBENZ, IDTTOLU, IDTXYLE
+      USE TRACERID_MOD, ONLY : IDTPRPE, IDTALK4, IDTACET
+      USE TRACERID_MOD, ONLY : IDTBENZ, IDTTOLU, IDTXYLE, IDTMEK
       USE TRACERID_MOD, ONLY : IDTSO4, IDTCH2O, IDTOCPO,  IDTBCPO 
       USE TRACERID_MOD, ONLY : IDTMOH, IDTEOH
 
@@ -913,9 +923,9 @@
       LOGICAL, SAVE       :: FIRST = .TRUE.
       INTEGER             :: II, JJ, IH, LL
       REAL*8              :: T_CO, T_NO, T_NO2, T_HNO2, T_SO2, T_NH3
-      REAL*8              :: T_ALD2,  T_RCHO, T_C2H6, T_C3H8, T_MACR
+      REAL*8              :: T_ALD2,  T_RCHO, T_C2H6, T_C3H8, T_MEK
       REAL*8              :: T_PRPE, T_ALK4, T_TOLU, T_XYLE, T_ACET
-      REAL*8              :: T_CH2O,T_BC, T_OC, T_SO4, T_MVK
+      REAL*8              :: T_CH2O,T_BC, T_OC, T_SO4
       REAL*8              :: T_BENZ, T_EOH, T_MOH!, T_C2H4
       REAL*8              :: tmpArea(IIPAR, JJPAR,6)
   
@@ -942,10 +952,10 @@
          T_RCHO_MON = 0d0
          T_C2H6_MON = 0d0
          T_C3H8_MON = 0d0
-         T_MACR_MON = 0d0
-         T_MVK_MON = 0d0
+         T_MEK_MON = 0d0
          T_PRPE_MON = 0d0
          T_ALK4_MON = 0d0
+         T_BENZ_MON = 0d0
          T_TOLU_MON = 0d0
          T_XYLE_MON = 0d0
          T_ACET_MON = 0d0
@@ -1032,19 +1042,12 @@
            SEC_IN_HOUR *1.0d-12
            T_BC_MON = T_BC_MON + T_BC
 
-      ! Total MACR  [Tg MACR]
-      IF ( IDTMACR .NE. 0 ) &
-           ! Total MACR [Tg]
-           T_MACR =   SUM(SUM(MACR, 4)*tmpArea ) * &
-           SEC_IN_HOUR *1.0d-9/XNUMOL(IDTMACR)
-           T_MACR_MON = T_MACR_MON + T_MACR
-
-      ! Total MVK  [Tg MVK]
-      IF ( IDTMVK .NE. 0 ) &
-           ! Total MACR [Tg]
-           T_MVK =   SUM(SUM(MVK, 4)*tmpArea ) * &
-           SEC_IN_HOUR *1.0d-9/XNUMOL(IDTMVK)
-           T_MVK_MON = T_MVK_MON + T_MVK
+      ! Total MEK  [Tg MEK]
+      IF ( IDTMEK .NE. 0 ) &
+           ! Total MEK [Tg]
+           T_MEK =   SUM(SUM(MEK, 4)*tmpArea ) * &
+           SEC_IN_HOUR *1.0d-9/XNUMOL(IDTMEK)
+           T_MEK_MON = T_MEK_MON + T_MEK
 
       ! Total RCHO  [Tg C]
       IF ( IDTRCHO .NE. 0 ) &
@@ -1104,19 +1107,34 @@
            SEC_IN_HOUR *1.0d-9/XNUMOL(IDTC2H6)
            T_C2H6_MON = T_C2H6_MON + T_C2H6
       
-      ! Total EOH  [Tg]
+      ! Total EOH  [Tg C]
       IF ( IDTEOH .NE. 0 ) &
            ! Total EOH [Tg]
            T_EOH =   SUM(SUM(EOH, 4)*tmpArea ) * &
-           SEC_IN_HOUR *1.0d-9/XNUMOL(IDTEOH)
+           SEC_IN_HOUR *1.0d-9/XNUMOL(IDTALD2)
            T_EOH_MON = T_EOH_MON + T_EOH
 
       ! Total MOH  [Tg]
       IF ( IDTMOH .NE. 0 ) &
            ! Total MOH [Tg]
            T_MOH =   SUM(SUM(MOH, 4)*tmpArea ) * &
-           SEC_IN_HOUR *1.0d-9/XNUMOL(IDTMOH)
+           SEC_IN_HOUR *1.0d-9/(XNUMOL(IDTALD2)*0.5)
            T_MOH_MON = T_MOH_MON + T_MOH
+
+      ! Total BENZ  [Tg]
+!      IF ( IDTBENZ .NE. 0 ) &
+           ! Total BENZ [ 
+           T_BENZ =   SUM(SUM(BENZ, 4)*tmpArea ) * &
+           SEC_IN_HOUR *1.0d-9/(XNUMOL(IDTALD2)*3)
+           T_BENZ_MON = T_BENZ_MON + T_BENZ
+
+           T_TOLU =   SUM(SUM(TOLU, 4)*tmpArea ) * &
+           SEC_IN_HOUR *1.0d-9/(XNUMOL(IDTALD2)*3.5)
+           T_TOLU_MON = T_TOLU_MON + T_TOLU
+           
+           T_XYLE =   SUM(SUM(XYLE, 4)*tmpArea ) * &
+           SEC_IN_HOUR *1.0d-9/(XNUMOL(IDTALD2)*4)
+           T_XYLE_MON = T_XYLE_MON + T_XYLE
 
       ! Format statement
       WRITE(*,*) 'NEI2011 anthro for month', &
@@ -1128,11 +1146,10 @@
       WRITE( 6, 110 ) 'NO2  ', THISMONTH,  T_NO2_MON,THISDAY, T_NO2, '[ Tg N ]'
       WRITE( 6, 110 ) 'HNO2  ', THISMONTH, T_HNO2_MON, THISDAY, T_HNO2, '[ Tg N ]'
       WRITE( 6, 110 ) 'CH2O  ', THISMONTH,T_CH2O_MON, THISDAY, T_CH2O, '[ Tg ]'
-      WRITE( 6, 110 ) 'MACR  ', THISMONTH,T_MACR_MON, THISDAY, T_MACR, '[ Tg ]'
-      WRITE( 6, 110 ) 'MVK  ', THISMONTH,T_MVK_MON, THISDAY, T_MVK, '[ Tg ]'
+      WRITE( 6, 110 ) 'MEK  ', THISMONTH,T_MEK_MON, THISDAY, T_MEK, '[ Tg C ]'
       WRITE( 6, 110 ) 'RCHO  ', THISMONTH,T_RCHO_MON, THISDAY, T_RCHO, '[ Tg C ]'
       WRITE( 6, 110 ) 'PRPE  ', THISMONTH, T_PRPE_MON, THISDAY, T_PRPE, '[ Tg C ]'
-      WRITE( 6, 110 ) 'ACET  ', THISMONTH,T_ACET_MON, THISDAY, T_ACET, '[ Tg ]'
+      WRITE( 6, 110 ) 'ACET  ', THISMONTH,T_ACET_MON, THISDAY, T_ACET, '[ Tg C ]'
       WRITE( 6, 110 ) 'ALK4  ', THISMONTH,T_ALK4_MON, THISDAY, T_ALK4, '[ Tg C ]'
       WRITE( 6, 110 ) 'ALD2  ', THISMONTH,T_ALD2_MON, THISDAY, T_ALD2, '[ Tg C ]'
       WRITE( 6, 110 ) 'C3H8  ', THISMONTH, T_C3H8_MON, THISDAY, T_C3H8, '[ Tg ]'
@@ -1142,8 +1159,11 @@
       WRITE( 6, 110 ) 'NH3  ', THISMONTH, T_NH3_MON,THISDAY, T_NH3, '[ Tg ]'
       WRITE( 6, 110 ) 'OC  ', THISMONTH,T_OC_MON, THISDAY, T_OC, '[ Tg ]'
       WRITE( 6, 110 ) 'BC  ', THISMONTH,T_BC_MON, THISDAY, T_BC, '[ Tg ]'
-      WRITE( 6, 110 ) 'EOH  ', THISMONTH,T_EOH_MON, THISDAY, T_EOH, '[ Tg ]'
-      WRITE( 6, 110 ) 'MOH  ', THISMONTH,T_MOH_MON, THISDAY, T_MOH, '[ Tg ]'
+      WRITE( 6, 110 ) 'EOH  ', THISMONTH,T_EOH_MON, THISDAY, T_EOH, '[ Tg C ]'
+      WRITE( 6, 110 ) 'MOH  ', THISMONTH,T_MOH_MON, THISDAY, T_MOH, '[ Tg C ]'
+      WRITE( 6, 110 ) 'BENZ  ', THISMONTH,T_BENZ_MON, THISDAY, T_BENZ, '[ Tg C ]'
+      WRITE( 6, 110 ) 'TOLU  ', THISMONTH,T_TOLU_MON, THISDAY, T_TOLU, '[ Tg C ]'
+      WRITE( 6, 110 ) 'XYLE  ', THISMONTH,T_XYLE_MON, THISDAY, T_XYLE, '[ Tg C ]'
 
       ! Format statement
  110  FORMAT( 'NEI2011 anthro ', a5, &
@@ -1292,10 +1312,10 @@
          ALLOCATE( T_MACR_MON( 1 ), STAT=RC )
          IF ( RC /= 0 ) CALL ALLOC_ERR( 'T_MACR_MON' )
          T_MACR_MON = 0d0
-         
-         ALLOCATE( T_MVK_MON( 1 ), STAT=RC )
-         IF ( RC /= 0 ) CALL ALLOC_ERR( 'T_MVK_MON' )
-         T_MVK_MON = 0d0
+
+         ALLOCATE( T_MEK_MON( 1 ), STAT=RC )
+         IF ( RC /= 0 ) CALL ALLOC_ERR( 'T_MEK_MON' )
+         T_MEK_MON = 0d0
          
          ALLOCATE( T_PRPE_MON( 1 ), STAT=RC )
          IF ( RC /= 0 ) CALL ALLOC_ERR( 'T_PRPE_MON' )
@@ -1308,6 +1328,10 @@
          ALLOCATE( T_XYLE_MON( 1 ), STAT=RC )
          IF ( RC /= 0 ) CALL ALLOC_ERR( 'T_XYLE_MON' )
          T_XYLE_MON = 0d0
+
+         ALLOCATE( T_BENZ_MON( 1 ), STAT=RC )
+         IF ( RC /= 0 ) CALL ALLOC_ERR( 'T_BENZ_MON' )
+         T_BENZ_MON = 0d0
       
       ENDIF
 
@@ -1403,9 +1427,9 @@
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'MACR' )
       MACR = 0d0
       
-      ALLOCATE( MVK( IIPAR, JJPAR, 6, 24 ), STAT=RC )
-      IF ( RC /= 0 ) CALL ALLOC_ERR( 'MVK' )
-      MVK = 0d0
+      ALLOCATE( MEK( IIPAR, JJPAR, 6, 24 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'MEK' )
+      MEK = 0d0
 
       ALLOCATE( ACET( IIPAR, JJPAR, 6, 24 ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'ACET' )
@@ -1467,10 +1491,11 @@
       IF ( ALLOCATED( T_ALK4_MON ) ) DEALLOCATE( T_ALK4_MON  )
       IF ( ALLOCATED( T_ACET_MON ) ) DEALLOCATE( T_ACET_MON  )
       IF ( ALLOCATED( T_MACR_MON ) ) DEALLOCATE( T_MACR_MON  )
-      IF ( ALLOCATED( T_MVK_MON ) ) DEALLOCATE( T_MVK_MON  )
+      IF ( ALLOCATED( T_MEK_MON ) ) DEALLOCATE( T_MEK_MON  )
       IF ( ALLOCATED( T_PRPE_MON ) ) DEALLOCATE( T_PRPE_MON  )
       IF ( ALLOCATED( T_TOLU_MON ) ) DEALLOCATE( T_TOLU_MON  )
       IF ( ALLOCATED( T_XYLE_MON ) ) DEALLOCATE( T_XYLE_MON  )
+      IF ( ALLOCATED( T_BENZ_MON ) ) DEALLOCATE( T_BENZ_MON  )
       IF ( ALLOCATED( T_EOH_MON ) ) DEALLOCATE( T_EOH_MON  )
       IF ( ALLOCATED( T_MOH_MON ) ) DEALLOCATE( T_MOH_MON  )
 
