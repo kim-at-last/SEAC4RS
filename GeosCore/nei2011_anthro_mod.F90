@@ -376,7 +376,7 @@
       INTEGER                    :: st3d(3), ct3d(3)
       INTEGER                    :: st4d(4), ct4d(4)
       INTEGER                    :: fId1, fId1b, fId1c, fId1d, fId1e
-      INTEGER                    :: fId1f, fId1g
+      INTEGER                    :: fId1f, fId1g, fId1h
       REAL*8                     :: ARRAY(225,202,24)
       REAL*8                     :: ARRAYOTH(225,202,6,24)
       REAL*8                     :: ARRAYPTN(225,202,6,24)
@@ -384,8 +384,11 @@
       REAL*8                     :: ARRAYEGU(225,202,6,24)
       REAL*8                     :: ARRAYEGUPK(225,202,6,24)
       REAL*8                     :: ARRAYC3(225,202,6,24)
+      REAL*4                     :: ARRAY_NH3ag(225,202,24)
+      REAL*8, TARGET             :: GEOS_NATIVE_NH3ag(225,202,24)
       REAL*8, TARGET             :: GEOS_NATIVE(I025x03125,J025x03125,6,24)
       REAL*4                     :: ScCO, ScNOx, ScSO2, ScNH3, ScPM10
+      REAL*4                     :: ScNH3_Ag, ScNH3_NonAg
       REAL*4                     :: ScPM25, ScVOC
       CHARACTER(LEN=255)         :: DATA_DIR_NEI
       CHARACTER(LEN=255)         :: FILENAME, FILENAMEOTH, FILENAMEOIL
@@ -399,6 +402,14 @@
       REAL*8, POINTER            :: INGRID(:,:) => NULL()
       REAL*8, POINTER            :: OUTGRID(:,:) => NULL()
 
+      ! For scaling NH3 agricultural emissions (jaf, 12/12/13)
+      REAL*4, POINTER            :: NCARR(:,:,:) => NULL()
+      REAL*8                     :: ScAgNH3_MASAGE(225,202)
+      LOGICAL                    :: LSCALE2MASAGE
+      CHARACTER(LEN=255)         :: DATA_DIR_NH3_ag
+      CHARACTER(LEN=255)         :: FILENAME_NH3ag
+      CHARACTER(LEN=255)         :: FILENAME_ScAg
+
       !=================================================================
       ! EMISS_NEI2011_ANTHRO begins here!
       !=================================================================
@@ -411,6 +422,7 @@
 
       ! Copy values from Input_Opt
       LFUTURE   = Input_Opt%LFUTURE
+      LSCALE2MASAGE = Input_Opt%LSCALE2MASAGE
 
       ! Get emissions year
       THISYEAR = GET_YEAR()
@@ -433,7 +445,8 @@
          ScPM25 = 0.995
          ScSO2  = 0.802
          ScVOC  = 0.986
-         ScNH3  = 0.999
+         ScNH3_NonAg = 0.999
+         ScNH3_Ag    = 1.0
       ELSE IF ( THISYEAR .ge. 2013 ) THEN 
          ScCO   = 0.962
          ScNOx  = 0.899
@@ -441,7 +454,8 @@
          ScPM25 = 0.991
          ScSO2  = 0.785
          ScVOC  = 0.971
-         ScNH3  = 0.998
+         ScNH3_NonAg = 0.998
+         ScNH3_Ag    = 1.0
       ENDIF
         
       I0    = GET_XOFFSET( GLOBAL=.TRUE. )
@@ -462,6 +476,10 @@
       ! Base data directory
       DATA_DIR_NEI =  '/as/cache/2015-02/krt/'// &
            'NEI11_025x03125_2011'
+      ! For NH3 -- files with agricultural emissions only (jaf, 12/12/13)
+      ! Eventually these files will move to the data directory
+      DATA_DIR_NH3_ag = '/as/cache/2015-02/krt/ag/'
+
      
       ! Get month
       THISMONTH = GET_MONTH()
@@ -507,6 +525,16 @@
       CALL Ncop_Rd(fId1e, TRIM(FILENAMEOIL))     ! oilgas
       CALL Ncop_Rd(fId1f, TRIM(FILENAMEEGU))     ! egu
       CALL Ncop_Rd(fId1g, TRIM(FILENAMEEGUPK))     ! egupk
+
+      ! Open NH3 ag files (only avail at 025x03125)
+      IF ( LSCALE2MASAGE ) THEN
+         FILENAME_NH3ag = TRIM(DATA_DIR_NH3_ag) // &
+            'NEI11_025x03125_2011'              // &
+            TRIM(FMON) // TRIM(FDAY) //  '_ag.nc'
+         FILENAME_ScAg  = TRIM(DATA_DIR_NH3_ag) // &
+            'MASAGE_NEI11_Ratio.geos.025x03125.nc'
+         CALL Ncop_Rd(fId1h, TRIM(FILENAME_NH3ag)) ! NH3ag
+      ENDIF
 
  100  FORMAT( '     - EMISS_NEI2011_ANTHRO:  Reading ', &
                       a, ' -> ', a )
@@ -608,7 +636,60 @@
          ELSEIF ( TRIM(SId) == 'SULF') THEN !SO2
             SO2b = ( TMP * XNUMOL(IDTSO2) / 1E4 ) * ScSO2
          ELSEIF ( TRIM(SId) == 'NH3') THEN !NH3
-            NH3 = ( TMP * XNUMOL(IDTNH3) / 1E4 ) * ScNH3
+
+            ! Special case for NH3 emissions -- scale agricultural
+            ! component based on MASAGE monthly gridded values from Paulot
+            ! et al., 2013 (jaf, 12/10/13)
+            IF ( LSCALE2MASAGE ) THEN
+
+               ! Read/close ag files
+               CALL NcRd(ARRAY_NH3ag, fId1h, TRIM(SId), st3d, ct3d )
+               CALL NcCl( fId1h )
+
+               ! Cast to REAL*8
+               GEOS_NATIVE_NH3ag = ARRAY_NH3ag
+
+               ! Subtract agricultural component from total
+               ! This is a global array so only put in the US segment,
+               ! as above
+               TMP(160:384,399:600,1,:) = TMP(160:384,399:600,1,:) - &
+                  GEOS_NATIVE_NH3ag(:,:,:)
+
+               ! Read scaling factor (ratio of MASAGE to NEI08
+               CALL NC_READ( NC_PATH = TRIM(FILENAME_ScAg),     &
+                             PARA = 'ratio', ARRAY = NCARR,     &
+                             YEAR = 2011,    MONTH = THISMONTH, &
+                             DAY = 01,       VERBOSE = .FALSE.    )
+
+               ! Cast to REAL*8
+               ScAgNH3_MASAGE = NCARR(:,:,1)
+
+               ! Deallocate ncdf-array
+               IF ( ASSOCIATED ( NCARR ) ) DEALLOCATE ( NCARR )
+
+               ! Scale agricultural component to MASAGE monthly totals
+               DO HH = 1, 24
+                  GEOS_NATIVE_NH3ag(:,:,HH) =              &
+                     GEOS_NATIVE_NH3ag(:,:,HH) * ScAgNH3_MASAGE
+               ENDDO
+
+               ! Add scaled agricultural component back to total and
+               ! apply interannual scaling factors
+               ! This is a global array so only put in the US segment,
+               ! as above
+               TMP(160:384,399:600,1,:) = &
+                    TMP(160:384,399:600,1,:) * ScNH3_NonAg &
+                  + GEOS_NATIVE_NH3ag(:,:,:) * ScNH3_Ag
+
+            ELSE
+               ! If we can't separate out the agricultural component
+               ! then just apply the single
+               ! annual scaling factor to NH3 emissions.
+               TMP       = TMP * ScNH3_NonAg
+            ENDIF
+
+            ! Apply unit conversion as usual
+            NH3 = ( TMP * XNUMOL(IDTNH3) / 1E4 )
          ELSEIF ( TRIM(SId) == 'ALD2') THEN !ALD2
             ALD2 = ( TMP * XNUMOL(IDTALD2)/ 1E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'ALDX') THEN !RCHO
@@ -754,8 +835,9 @@
 !%%%      FILENAME  = '/as/home/ktravis/' // &     
       !FILENAME  = TRIM( DATA_DIR_1x1) // &
            !'NEI2008_201307/usa.mask.nei2005.geos.1x1.nc' !kyu, 7Feb2014
-      FILENAME = '/as/home/kyu/' // &
-            'regrid/nei2005masktest.nc'
+      !FILENAME = '/as/home/kyu/' // &
+      !      'regrid/nei2005masktest.nc'
+      FILENAME = './nei2005masktest.nc'
 
       ! Echo info
       WRITE( 6, 200 ) TRIM( FILENAME )
