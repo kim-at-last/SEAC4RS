@@ -2330,10 +2330,6 @@
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
       READ( SUBSTRS(1:N), * ) LNEI08CARB
 
-      ! Scale NEI2008 ag NH3 to MASAGE?
-      CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
-      READ( SUBSTRS(1:N), * ) LSCALE2MASAGE
-
       ! Include NEI2011 emissions?
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
       READ( SUBSTRS(1:N), * ) LNEI11
@@ -2341,6 +2337,10 @@
       ! Include NEI2011 OC/BC emissions?
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
       READ( SUBSTRS(1:N), * ) LNEI11CARB
+
+      ! Scale NEI2008/11 ag NH3 to MASAGE?
+      CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
+      READ( SUBSTRS(1:N), * ) LSCALE2MASAGE
 
       ! Use RETRO emissions? (wfr, 3/8/11)
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:11' )
@@ -2736,17 +2736,6 @@
          WRITE( 6, '(a)' ) REPEAT( '=', 79 )
          ENDIF
       ENDIF
-      ! Same story for LSCALE2MASAGE
-      IF ( LSCALE2MASAGE .and. ( .not. LNEI08 ) ) THEN
-         LSCALE2MASAGE = .FALSE.
-         IF ( am_I_Root ) THEN
-         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
-         WRITE( 6, '(a)' ) 'WARNING! NEI08 emissions are turned off, so'
-         WRITE( 6, '(a)' ) 'we also turn off scaling to MASAGE NH3'
-         WRITE( 6, '(a)' ) 'in order to avoid crashing GEOS-Chem!'
-         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
-         ENDIF
-      ENDIF
       ! NEI11 safety swith. If LNEI11CARB is turned on but LNEI11 is
       ! turned off, this will cause an error (because arrays are not
       ! allocated, etc.). For now, just turn off LNEI11CARB and print a
@@ -2759,6 +2748,17 @@
          WRITE( 6, '(a)' ) 'WARNING! NEI11 emissions are turned off, so'
          WRITE( 6, '(a)' ) 'we also turn off NEI11 OC/BC emissions'
          WRITE( 6, '(a)' ) 'in order to avoid crashing GEOS-Chem!'
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         ENDIF
+      ENDIF
+      ! Same story for LSCALE2MASAGE
+      IF ( LSCALE2MASAGE .and. ( .not. (LNEI08 .or. LNEI11) ) ) THEN
+         LSCALE2MASAGE = .FALSE.
+         IF ( am_I_Root ) THEN
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         WRITE( 6, '(a)' ) 'WARNING! NEI08/11 emissions are turned off,'
+         WRITE( 6, '(a)' ) ' so we also turn off scaling to MASAGE NH3'
+         WRITE( 6, '(a)' ) ' in order to avoid crashing GEOS-Chem!'
          WRITE( 6, '(a)' ) REPEAT( '=', 79 )
          ENDIF
       ENDIF
