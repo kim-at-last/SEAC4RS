@@ -592,6 +592,59 @@
               + ARRAYPTN(:,:,6,:) + ARRAYC3(:,:,6,:)+ ARRAYOIL(:,:,6,:) &
               + ARRAYEGU(:,:,6,:) + ARRAYEGUPK(:,:,6,:)
                  
+
+         ! Special case for NH3 emissions -- scale agricultural
+         ! component based on MASAGE monthly gridded values from Paulot
+         ! et al., 2013 (jaf, 12/10/13)
+         IF ( LSCALE2MASAGE .and. TRIM(SId) == 'NH3') THEN
+
+            ! Read/close ag files
+            CALL NcRd(ARRAY_NH3ag, fId1h, TRIM(SId), st3d, ct3d )
+            CALL NcCl( fId1h )
+
+            ! Cast to REAL*8
+            GEOS_NATIVE_NH3ag = ARRAY_NH3ag
+
+            ! Subtract agricultural component from total
+            ! This is a global array so only put in the US segment,
+            ! as above
+            GEOS_NATIVE(160:384,399:600,1,:) = &
+               GEOS_NATIVE(160:384,399:600,1,:) - &
+               GEOS_NATIVE_NH3ag(:,:,:)
+
+            ! Read scaling factor (ratio of MASAGE to NEI08
+            CALL NC_READ( NC_PATH = TRIM(FILENAME_ScAg),     &
+                          PARA = 'ratio', ARRAY = NCARR,     &
+                          YEAR = 2011,    MONTH = THISMONTH, &
+                          DAY = 01,       VERBOSE = .FALSE.    )
+
+            ! Cast to REAL*8
+            ScAgNH3_MASAGE = NCARR(:,:,1)
+
+            ! Deallocate ncdf-array
+            IF ( ASSOCIATED ( NCARR ) ) DEALLOCATE ( NCARR )
+
+            ! Scale agricultural component to MASAGE monthly totals
+            DO HH = 1, 24
+               GEOS_NATIVE_NH3ag(:,:,HH) =              &
+                  GEOS_NATIVE_NH3ag(:,:,HH) * ScAgNH3_MASAGE
+            ENDDO
+
+            ! Add scaled agricultural component back to total and
+            ! apply interannual scaling factors
+            ! This is a global array so only put in the US segment,
+            ! as above
+            GEOS_NATIVE(160:384,399:600,1,:) = &
+               GEOS_NATIVE(160:384,399:600,1,:) * ScNH3_NonAg + &
+               GEOS_NATIVE_NH3ag(:,:,:) * ScNH3_Ag
+
+            ELSE
+               ! If we can't separate out the agricultural component
+               ! then just apply the single
+               ! annual scaling factor to NH3 emissions.
+               GEOS_NATIVE = GEOS_NATIVE * ScNH3_NonAg
+            ENDIF
+
          DO L=1,6
             DO HH=1,24
                ! Point to array slices
@@ -636,60 +689,7 @@
          ELSEIF ( TRIM(SId) == 'SULF') THEN !SO2
             SO2b = ( TMP * XNUMOL(IDTSO2) / 1E4 ) * ScSO2
          ELSEIF ( TRIM(SId) == 'NH3') THEN !NH3
-
-            ! Special case for NH3 emissions -- scale agricultural
-            ! component based on MASAGE monthly gridded values from Paulot
-            ! et al., 2013 (jaf, 12/10/13)
-            IF ( LSCALE2MASAGE ) THEN
-
-               ! Read/close ag files
-               CALL NcRd(ARRAY_NH3ag, fId1h, TRIM(SId), st3d, ct3d )
-               CALL NcCl( fId1h )
-
-               ! Cast to REAL*8
-               GEOS_NATIVE_NH3ag = ARRAY_NH3ag
-
-               ! Subtract agricultural component from total
-               ! This is a global array so only put in the US segment,
-               ! as above
-               TMP(160:384,399:600,1,:) = TMP(160:384,399:600,1,:) - &
-                  GEOS_NATIVE_NH3ag(:,:,:)
-
-               ! Read scaling factor (ratio of MASAGE to NEI08
-               CALL NC_READ( NC_PATH = TRIM(FILENAME_ScAg),     &
-                             PARA = 'ratio', ARRAY = NCARR,     &
-                             YEAR = 2011,    MONTH = THISMONTH, &
-                             DAY = 01,       VERBOSE = .FALSE.    )
-
-               ! Cast to REAL*8
-               ScAgNH3_MASAGE = NCARR(:,:,1)
-
-               ! Deallocate ncdf-array
-               IF ( ASSOCIATED ( NCARR ) ) DEALLOCATE ( NCARR )
-
-               ! Scale agricultural component to MASAGE monthly totals
-               DO HH = 1, 24
-                  GEOS_NATIVE_NH3ag(:,:,HH) =              &
-                     GEOS_NATIVE_NH3ag(:,:,HH) * ScAgNH3_MASAGE
-               ENDDO
-
-               ! Add scaled agricultural component back to total and
-               ! apply interannual scaling factors
-               ! This is a global array so only put in the US segment,
-               ! as above
-               TMP(160:384,399:600,1,:) = &
-                    TMP(160:384,399:600,1,:) * ScNH3_NonAg &
-                  + GEOS_NATIVE_NH3ag(:,:,:) * ScNH3_Ag
-
-            ELSE
-               ! If we can't separate out the agricultural component
-               ! then just apply the single
-               ! annual scaling factor to NH3 emissions.
-               TMP       = TMP * ScNH3_NonAg
-            ENDIF
-
-            ! Apply unit conversion as usual
-            NH3 = ( TMP * XNUMOL(IDTNH3) / 1E4 )
+            NH3 = ( TMP * XNUMOL(IDTNH3) / 1E4 ) !Scaling above
          ELSEIF ( TRIM(SId) == 'ALD2') THEN !ALD2
             ALD2 = ( TMP * XNUMOL(IDTALD2)/ 1E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'ALDX') THEN !RCHO
@@ -835,9 +835,8 @@
 !%%%      FILENAME  = '/as/home/ktravis/' // &     
       !FILENAME  = TRIM( DATA_DIR_1x1) // &
            !'NEI2008_201307/usa.mask.nei2005.geos.1x1.nc' !kyu, 7Feb2014
-      !FILENAME = '/as/home/kyu/' // &
-      !      'regrid/nei2005masktest.nc'
-      FILENAME = './nei2005masktest.nc'
+      FILENAME = '/as/home/kyu/' // &
+            'regrid/nei2005masktest.nc'
 
       ! Echo info
       WRITE( 6, 200 ) TRIM( FILENAME )
