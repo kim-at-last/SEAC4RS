@@ -1309,6 +1309,14 @@
       !--------------------------------------------------
       ! Allocate and zero arrays for emissions
       !--------------------------------------------------
+      IF ( .not. Input_Opt%LBIOMASS ) THEN
+      ! allocate and read USA Mask
+         ALLOCATE( USA_MASK( IIPAR, JJPAR ), STAT=RC )
+         IF ( RC /= 0 ) CALL ALLOC_ERR( 'USA_MASK' )
+         USA_MASK = 0d0
+         
+         CALL READ_NEI2011_MASK
+      ENDIF
 
       ALLOCATE( TMP( IIPAR, JJPAR, 6, 24 ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMP' )

@@ -253,6 +253,8 @@
       ! To allocate mask, need to call emissions
       USE NEI2008_ANTHRO_MOD, ONLY : GET_MASK_FORFIRE
       USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK 
+      USE NEI2011_ANTHRO_MOD, ONLY : GET_MASK_FORFIRE2
+      USE NEI2011_ANTHRO_MOD, ONLY : NEI11_MASK => USA_MASK 
 
       ! SEAC4RS passive tracers (jaf, 6/14/13)
       ! Remove SEAC4RS passive tracers (skim, 5/23/14)
@@ -287,7 +289,7 @@
       ! Local variables
       LOGICAL, SAVE       :: FIRST = .TRUE.
       LOGICAL             :: DO_ND28, DO_ND29, DO_ND32
-      LOGICAL             :: LNEI08
+      LOGICAL             :: LNEI08, LNEI11
       LOGICAL, SAVE       :: USE_GFED
       LOGICAL, SAVE       :: USE_GFED2
       LOGICAL, SAVE       :: USE_GFED3
@@ -345,6 +347,8 @@
       LQFED               = Input_Opt%LQFED
       LQFED_FINN          = Input_Opt%LQFED_FINN
       LNLPBL              = Input_Opt%LNLPBL
+      LNEI08              = Input_Opt%LNEI08
+      LNEI11              = Input_Opt%LNEI11
 
       ! If there are biomass emissions ...
       IF ( LBIOMASS ) THEN
@@ -362,7 +366,8 @@
             IF ( LFINN.or. LQFED .or. LQFED_FINN ) USE_GFED = 0 
          
             ! CALL NEI08 to initialize mask for fire injection over U.S. 
-            CALL GET_MASK_FORFIRE( RC )
+            IF (LNEI08) CALL GET_MASK_FORFIRE( RC )
+            IF (LNEI11) CALL GET_MASK_FORFIRE2( RC )
          ENDIF
 
          ! Define diagnostic flags
