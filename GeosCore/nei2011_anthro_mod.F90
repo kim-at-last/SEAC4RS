@@ -374,16 +374,16 @@
       INTEGER                    :: THISDAY
       INTEGER                    :: L, HH, KLM, SPECIES_ID(23)
       INTEGER                    :: st3d(3), ct3d(3)
-      INTEGER                    :: st4d(4), ct4d(4)
+      INTEGER                    :: st4d(4), ct4d(4), ct4d2(4), ct4d3(4)
       INTEGER                    :: fId1, fId1b, fId1c, fId1d, fId1e
       INTEGER                    :: fId1f, fId1g, fId1h
       REAL*8                     :: ARRAY(225,202,24)
+      REAL*8                     :: ARRAYC3(225,202,24)
       REAL*8                     :: ARRAYOTH(225,202,6,24)
-      REAL*8                     :: ARRAYPTN(225,202,6,24)
-      REAL*8                     :: ARRAYOIL(225,202,6,24)
-      REAL*8                     :: ARRAYEGU(225,202,6,24)
-      REAL*8                     :: ARRAYEGUPK(225,202,6,24)
-      REAL*8                     :: ARRAYC3(225,202,6,24)
+      REAL*8                     :: ARRAYPTN(225,202,4,24)
+      REAL*8                     :: ARRAYOIL(225,202,4,24)
+      REAL*8                     :: ARRAYEGU(225,202,3,24)
+      REAL*8                     :: ARRAYEGUPK(225,202,3,24)
       REAL*4                     :: ARRAY_NH3ag(225,202,24)
       REAL*8, TARGET             :: GEOS_NATIVE_NH3ag(225,202,24)
       REAL*8, TARGET             :: GEOS_NATIVE(I025x03125,J025x03125,6,24)
@@ -515,7 +515,9 @@
       ct3d = (/225, 202, 24/)     !Count lat/lon/time
       st4d = (/1, 1, 1, 1/)         !Start lat/lon/time/lev
       ct4d= (/225, 202, 6, 24/)  !Count lat/lon/time/lev 
- 
+      ct4d2= (/225, 202, 4, 24/)  !Count lat/lon/time/lev 
+      ct4d3= (/225, 202, 3, 24/)  !Count lat/lon/time/lev 
+
 
       ! Open netCDF files for reading
       CALL Ncop_Rd(fId1,  TRIM(FILENAME))
@@ -552,18 +554,18 @@
          ! Units are in kg/m2/s
          WRITE( 6, 100 )  TRIM( FILENAME ), SID
          Call NcRd(ARRAY,       fId1,  TRIM(SId), st3d, ct3d )
-         Call NcRd(ARRAYEGU,    fId1f, TRIM(SId), st4d, ct4d )
-         Call NcRd(ARRAYEGUPK,  fId1g, TRIM(SId), st4d, ct4d )
+         Call NcRd(ARRAYEGU,    fId1f, TRIM(SId), st4d, ct4d3 )
+         Call NcRd(ARRAYEGUPK,  fId1g, TRIM(SId), st4d, ct4d3 )
          ! no ship emissions of acrolein or ammonia
          IF ( TRIM(SId) .ne. 'ACROLEIN' .and. TRIM(SId) .ne. 'NH3') THEN
-            Call NcRd(ARRAYC3, fId1d, TRIM(SId), st4d, ct4d )
+            Call NcRd(ARRAYC3, fId1d, TRIM(SId), st3d, ct3d )
          ELSE
             ARRAYC3  = ARRAYC3  * 0d0
          ENDIF
          IF ( TRIM(SId) .ne. 'ACROLEIN' ) THEN
-            Call NcRd(ARRAYOIL,    fId1e, TRIM(SId), st4d, ct4d )
-            Call NcRd(ARRAYOTH,    fId1b, TRIM(SId), st4d, ct4d )
-            Call NcRd(ARRAYPTN,    fId1c, TRIM(SId), st4d, ct4d )
+            Call NcRd(ARRAYOIL,    fId1e, TRIM(SId), st4d, ct4d2 )
+            Call NcRd(ARRAYOTH,    fId1b, TRIM(SId), st4d, ct4d2 )
+            Call NcRd(ARRAYPTN,    fId1c, TRIM(SId), st4d, ct4d2 )
          ELSE
             ARRAYOIL = ARRAYOIL * 0d0
             ARRAYOTH = ARRAYOTH * 0d0
@@ -573,24 +575,25 @@
          GEOS_NATIVE = 0.0d0
 
          ! Cast to REAL*8 before regridding
+         ! ALL FILE TYPES
          GEOS_NATIVE(160:384,399:600,1,:) = ARRAY(:,:,:) + ARRAYOTH(:,:,1,:)  &
-              + ARRAYPTN(:,:,1,:) + ARRAYC3(:,:,1,:) + ARRAYOIL(:,:,1,:) &
+              + ARRAYPTN(:,:,1,:) + ARRAYC3(:,:,:) + ARRAYOIL(:,:,1,:) &
               + ARRAYEGU(:,:,1,:) + ARRAYEGUPK(:,:,1,:)
+         ! NO SHIPS OR SURFACE FILES
          GEOS_NATIVE(160:384,399:600,2,:) = ARRAYOTH(:,:,2,:)  &
-              + ARRAYPTN(:,:,2,:) + ARRAYC3(:,:,2,:)+ ARRAYOIL(:,:,2,:) &
+              + ARRAYPTN(:,:,2,:) + ARRAYOIL(:,:,2,:) &
               + ARRAYEGU(:,:,2,:) + ARRAYEGUPK(:,:,2,:)
+         ! NO SHIPS OR SURFACE FILES
          GEOS_NATIVE(160:384,399:600,3,:) =  ARRAYOTH(:,:,3,:)  &
-              + ARRAYPTN(:,:,3,:) + ARRAYC3(:,:,3,:)+ ARRAYOIL(:,:,3,:) &
+              + ARRAYPTN(:,:,3,:) + ARRAYOIL(:,:,3,:) &
               + ARRAYEGU(:,:,3,:) + ARRAYEGUPK(:,:,3,:)
+         ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK
          GEOS_NATIVE(160:384,399:600,4,:) =  ARRAYOTH(:,:,4,:)  &
-              + ARRAYPTN(:,:,4,:) + ARRAYC3(:,:,4,:)+ ARRAYOIL(:,:,4,:) &
-              + ARRAYEGU(:,:,4,:) + ARRAYEGUPK(:,:,4,:)
-         GEOS_NATIVE(160:384,399:600,5,:) =  ARRAYOTH(:,:,5,:)  &
-              + ARRAYPTN(:,:,5,:) + ARRAYC3(:,:,5,:)+ ARRAYOIL(:,:,5,:) &
-              + ARRAYEGU(:,:,5,:) + ARRAYEGUPK(:,:,5,:)
-         GEOS_NATIVE(160:384,399:600,6,:) =  ARRAYOTH(:,:,6,:)  &
-              + ARRAYPTN(:,:,6,:) + ARRAYC3(:,:,6,:)+ ARRAYOIL(:,:,6,:) &
-              + ARRAYEGU(:,:,6,:) + ARRAYEGUPK(:,:,6,:)
+              + ARRAYPTN(:,:,4,:) + ARRAYOIL(:,:,4,:) 
+         ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
+         GEOS_NATIVE(160:384,399:600,5,:) =  ARRAYOTH(:,:,5,:) 
+         ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
+         GEOS_NATIVE(160:384,399:600,6,:) =  ARRAYOTH(:,:,6,:) 
                  
 
          ! Special case for NH3 emissions -- scale agricultural
@@ -679,29 +682,29 @@
             !ACET = CO * 1.18E-02 * 3.0 ! FOR 3 CARBONS
             !MVK = CO * 2.40E-04
          ELSEIF ( TRIM(SId) == 'NO') THEN !NO  !convert from kg/m2/s of NO
-            NO  = ( TMP * XNUMOL(IDTNO) / 1E4 )  * ScNOx
+            NO  = ( TMP * XNUMOL(IDTNO) / 1.0E4 )  * ScNOx
          ELSEIF ( TRIM(SId) == 'NO2') THEN !NO2
-            NO2 = ( TMP * XNUMOL(IDTNO2) / 1E4 ) * ScNOx
+            NO2 = ( TMP * XNUMOL(IDTNO2) / 1.0E4 ) * ScNOx
          ELSEIF( TRIM(SId) == 'HONO') THEN !HNO2
-            HNO2 = ( TMP * XNUMOL(IDTHNO2)/ 1E4 ) * ScNOx
+            HNO2 = ( TMP * XNUMOL(IDTHNO2)/ 1.0E4 ) * ScNOx
          ELSEIF ( TRIM(SId) == 'SO2') THEN !SO2
-            SO2a = ( TMP * XNUMOL(IDTSO2) / 1E4 ) * ScSO2
+            SO2a = ( TMP * XNUMOL(IDTSO2) / 1.0E4 ) * ScSO2
          ELSEIF ( TRIM(SId) == 'SULF') THEN !SO2
-            SO2b = ( TMP * XNUMOL(IDTSO2) / 1E4 ) * ScSO2
+            SO2b = ( TMP * XNUMOL(IDTSO2) / 1.0E4 ) * ScSO2
          ELSEIF ( TRIM(SId) == 'NH3') THEN !NH3
-            NH3 = ( TMP * XNUMOL(IDTNH3) / 1E4 ) !Scaling above
+            NH3 = ( TMP * XNUMOL(IDTNH3) / 1.0E4 ) !Scaling above
          ELSEIF ( TRIM(SId) == 'ALD2') THEN !ALD2
-            ALD2 = ( TMP * XNUMOL(IDTALD2)/ 1E4 ) * ScVOC
+            ALD2 = ( TMP * XNUMOL(IDTALD2)/ 1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'ALDX') THEN !RCHO
-            RCHO = ( TMP * XNUMOL(IDTRCHO)/ 1E4 ) * ScVOC
+            RCHO = ( TMP * XNUMOL(IDTRCHO)/ 1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'ACROLEIN') THEN !MACR
-            MACR = ( TMP * XNUMOL(IDTMACR)/ 1E4 ) * ScVOC
+            MACR = ( TMP * XNUMOL(IDTMACR)/ 1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'ETHA') THEN !C2H6
-            C2H6 = ( TMP * XNUMOL(IDTC2H6)/1E4 ) * ScVOC
+            C2H6 = ( TMP * XNUMOL(IDTC2H6)/1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'IOLE' ) THEN !PRPE
-            PRPEa = ( TMP * XNUMOL(IDTPRPE)/1E4 ) * ScVOC
+            PRPEa = ( TMP * XNUMOL(IDTPRPE)/1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'OLE' ) THEN !PRPE
-            PRPEb = ( TMP * XNUMOL(IDTPRPE)/1E4 ) * ScVOC
+            PRPEb = ( TMP * XNUMOL(IDTPRPE)/1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'PAR' ) THEN 
             ! I used the graph of the top 50 VOCs from the following paper:
             ! http://www.epa.gov/ttnchie1/software/speciate/atmospheric.pdf
@@ -711,31 +714,31 @@
             !  following species.
             ! Note that it will not add to 100% since some species are double
             ! counted (benzene) (krt, 2/3/15)
-            ACET = ( TMP * 0.06 * XNUMOL(IDTACET)/1E4 ) * ScVOC
-            C3H8 = ( TMP * 0.03 * XNUMOL(IDTC3H8)/1E4 ) * ScVOC
-            MEK  = ( TMP * 0.02 * XNUMOL(IDTMEK)/1E4  ) * ScVOC
-            ALK4 = ( TMP * 0.87 * XNUMOL(IDTALK4)/1E4 ) * ScVOC
+            ACET = ( TMP * 0.06 * XNUMOL(IDTACET)/1.0E4 ) * ScVOC
+            C3H8 = ( TMP * 0.03 * XNUMOL(IDTC3H8)/1.0E4 ) * ScVOC
+            MEK  = ( TMP * 0.02 * XNUMOL(IDTMEK)/1.0E4  ) * ScVOC
+            ALK4 = ( TMP * 0.87 * XNUMOL(IDTALK4)/1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'BENZENE' ) THEN !BENZ
-            BENZ =  ( TMP * XNUMOL(IDTALD2)*3 / 1E4) *ScVOC
+            BENZ =  ( TMP * XNUMOL(IDTALD2)*3 / 1.0E4) *ScVOC
          ELSEIF ( TRIM(SId) == 'TOL' ) THEN !TOLU
-            TOLU =  ( TMP * XNUMOL(IDTALD2)*3.5 / 1E4) *ScVOC
+            TOLU =  ( TMP * XNUMOL(IDTALD2)*3.5 / 1.0E4) *ScVOC
          ELSEIF ( TRIM(SId) == 'XYL') THEN !XYLE
-            XYLE  =  ( TMP * XNUMOL(IDTALD2)*4 / 1E4) *ScVOC
+            XYLE  =  ( TMP * XNUMOL(IDTALD2)*4 / 1.0E4) *ScVOC
          ELSEIF ( TRIM(SId) == 'FORM') THEN !CH2O
-            CH2O =  ( TMP * XNUMOL(IDTCH2O) / 1E4 ) * ScVOC
+            CH2O =  ( TMP * XNUMOL(IDTCH2O) / 1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'PSO4') THEN !SO4 - scale to SO2
-            SO4 =  ( TMP * 1E3 / 1E4 ) *ScSO2
+            SO4 =  ( TMP * 1E3 / 1.0E4 ) *ScSO2
          ELSEIF ( TRIM(SId) == 'POC') THEN !OCPO
-            OCPO =  ( TMP * 1E3/ 1E4 ) * ScPM25
+            OCPO =  ( TMP * 1E3/ 1.0E4 ) * ScPM25
          ELSEIF ( TRIM(SId) == 'PEC') THEN !BCPO
-            BCPO  =  ( TMP * 1E3 / 1E4 ) * ScPM25
+            BCPO  =  ( TMP * 1E3 / 1.0E4 ) * ScPM25
             ! Species not currently used
 !         ELSEIF ( TRIM(SId) == 'C2H4') THEN !C2H4 - no scaling
 !            C2H4       = TMP
          ELSEIF ( TRIM(SId) == 'MEOH') THEN !MOH - no scaling
-            MOH   =  ( TMP * XNUMOL(IDTALD2)*0.5/ 1E4 ) * ScVOC
+            MOH   =  ( TMP * XNUMOL(IDTALD2)*0.5/ 1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'ETOH') THEN !EOH - no scaling
-            EOH   = ( TMP * XNUMOL(IDTALD2)/ 1E4 ) * ScVOC
+            EOH   = ( TMP * XNUMOL(IDTALD2)/ 1.0E4 ) * ScVOC
          ENDIF
       ENDDO
 
