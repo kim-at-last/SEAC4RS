@@ -117,7 +117,6 @@
       USE NEI2005_ANTHRO_MOD,     ONLY : EMISS_NEI2005_ANTHRO
       USE NEI2005_ANTHRO_MOD,     ONLY : EMISS_NEI2005_ANTHRO_05x0666
       USE NEI2008_ANTHRO_MOD,     ONLY : EMISS_NEI2008_ANTHRO
-      USE NEI2008_ANTHRO_MOD,     ONLY : EMISS_NEI2008_ANTHRO_NATIVE
       USE NEI2011_ANTHRO_MOD,     ONLY : EMISS_NEI2011_ANTHRO
       USE PARANOX_MOD,            ONLY : READ_PARANOX_LUT
       USE POPS_MOD,               ONLY : EMISSPOPS  !(clf, 2/1/2011)
@@ -450,13 +449,8 @@
 
          ! Read NEI2008 (USA) emissions every month
          IF ( LNEI08 .AND. ITS_A_NEW_MONTH() ) THEN
-#if   defined( GRID05x0666 ) .or. defined( GRID025x03125 )
-            CALL EMISS_NEI2008_ANTHRO_NATIVE(   ! Use NEI08 anthro,  nested
-     &           am_I_Root, Input_Opt, State_Chm, RC )
-#else
             CALL EMISS_NEI2008_ANTHRO(           ! Use NEI08 anthro,  global
      &            am_I_Root, Input_Opt, State_Chm, RC )
-#endif
          ENDIF
 
          ! Read NEI2011 (USA) emissions every day
@@ -580,16 +574,8 @@
 
          ! Read NEI2008 emissions once per month
          IF ( LNEI08 .AND. ITS_A_NEW_MONTH() ) THEN
-#if   defined( GRID05x0666 ) .or. defined( GRID025x03125 )
-
-            CALL EMISS_NEI2008_ANTHRO_NATIVE(   ! Use NEI08 anthro,  nested
-     &           am_I_Root, Input_Opt, State_Chm, RC  )
-#else
-  
             CALL EMISS_NEI2008_ANTHRO(           ! Use NEI08 anthro,  global
      &           am_I_Root, Input_Opt, State_Chm, RC )
-
-#endif
          ENDIF
 
          ! Read NEI2011 (USA) emissions every day
@@ -745,13 +731,8 @@
 
          ! Read NEI2008 (USA) emissions once per month
          IF ( LNEI08  .AND. ITS_A_NEW_MONTH() ) THEN
-#if   defined( GRID05x0666 ) .or. defined ( GRID025x03125 )
-         CALL EMISS_NEI2008_ANTHRO_NATIVE(   ! Use NEI08 anthro,  nested
-     &           am_I_Root, Input_Opt, State_Chm, RC )
-#else
             CALL EMISS_NEI2008_ANTHRO(           ! Use NEI08 anthro,  global
      &           am_I_Root, Input_Opt, State_Chm, RC )
-#endif
          ENDIF
 
          ! Read NEI2011 (USA) emissions every day
@@ -936,14 +917,8 @@
 
          ! Read NEI2008 (USA) emissions
          IF ( LNEI08 .AND. ITS_A_NEW_MONTH() ) THEN
-#if   defined( GRID05x0666 ) .or. defined( GRID025x03125 )
-            CALL EMISS_NEI2008_ANTHRO_NATIVE(   ! Use NEI08 anthro,  nested
-     &          am_I_Root, Input_Opt, State_Chm, RC )
-#else
-
             CALL EMISS_NEI2008_ANTHRO(           ! Use NEI08 anthro,  global
      &          am_I_Root, Input_Opt, State_Chm, RC )
-#endif
          ENDIF
 
          ! Read NEI2011 (USA) emissions every day

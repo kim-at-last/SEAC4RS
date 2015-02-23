@@ -532,7 +532,8 @@ diag48_mod.o                : diag48_mod.F                                   \
 
 diag49_mod.o                : diag49_mod.F                                   \
                               modis_lai_mod.o         pbl_mix_mod.o          \
-                              tracerid_mod.o          tracer_mod.o
+                              tracerid_mod.o          tracer_mod.o           \
+			      drydep_mod.o
 
 diag50_mod.o                : diag50_mod.F                                   \
                               comode_mod.o            logical_mod.o          \
@@ -611,7 +612,7 @@ emfossil.o                  : emfossil.F                                     \
                               tracerid_mod.o          vistas_anthro_mod.o    \
 			      retro_mod.o             c2h6_mod.o             \
                               nei2008_anthro_mod.o    rcp_mod.o              \
-			      nei2011_anthro_mod.o
+			      nei2011_anthro_mod.o    diag49_mod.o
 
 emissdr.o                   : emissdr.F                                      \
                               acetone_mod.o           aeic_mod.o             \

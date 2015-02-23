@@ -27,7 +27,6 @@
 !
       PUBLIC  :: CLEANUP_NEI2008_ANTHRO
       PUBLIC  :: EMISS_NEI2008_ANTHRO
-      PUBLIC  :: EMISS_NEI2008_ANTHRO_NATIVE
       PUBLIC  :: GET_NEI2008_ANTHRO
       PUBLIC  :: GET_MASK_FORFIRE
       !--------------------------------------
@@ -56,54 +55,64 @@
 ! !PRIVATE TYPES:
 !
       ! Arrays for emissions (lat/lon/lev/hrs)
-      !REAL*8,  ALLOCATABLE, TARGET :: NOX(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: CO(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: NO(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: NO2(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: HNO2(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: SO2(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: NH3(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: ALD2(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: RCHO(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: BENZ(:,:,:,:)
-      !REAL*8,  ALLOCATABLE, TARGET :: CH4(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: C2H6(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: PRPE(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: ALK4(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: TOLU(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: XYLE(:,:,:,:)
-      !REAL*8,  ALLOCATABLE, TARGET :: C2H4(:,:,:,:)
-      !REAL*8,  ALLOCATABLE, TARGET :: MOH(:,:,:,:) 
-      !REAL*8,  ALLOCATABLE, TARGET :: EOH(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: CH2O(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: OCPO(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: BCPO(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: SO4(:,:,:,:) 
+      REAL*8,  ALLOCATABLE, TARGET :: TMP_WD(:,:,:,:)
+      REAL*8,  ALLOCATABLE, TARGET :: TMP_WE(:,:,:,:)
+      REAL*8,  ALLOCATABLE, TARGET :: TMPARR_WD(:,:)
+      REAL*8,  ALLOCATABLE, TARGET :: TMPARR_WE(:,:)
+
+      REAL*8,  ALLOCATABLE         :: CO(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: NO(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: NO2(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: HNO2(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: SO2(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: NH3(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: ALD2(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: RCHO(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: BENZ(:,:,:,:)
+      !REAL*8,  ALLOCATABLE         :: CH4(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: C2H6(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: PRPE(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: ALK4(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: C3H8(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: MEK(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: ACET(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: TOLU(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: XYLE(:,:,:,:)
+      !REAL*8,  ALLOCATABLE         :: C2H4(:,:,:,:)
+      !REAL*8,  ALLOCATABLE         :: MOH(:,:,:,:) 
+      !REAL*8,  ALLOCATABLE         :: EOH(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: CH2O(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: OCPO(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: BCPO(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: SO4(:,:,:,:) 
 
       ! No longer need NOx family variables (skim, 6/26/13)
-      !REAL*8,  ALLOCATABLE, TARGET :: NOX_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: CO_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: NO_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: NO2_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: HNO2_WKEND(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: SO2_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: NH3_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: ALD2_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: RCHO_WKEND(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: BENZ_WKEND(:,:,:,:) 
-      !REAL*8,  ALLOCATABLE, TARGET :: CH4_WKEND(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: C2H6_WKEND(:,:,:,:)  
-      REAL*8,  ALLOCATABLE, TARGET :: PRPE_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: ALK4_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: TOLU_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: XYLE_WKEND(:,:,:,:) 
-      !REAL*8,  ALLOCATABLE, TARGET :: C2H4_WKEND(:,:,:,:)
-      !REAL*8,  ALLOCATABLE, TARGET :: MOH_WKEND(:,:,:,:) 
-      !REAL*8,  ALLOCATABLE, TARGET :: EOH_WKEND(:,:,:,:) 
-      REAL*8,  ALLOCATABLE, TARGET :: CH2O_WKEND(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: OCPO_WKEND(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: BCPO_WKEND(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: SO4_WKEND(:,:,:,:)
+      !REAL*8,  ALLOCATABLE         :: NOX_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: CO_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: NO_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: NO2_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: HNO2_WKEND(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: SO2_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: NH3_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: ALD2_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: RCHO_WKEND(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: BENZ_WKEND(:,:,:,:) 
+      !REAL*8,  ALLOCATABLE         :: CH4_WKEND(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: C2H6_WKEND(:,:,:,:)  
+      REAL*8,  ALLOCATABLE         :: PRPE_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: ALK4_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: C3H8_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: MEK_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: ACET_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: TOLU_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: XYLE_WKEND(:,:,:,:) 
+      !REAL*8,  ALLOCATABLE         :: C2H4_WKEND(:,:,:,:)
+      !REAL*8,  ALLOCATABLE         :: MOH_WKEND(:,:,:,:) 
+      !REAL*8,  ALLOCATABLE         :: EOH_WKEND(:,:,:,:) 
+      REAL*8,  ALLOCATABLE         :: CH2O_WKEND(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: OCPO_WKEND(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: BCPO_WKEND(:,:,:,:)
+      REAL*8,  ALLOCATABLE         :: SO4_WKEND(:,:,:,:)
 
       ! Shadow logical variables from Input_Opt
       LOGICAL                      :: LBRAVO
@@ -243,22 +252,21 @@
          ELSE IF ( N == IDTALK4 ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4(I,J,L,IH)*0.67
-         
+            VALUE = ALK4(I,J,L,IH)!*0.67
          ELSE IF ( N == IDTC3H8 ) THEN
 
             ! [molec/cm2/s]
-            ! Double emissions based on SEAC4RS data
-            VALUE = ALK4(I,J,L,IH)*0.05*5
+            VALUE = C3H8(I,J,L,IH)!*0.05*5
 
          ELSE IF ( N == IDTACET ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4(I,J,L,IH)*0.06
+            VALUE = ACET(I,J,L,IH)
+
          ELSE IF ( N == IDTMEK ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4(I,J,L,IH)*0.02
+            VALUE = MEK(I,J,L,IH)
 
         ELSE IF ( N == IDTTOLU ) THEN
 
@@ -384,16 +392,17 @@
          ELSE IF ( N == IDTC3H8 ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4_WKEND(I,J,L,IH)*0.05*5
+            VALUE = C3H8_WKEND(I,J,L,IH)!*0.05*5
 
          ELSE IF ( N == IDTACET ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4_WKEND(I,J,L,IH)*0.06
+            VALUE = ACET_WKEND(I,J,L,IH)!*0.06
+
          ELSE IF ( N == IDTMEK ) THEN
 
             ! [molec/cm2/s]
-            VALUE = ALK4_WKEND(I,J,L,IH)*0.02
+            VALUE = MEK_WKEND(I,J,L,IH)!*0.02
 
         ELSE IF ( N == IDTTOLU ) THEN
 
@@ -513,6 +522,8 @@
       USE GIGC_Input_Opt_Mod, ONLY : OptInput
       USE GIGC_State_Chm_Mod, ONLY : ChmState
       USE NCDF_MOD,          ONLY : NC_READ
+      USE GRID_MOD,          ONLY : GET_XOFFSET
+      USE GRID_MOD,          ONLY : GET_YOFFSET
       USE REGRID_A2A_MOD,    ONLY : DO_REGRID_A2A
       USE TIME_MOD,          ONLY : GET_YEAR, GET_MONTH, GET_DAY
       USE TIME_MOD,          ONLY : GET_DAY_OF_WEEK, GET_HOUR
@@ -547,9 +558,9 @@
 !
       INTEGER,        INTENT(OUT)   :: RC          ! Success or failure?!
 !
-! !REVISION HISTORY: 
-!  11 Feb 2013 - K. Travis   - initial version
-!  28 Jun 2013 - R. Yantosca - Now reads files from global 1x1 data path  
+! !REVISION HISTORY:
+!  16 Feb 2013 - K. Travis   - initial version
+!  28 Jun 2013 - R. Yantosca - Now reads data from global data path
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -557,27 +568,28 @@
 ! !LOCAL VARIABLES:
 !
       LOGICAL, SAVE              :: FIRST = .TRUE.
-      INTEGER                    :: I, J,  IH,  THISMONTH, THISYEAR, SNo
+      INTEGER                    :: I, J,  IH,  THISYEAR, THISMONTH, SNo
       INTEGER                    :: L, HH, KLM, SPECIES_ID(18)
       INTEGER                    :: OFFLINE_ID(15)
+      INTEGER                    :: I0, J0
       INTEGER                    :: st3d(3), ct3d(3)
       INTEGER                    :: st4d(4), ct4da(4), ct4db(4)
       INTEGER                    :: fId1, fId1b, fId1c, fId1d, fId1e
       INTEGER                    :: fId2, fId2b, fId2c, fId2d, fId2e
-      REAL*4                     :: ARRAYWD(I1x1,J1x1,24)
-      REAL*4                     :: ARRAYWE(I1x1,J1x1,24) 
-      REAL*4                     :: ARRAYWDPT(2,I1x1,J1x1,24)
-      REAL*4                     :: ARRAYWEPT(2,I1x1,J1x1,24)
-      REAL*4                     :: ARRAYWDPTN(3,I1x1,J1x1,24)
-      REAL*4                     :: ARRAYWEPTN(3,I1x1,J1x1,24)
-      REAL*4                     :: ARRAYWDC3(I1x1,J1x1,24)
-      REAL*4                     :: ARRAYWEC3(I1x1,J1x1,24)
-      REAL*4                     :: ARRAYWD_NH3ag(I1x1,J1x1,24)
-      REAL*4                     :: ARRAYWE_NH3ag(I1x1,J1x1,24)
-      REAL*8, TARGET             :: GEOS_1x1WD(I1x1,J1x1,3,24)
-      REAL*8, TARGET             :: GEOS_1x1WE(I1x1,J1x1,3,24)
-      REAL*8, TARGET             :: GEOS_1x1WD_NH3ag(I1x1,J1x1,24)
-      REAL*8, TARGET             :: GEOS_1x1WE_NH3ag(I1x1,J1x1,24)
+      REAL*4                     :: ARRAYWD(225,202,24)
+      REAL*4                     :: ARRAYWE(225,202,24) 
+      REAL*4                     :: ARRAYWDPT(2,225,202,24)
+      REAL*4                     :: ARRAYWEPT(2,225,202,24)
+      REAL*4                     :: ARRAYWDPTN(3,225,202,24)
+      REAL*4                     :: ARRAYWEPTN(3,225,202,24)
+      REAL*4                     :: ARRAYWDC3(225,202,24)
+      REAL*4                     :: ARRAYWEC3(225,202,24)
+      REAL*4                     :: ARRAYWD_NH3ag(225,202,24)
+      REAL*4                     :: ARRAYWE_NH3ag(225,202,24)
+      REAL*8, TARGET             :: GEOS_NATIVEWD_NH3ag(I025x03125,J025x03125,24)
+      REAL*8, TARGET             :: GEOS_NATIVEWE_NH3ag(I025x03125,J025x03125,24)
+      REAL*8, TARGET             :: GEOS_NATIVEWD(I025x03125,J025x03125,3,24)
+      REAL*8, TARGET             :: GEOS_NATIVEWE(I025x03125,J025x03125,3,24)
       REAL*4                     :: ScCO, ScNOx, ScPM10, ScPM25
       REAL*4                     :: ScVOC, ScNH3, ScSO2
       REAL*4                     :: ScNH3_Ag, ScNH3_NonAg
@@ -595,7 +607,8 @@
 
       ! For scaling NH3 agricultural emissions (jaf, 12/10/13)
       REAL*4, POINTER            :: NCARR(:,:,:) => NULL()
-      REAL*8                     :: ScAgNH3_MASAGE(I1x1,J1x1)
+      REAL*8                     :: ScAgNH3_MASAGE(225,202)
+      REAL*8                     :: ScAgNH3_MASAGE2(I025x03125,J025x03125)
       LOGICAL                    :: LSCALE2MASAGE
       CHARACTER(LEN=255)         :: DATA_DIR_NH3_ag
       CHARACTER(LEN=255)         :: FILENAMEWD_NH3ag, FILENAMEWE_NH3ag
@@ -673,19 +686,19 @@
                       'CH2O', 'OC',   'BC',   'TOLU', 'XYLE', 'BENZ'/)!, &
                       !'C2H4'/)!,'MOH', 'EOH','CH4' /)
 
-      ! ID #'s for that are not tied to IDTxxxx flags
-      ! Needs to be updated for NOx partitioning
-      OFFLINE_ID = (/ 2, 1, 1, 1, 26, 30, 11, 12, &
-                      21, 18, 5, 27, 20, 36, 37    /)
+     ! ID #'s for that are not tied to IDTxxxx flags
+      OFFLINE_ID = (/ 2, 1, 64, 66, 26, 30, 11, 12, &
+                     21, 18, 5, 27, 20, 36, 37    /)
 
       ! File with lat/lon edges for regridding
       LLFILENAME = TRIM( DATA_DIR_1x1) // &
-                  'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos1x1.nc'
+                  'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos025x03125.nc'
 
       ! DataDir for year
       ! model ready
-      DATA_DIR_NEI = TRIM( Input_Opt%DATA_DIR_1x1 ) // &
-                     'NEI2008_201307/NEI08_2010_1x1_'
+      DATA_DIR_NEI = '/as/scratch/krt/NEI08/REGRID/NEI08_2010_25x3125_'
+      !TRIM( Input_Opt%DATA_DIR_1x1 ) // &
+      !               'NEI2008_201307/NEI08_2010_1x1_'
       ! For NH3 -- files with agricultural emissions only (jaf, 12/10/13)
       ! Eventually these files will move to the data directory
 !!!      DATA_DIR_NH3_ag = TRIM( Input_Opt%DATA_DIR_1x1 ) // &
@@ -725,1555 +738,6 @@
       ! model ready
       FILENAMEWD    = TRIM( DATA_DIR_NEI ) //                         &
                       TRIM( TTMON        ) // '_wkday_regrid.nc'
-      FILENAMEWE    = TRIM( DATA_DIR_NEI ) //                         &
-                      TRIM( TTMON        ) // '_wkend_regrid.nc'
-
-      ! ptipm
-      FILENAMEWDPT  = TRIM( DATA_DIR_NEI ) //  'ptipm_'            // &
-                      TRIM( TTMON        ) // '_wkday_regrid.nc'
-      FILENAMEWEPT  = TRIM( DATA_DIR_NEI ) // 'ptipm_'             // &
-                      TRIM( TTMON        ) // '_wkend_regrid.nc'
-
-      ! ptnonipm
-      FILENAMEWDPTN = TRIM( DATA_DIR_NEI ) // 'ptnonipm_'          // &
-                      TRIM( TTMON        ) //  '_wkday_regrid.nc'
-      FILENAMEWEPTN = TRIM( DATA_DIR_NEI ) // 'ptnonipm_'          // &
-                      TRIM( TTMON        ) //  '_wkend_regrid.nc'
-
-      ! c3marine
-      FILENAMEWDC3  = TRIM( DATA_DIR_NEI ) // 'c3marine_'          // &
-                      TRIM( TTMON        ) //  '_wkday_regrid.nc'
-      FILENAMEWEC3  = TRIM( DATA_DIR_NEI ) //  'c3marine_'         // &
-                      TRIM( TTMON        ) // '_wkend_regrid.nc'
-
-      ! Allocate start and count arrays
-      st3d = (/1, 1, 1/)            !Start lat/lon/time
-      st4d = (/1, 1, 1, 1/)         !Start lat/lon/time/lev
-      ct3d = (/I1x1, J1x1, 24/)     !Count lat/lon/time
-      ct4da= (/2, I1x1, J1x1, 24/)  !Count lat/lon/time/lev - pt
-      ct4db= (/3, I1x1, J1x1, 24/)  !Count lat/lon/time/lev - ptn
-
-      ! Open weekday netCDF files for reading
-      CALL Ncop_Rd(fId1,  TRIM(FILENAMEWD))
-      CALL Ncop_Rd(fId1b, TRIM(FILENAMEWDPT))     ! ptipm
-      CALL Ncop_Rd(fId1c, TRIM(FILENAMEWDPTN))    ! ptnonipm
-      CALL Ncop_Rd(fId1d, TRIM(FILENAMEWDC3))     ! c3marine
-
-      ! Open weekend netCDF files for reading
-      CALL Ncop_Rd(fId2,  TRIM(FILENAMEWE))
-      CALL Ncop_Rd(fId2b, TRIM(FILENAMEWEPT))     ! ptipm
-      CALL Ncop_Rd(fId2c, TRIM(FILENAMEWEPTN))    ! ptnonipm
-      CALL Ncop_Rd(fId2d, TRIM(FILENAMEWEC3))     ! c3marine
-
-      ! Open NH3 ag files
-      IF ( LSCALE2MASAGE ) THEN
-         FILENAMEWD_NH3ag = TRIM(DATA_DIR_NH3_ag) // &
-                            'NEI08_2010_1x1_'     // &
-                            TRIM( TTMON        )  // '_wkday_regrid.nc'
-         FILENAMEWE_NH3ag = TRIM(DATA_DIR_NH3_ag) // &
-                            'NEI08_2010_1x1_'     // &
-                            TRIM( TTMON        )  // '_wkend_regrid.nc'
-!        Kludge for SEAC4RS (skim, 3/6/14)
-        FILENAME_ScAg    = TRIM(DATA_DIR_NH3_ag) // &
-!       FILENAME_ScAg    = '/home/jaf/emissions/NH3/NH3_MASAGE/' // &
-                           'MASAGE_NEI08_Ratio.geos.1x1.nc'
-         CALL Ncop_Rd(fId1e, TRIM(FILENAMEWD_NH3ag)) ! NH3ag weekday
-         CALL Ncop_Rd(fId2e, TRIM(FILENAMEWE_NH3ag)) ! NH3ag weekend
-      ENDIF
-
- 100  FORMAT( '     - EMISS_NEI2008_ANTHRO_1x1:  Reading ', &
-                      a, ' -> ', a )
-
-      ! Loop over species
-      DO KLM = 1, SIZE( SPCLIST )
-
-         IF ( Input_Opt%ITS_A_FULLCHEM_SIM ) THEN
-            SId = SPCLIST( KLM )
-            SNo = SPECIES_ID( KLM ) 
-         ELSE
-            SNo = OFFLINE_ID( KLM )
-         ENDIF
-
-         ! Skip undefined tracers
-         IF ( SNo == 0 ) CYCLE
-
-         ! Read variable from weekday netCDF files
-         WRITE( 6, 100 )  TRIM( FILENAMEWD ), SID
-         Call NcRd(ARRAYWD,       fId1,  TRIM(SId), st3d, ct3d )
-         Call NcRd(ARRAYWDPT,     fId1b, TRIM(SId), st4d, ct4da)
-         Call NcRd(ARRAYWDPTN,    fId1c, TRIM(SId), st4d, ct4db)
-         Call NcRd(ARRAYWDC3,     fId1d, TRIM(SId), st3d, ct3d )
-
-         ! Cast to REAL*8 before regridding
-         GEOS_1x1WD(:,:,1,:) = ARRAYWD(:,:,:) + ARRAYWDPT(1,:,:,:) + &
-                               ARRAYWDPTN(1,:,:,:) + ARRAYWDC3(:,:,:)
-         GEOS_1x1WD(:,:,2,:) = ARRAYWDPT(2,:,:,:) + ARRAYWDPTN(2,:,:,:)
-         GEOS_1x1WD(:,:,3,:) = ARRAYWDPTN(3,:,:,:)
-
-         ! Read variable from weekend netCDF files
-         WRITE( 6, 100 ) TRIM( FILENAMEWE ), SId
-         Call NcRd(ARRAYWE,       fId2,  TRIM(SId), st3d, ct3d )
-         Call NcRd(ARRAYWEPT,     fId2b, TRIM(SId), st4d, ct4da)
-         Call NcRd(ARRAYWEPTN,    fId2c, TRIM(SId), st4d, ct4db)
-         Call NcRd(ARRAYWEC3,     fId2d, TRIM(SId), st3d, ct3d )
-
-         ! Cast to REAL*8 before regridding
-         GEOS_1x1WE(:,:,1,:) = ARRAYWE(:,:,:) + ARRAYWEPT(1,:,:,:) + &
-                               ARRAYWEPTN(1,:,:,:) + ARRAYWEC3(:,:,:)
-         GEOS_1x1WE(:,:,2,:) = ARRAYWEPT(2,:,:,:) + ARRAYWEPTN(2,:,:,:)
-         GEOS_1x1WE(:,:,3,:) = ARRAYWEPTN(3,:,:,:)
-
-! Moved into weekday section below to avoid duplicating all the loops
-! (jaf, 12/11/13)
-!         DO L=1,3
-!            DO HH=1,24  ! check on whether this is correct
-!               SELECT CASE ( SId) 
-!               CASE ('CO')
-!                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScCO  
-!                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScCO
-!               CASE ('NO','NO2','HNO2')
-!                 GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScNOx  
-!                 GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScNOx
-!               CASE ('BENZ','TOLU','XYLE','RCHO','CH2O','ALD2',       &
-!                    'C2H6','PRPE','ALK4')
-!                 GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-!                 GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-!               CASE('BC','OC')
-!                 GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScPM25
-!                 GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScPM25
-!               CASE('SO2')   
-!                 GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScSO2 
-!                 GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScSO2  
-!               CASE ('NH3')
-!                 GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScNH3 
-!                 GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScNH3
-!              END SELECT
-!            ENDDO
-!         ENDDO
-          
-         ! Regrid from GEOS 1x1 --> current model resolution [molec/cm2/2]
-         IF ( SId == 'CO' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! CO
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScCO
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => CO(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                      INGRID,     OUTGRID, IS_MASS=0, &
-                                      netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  CO(:,:,L,HH)       = CO(:,:,L,HH)       * USA_MASK
- 
-                  !-----------------
-                  ! CO_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScCO
-   
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => CO_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                      INGRID,     OUTGRID, IS_MASS=0, &
-                                      netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  CO_WKEND(:,:,L,HH) = CO_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSEIF ( SId == 'NO' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! NO
-                  !-----------------
-        
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScNOx
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => NO(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  NO(:,:,L,HH)       = NO(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! NO_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScNOx
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => NO_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  NO_WKEND(:,:,L,HH) = NO_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSEIF ( TRIM(SId) == 'NO2' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! NO2
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScNOx
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => NO2(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  NO2(:,:,L,HH)       = NO2(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! NO2_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScNOx
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => NO2_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  NO2_WKEND(:,:,L,HH) = NO2_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSEIF ( TRIM(SId) == 'HNO2' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! HNO2
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScNOx
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => HNO2(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  HNO2(:,:,L,HH)       = HNO2(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! HNO2_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScNOx
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => HNO2_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  HNO2_WKEND(:,:,L,HH) = HNO2_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSEIF ( TRIM(SId) == 'SO2') THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! SO2
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScSO2
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => SO2(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  SO2(:,:,L,HH)       = SO2(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! SO2_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScSO2
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => SO2_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  SO2_WKEND(:,:,L,HH) = SO2_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSEIF ( TRIM(SId) == 'NH3' ) THEN
-
-            ! Special case for NH3 emissions -- scale agricultural
-            ! component based on MASAGE monthly gridded values from Paulot
-            ! et al., 2013 (jaf, 12/10/13)
-            IF ( LSCALE2MASAGE ) THEN
-
-            ! Read ag files
-            CALL NcRd(ARRAYWD_NH3ag, fId1e, TRIM(SId), st3d, ct3d )
-            CALL NcRd(ARRAYWE_NH3ag, fId2e, TRIM(SId), st3d, ct3d )
-
-            ! Cast to REAL*8
-            GEOS_1x1WD_NH3ag = ARRAYWD_NH3ag
-            GEOS_1x1WE_NH3ag = ARRAYWE_NH3ag
-
-            ! Subtract agricultural component from total
-            GEOS_1x1WD(:,:,1,:) = GEOS_1x1WD(:,:,1,:) -   &
-                                  GEOS_1x1WD_NH3ag(:,:,:)
-            GEOS_1x1WE(:,:,1,:) = GEOS_1x1WE(:,:,1,:) -   &
-                                  GEOS_1x1WE_NH3ag(:,:,:)
-
-            ! Read scaling factor (ratio of MASAGE to NEI08
-            CALL NC_READ( NC_PATH = TRIM(FILENAME_ScAg),     &
-                          PARA = 'ratio', ARRAY = NCARR,     &
-                          YEAR = 2010,    MONTH = THISMONTH, &
-                          DAY = 01,       VERBOSE = .FALSE.    )
-
-            ! Cast to REAL*8
-            ScAgNH3_MASAGE = NCARR(:,:,1)
-
-            ! Deallocate ncdf-array
-            IF ( ASSOCIATED ( NCARR ) ) DEALLOCATE ( NCARR )
-
-            ! Scale agricultural component to MASAGE monthly totals
-            DO HH = 1, 24
-               GEOS_1x1WD_NH3ag(:,:,HH) = GEOS_1x1WD_NH3ag(:,:,HH) &
-                                        * ScAgNH3_MASAGE
-               GEOS_1x1WE_NH3ag(:,:,HH) = GEOS_1x1WE_NH3ag(:,:,HH) &
-                                        * ScAgNH3_MASAGE
-            ENDDO
-
-            ! Add scaled agricultural component back to total and apply
-            ! interannual scaling factors
-            GEOS_1x1WD(:,:,1,:) = GEOS_1x1WD(:,:,1,:) * ScNH3_NonAg + &
-                                  GEOS_1x1WD_NH3ag(:,:,:) * ScNH3_Ag
-            GEOS_1x1WE(:,:,1,:) = GEOS_1x1WE(:,:,1,:) * ScNH3_NonAg + &
-                                  GEOS_1x1WE_NH3ag(:,:,:) * ScNH3_Ag
-            ENDIF  ! MASAGE scaling
-
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! NH3
-                  !-----------------
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => NH3(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  NH3(:,:,L,HH)       = NH3(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! NH3_WKEND
-                  !-----------------
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => NH3_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  NH3_WKEND(:,:,L,HH) = NH3_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSEIF ( TRIM(SId) == 'ALD2' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! ALD2
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => ALD2(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  ALD2(:,:,L,HH)       = ALD2(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! ALD2_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => ALD2_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  ALD2_WKEND(:,:,L,HH) = ALD2_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSEIF ( TRIM(SId) == 'RCHO' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! RCHO
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => RCHO(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  RCHO(:,:,L,HH)       = RCHO(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! RCHO_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => RCHO_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  RCHO_WKEND(:,:,L,HH) = RCHO_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'BENZ' ) THEN
-            DO L=1,3
-                DO HH=1,24
-
-                  !-----------------
-                  ! BENZ
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => BENZ(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  BENZ(:,:,L,HH)       = BENZ(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! BENZ_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => BENZ_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  BENZ_WKEND(:,:,L,HH) = BENZ_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'C2H6' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! C2H6
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => C2H6(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  C2H6(:,:,L,HH)       = C2H6(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! C2H6_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => C2H6_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  C2H6_WKEND(:,:,L,HH) = C2H6_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'PRPE' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! PRPE
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => PRPE(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  PRPE(:,:,L,HH)       = PRPE(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! PRPE_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => PRPE_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  PRPE_WKEND(:,:,L,HH) = PRPE_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'ALK4' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! ALK4
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => ALK4(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  ALK4(:,:,L,HH)       = ALK4(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! ALK4_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => ALK4_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  ALK4_WKEND(:,:,L,HH) = ALK4_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'TOLU' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! TOLU
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => TOLU(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  TOLU(:,:,L,HH)       = TOLU(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! TOLU_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => TOLU_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  TOLU_WKEND(:,:,L,HH) = TOLU_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'XYLE' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! XYLE
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => XYLE(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  XYLE(:,:,L,HH)       = XYLE(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! XYLE_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => XYLE_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  XYLE_WKEND(:,:,L,HH) = XYLE_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'CH2O' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! CH2O
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScVOC  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => CH2O(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  CH2O(:,:,L,HH)       = CH2O(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! CH2O_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScVOC
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => CH2O_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  CH2O_WKEND(:,:,L,HH) = CH2O_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'BC' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! BCPO
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScPM25  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => BCPO(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  BCPO(:,:,L,HH)       = BCPO(:,:,L,HH)       * USA_MASK
-
-                  ! Scale down by 30% on the basis of comparisons to
-                  ! SEAC4RS (skim, 5/23/14)
-                  BCPO(:,:,L,HH)       = BCPO(:,:,L,HH) * 0.7
-
-                  !-----------------
-                  ! BCPO_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScPM25
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => BCPO_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  BCPO_WKEND(:,:,L,HH) = BCPO_WKEND(:,:,L,HH) * USA_MASK
-
-                  ! Scale down by 30% on the basis of comparisons to
-                  ! SEAC4RS (skim, 5/23/14)
-                  BCPO_WKEND(:,:,L,HH) = BCPO_WKEND(:,:,L,HH) * 0.7
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'OC' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! OCPO
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScPM25  
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => OCPO(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  OCPO(:,:,L,HH)       = OCPO(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! OCPO_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScPM25
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => OCPO_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  OCPO_WKEND(:,:,L,HH) = OCPO_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-         ELSE IF ( TRIM(SId) == 'SO4' ) THEN
-            DO L=1,3
-               DO HH=1,24
-
-                  !-----------------
-                  ! SO4
-                  !-----------------
-
-                  ! Apply scaling factor (peg to SO2)
-                  GEOS_1x1WD(:,:,L,HH) = GEOS_1x1WD(:,:,L,HH) * ScSO2
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-                  OUTGRID => SO4(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  SO4(:,:,L,HH)       = SO4(:,:,L,HH)       * USA_MASK
-
-                  !-----------------
-                  ! SO4_WKEND
-                  !-----------------
-
-                  ! Apply scaling factor (peg to SO2)
-                  GEOS_1x1WE(:,:,L,HH) = GEOS_1x1WE(:,:,L,HH) * ScSO2
-
-                  ! Point to array slices
-                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-                  OUTGRID => SO4_WKEND(:,:,L,HH)
-
-                  ! Regrid
-                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-                                     INGRID,     OUTGRID, IS_MASS=0, &
-                                     netCDF=.TRUE.                   )
-
-                  ! Free pointers
-                  NULLIFY( INGRID, OUTGRID )
-
-                  ! Apply masks
-                  SO4_WKEND(:,:,L,HH) = SO4_WKEND(:,:,L,HH) * USA_MASK
-
-               ENDDO
-            ENDDO
-
-! C2H4 not used currently
-!         ELSE IF ( TRIM(SId) == 'C2H4' ) THEN
-!            DO L=1,3
-!               DO HH=1,24
-!
-!                  !-----------------
-!                  ! C2H4
-!                  !-----------------
-!
-!                  ! No scaling factor
-!                  ! Point to array slices
-!                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-!                  OUTGRID => C2H4(:,:,L,HH)
-!
-!                  ! Regrid
-!                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-!                                     INGRID,     OUTGRID, IS_MASS=0, &
-!                                     netCDF=.TRUE.                   )
-!
-!                  ! Free pointers
-!                  NULLIFY( INGRID, OUTGRID )
-!
-!                  ! Apply masks
-!                  C2H4(:,:,L,HH)       = C2H4(:,:,L,HH)       * USA_MASK
-!
-!                  !-----------------
-!                  ! C2H4_WKEND
-!                  !-----------------
-!
-!                  ! No scaling factor
-!                  ! Point to array slices
-!                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-!                  OUTGRID => C2H4_WKEND(:,:,L,HH)
-!
-!                  ! Regrid
-!                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-!                                     INGRID,     OUTGRID, IS_MASS=0, &
-!                                     netCDF=.TRUE.                   )
-!
-!                  ! Free pointers
-!                  NULLIFY( INGRID, OUTGRID )
-!
-!                  ! Apply masks
-!                  C2H4_WKEND(:,:,L,HH) = C2H4_WKEND(:,:,L,HH) * USA_MASK
-!
-!               ENDDO
-!            ENDDO
-!
-! CH4 not used currently
-!         ELSE IF ( TRIM(SId) == 'CH4' ) THEN
-!            DO L=1,3
-!               DO HH=1,24
-!
-!                  !-----------------
-!                  ! CH4
-!                  !-----------------
-!
-!                  ! No scaling factor
-!                  ! Point to array slices
-!                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-!                  OUTGRID => CH4(:,:,L,HH)
-!
-!                  ! Regrid
-!                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-!                                     INGRID,     OUTGRID, IS_MASS=0, &
-!                                     netCDF=.TRUE.                   )
-!
-!                  ! Free pointers
-!                  NULLIFY( INGRID, OUTGRID )
-!
-!                  ! Apply masks
-!                  CH4(:,:,L,HH)       = CH4(:,:,L,HH)       * USA_MASK
-!
-!                  !-----------------
-!                  ! CH4_WKEND
-!                  !-----------------
-!
-!                  ! No scaling factor
-!                  ! Point to array slices
-!                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-!                  OUTGRID => CH4_WKEND(:,:,L,HH)
-!
-!                  ! Regrid
-!                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-!                                     INGRID,     OUTGRID, IS_MASS=0, &
-!                                     netCDF=.TRUE.                   )
-!
-!                  ! Free pointers
-!                  NULLIFY( INGRID, OUTGRID )
-!
-!                  ! Apply masks
-!                  CH4_WKEND(:,:,L,HH) = CH4_WKEND(:,:,L,HH) * USA_MASK
-!
-!               ENDDO
-!            ENDDO
-!
-! EOH not used currently
-!         ELSE IF ( TRIM(SId) == 'EOH' ) THEN
-!            DO L=1,3
-!               DO HH=1,24
-!
-!                  !-----------------
-!                  ! EOH
-!                  !-----------------
-!
-!                  ! No scaling factor
-!                  ! Point to array slices
-!                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-!                  OUTGRID => EOH(:,:,L,HH)
-!
-!                  ! Regrid
-!                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-!                                     INGRID,     OUTGRID, IS_MASS=0, &
-!                                     netCDF=.TRUE.                   )
-!
-!                  ! Free pointers
-!                  NULLIFY( INGRID, OUTGRID )
-!
-!                  ! Apply masks
-!                  EOH(:,:,L,HH)       = EOH(:,:,L,HH)       * USA_MASK
-!
-!                  !-----------------
-!                  ! EOH_WKEND
-!                  !-----------------
-!
-!                  ! No scaling factor
-!                  ! Point to array slices
-!                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-!                  OUTGRID => EOH_WKEND(:,:,L,HH)
-!
-!                  ! Regrid
-!                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-!                                     INGRID,     OUTGRID, IS_MASS=0, &
-!                                     netCDF=.TRUE.                   )
-!
-!                  ! Free pointers
-!                  NULLIFY( INGRID, OUTGRID )
-!
-!                  ! Apply masks
-!                  EOH_WKEND(:,:,L,HH) = EOH_WKEND(:,:,L,HH) * USA_MASK
-!
-!               ENDDO
-!            ENDDO
-!
-! MOH not used currently
-!         ELSE IF ( TRIM(SId) == 'MOH' ) THEN
-!            DO L=1,3
-!               DO HH=1,24
-!
-!                  !-----------------
-!                  ! MOH
-!                  !-----------------
-!
-!                  ! No scaling factor
-!                  ! Point to array slices
-!                  INGRID  => GEOS_1x1WD(:,:,L,HH)
-!                  OUTGRID => MOH(:,:,L,HH)
-!
-!                  ! Regrid
-!                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1,  &
-!                                     INGRID,     OUTGRID, IS_MASS=0, &
-!                                     netCDF=.TRUE.                   )
-!
-!                  ! Free pointers
-!                  NULLIFY( INGRID, OUTGRID )
-!
-!                  ! Apply masks
-!                  MOH(:,:,L,HH)       = MOH(:,:,L,HH)       * USA_MASK
-!
-!                  !-----------------
-!                  ! MOH_WKEND
-!                  !-----------------
-!
-!                  ! No scaling factor
-!                  ! Point to array slices
-!                  INGRID  => GEOS_1x1WE(:,:,L,HH)
-!                  OUTGRID => MOH_WKEND(:,:,L,HH)
-!
-!                  ! Regrid
-!                  CALL DO_REGRID_A2A( LLFILENAME, I1x1,    J1x1, &
-!                                     INGRID,     OUTGRID, IS_MASS=0, &
-!                                     netCDF=.TRUE.                   )
-!
-!                  ! Free pointers
-!                  NULLIFY( INGRID, OUTGRID )
-!
-!                  ! Apply masks
-!                  MOH_WKEND(:,:,L,HH) = MOH_WKEND(:,:,L,HH) * USA_MASK
-!
-!               ENDDO
-!            ENDDO
-         ENDIF
-      ENDDO ! END loop through species
-
-! Moved weekend section up to avoid duplicating all the loops (jaf, 12/11/13)
-
-      ! Close netCDF files
-      CALL NcCl( fId1  )
-      CALL NcCl( fId1b )
-      CALL NcCl( fId1c )
-      CALL NcCl( fId1d )
-      CALL NcCl( fId2  )
-      CALL NcCl( fId2b )
-      CALL NcCl( fId2c )
-      CALL NcCl( fId2d )
-
-      ! Close ag files
-      IF ( LSCALE2MASAGE ) THEN
-         CALL NcCl( fId1e )
-         CALL NcCl( fId2e )
-      ENDIF
-
-      !--------------------------
-      ! Compute future emissions
-      !--------------------------
-      IF ( LFUTURE ) THEN 
-         CALL NEI2008_SCALE_FUTURE
-      ENDIF
-      
-      !--------------------------
-      ! Print emission totals for the day
-      !--------------------------
-      CALL TOTAL_ANTHRO_Tg( THISMONTH )
-
-      ! Return to calling program
-      END SUBROUTINE EMISS_NEI2008_ANTHRO
-!EOC
-!------------------------------------------------------------------------------
-!       Adopted from NEI05 from
-!       Dalhousie University Atmospheric Compositional Analysis Group         !
-!------------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: emiss_nei2008_anthro_NATIVE
-!
-! !DESCRIPTION: Subroutine EMISS\_NEI2008\_ANTHRO reads the NEI2008
-!  emission fields at 1/2 x 2.3 or .25 x 0.3125 resolution
-!  Designed to work with IIPAR and JJPAR as long as emissions are on the
-!  same nested grid.
-!\\
-!\\
-! !INTERFACE:
-!
-      SUBROUTINE EMISS_NEI2008_ANTHRO_NATIVE( am_I_Root, Input_Opt, &
-                                             State_Chm, RC         )
-!
-! !USES:
-!
-      USE DIRECTORY_MOD,     ONLY : DATA_DIR
-      USE LOGICAL_MOD,       ONLY : LFUTURE
-      USE TIME_MOD,          ONLY : GET_YEAR, GET_MONTH, GET_DAY
-      USE TIME_MOD,          ONLY : GET_DAY_OF_WEEK, GET_HOUR
-      USE GIGC_ErrCode_Mod
-      USE GIGC_Input_Opt_Mod, ONLY : OptInput
-      USE GIGC_State_Chm_Mod, ONLY : ChmState
-      USE NCDF_MOD,          ONLY : NC_READ
-      USE TRACERID_MOD,      ONLY : IDTCO, IDTNO, IDTHNO2, IDTNO2 
-      USE TRACERID_MOD,      ONLY : IDTSO2, IDTNH3
-      USE TRACERID_MOD,      ONLY : IDTALD2, IDTRCHO, IDTC2H6
-      USE TRACERID_MOD,      ONLY : IDTPRPE, IDTALK4!, IDTC2H4
-      USE TRACERID_MOD,      ONLY : IDTBENZ, IDTTOLU, IDTXYLE
-      USE TRACERID_MOD,      ONLY : IDTSO4, IDTCH2O
-      USE TRACERID_MOD,      ONLY : IDTOCPO, IDTBCPO
-      !USE TRACERID_MOD,      ONLY : IDTEOH, IDTMOH, IDTCH4
-
-      USE CMN_SIZE_MOD          ! Size parameters
-      USE CMN_O3_MOD            ! FSCALYR
-      
-      USE m_netcdf_io_open     
-      USE m_netcdf_io_read
-      USE m_netcdf_io_readattr
-      USE m_netcdf_io_close
-      USE m_netcdf_io_get_dimlen
-!
-! !INPUT PARAMETERS:
-!
-      LOGICAL,        INTENT(IN)    :: am_I_Root   ! Are we on the root CPU?
-      TYPE(OptInput), INTENT(IN)    :: Input_Opt   ! Input Options object
-!
-! !INPUT/OUTPUT PARAMETERS:
-!
-      TYPE(ChmState), INTENT(INOUT) :: State_Chm   ! Chemistry State object
-!
-! !OUTPUT PARAMETERS:
-!
-      INTEGER,        INTENT(OUT)   :: RC          ! Success or failure?
-
-!
-! !REVISION HISTORY:
-!  16 Feb 2013 - K. Travis   - initial version
-!  28 Jun 2013 - R. Yantosca - Now reads data from global data path
-!EOP
-!------------------------------------------------------------------------------
-!BOC
-!
-! !LOCAL VARIABLES:
-!
-      LOGICAL, SAVE              :: FIRST = .TRUE.
-      INTEGER                    :: I, J,  IH,  THISYEAR, THISMONTH, SNo
-      INTEGER                    :: L, HH, KLM, SPECIES_ID(18)
-      INTEGER                    :: OFFLINE_ID(15)
-      INTEGER                    :: st3d(3), ct3d(3)
-      INTEGER                    :: st4d(4), ct4da(4), ct4db(4)
-      INTEGER                    :: fId1, fId1b, fId1c, fId1d, fId1e
-      INTEGER                    :: fId2, fId2b, fId2c, fId2d, fId2e
-      REAL*4                     :: ARRAYWD(IIPAR,JJPAR,24)
-      REAL*4                     :: ARRAYWE(IIPAR,JJPAR,24)
-      REAL*4                     :: ARRAYWDPT(2,IIPAR,JJPAR,24)
-      REAL*4                     :: ARRAYWEPT(2,IIPAR,JJPAR,24)
-      REAL*4                     :: ARRAYWDPTN(3,IIPAR,JJPAR,24)
-      REAL*4                     :: ARRAYWEPTN(3,IIPAR,JJPAR,24)
-      REAL*4                     :: ARRAYWDC3(IIPAR,JJPAR,24)
-      REAL*4                     :: ARRAYWEC3(IIPAR,JJPAR,24)
-      REAL*4                     :: ARRAYWD_NH3ag(IIPAR,JJPAR,24)
-      REAL*4                     :: ARRAYWE_NH3ag(IIPAR,JJPAR,24)
-      REAL*8                     :: GEOS_NATIVEWD(IIPAR,JJPAR,3,24)
-      REAL*8                     :: GEOS_NATIVEWE(IIPAR,JJPAR,3,24)
-      REAL*8, TARGET             :: GEOS_NATIVEWD_NH3ag(IIPAR,JJPAR,24)
-      REAL*8, TARGET             :: GEOS_NATIVEWE_NH3ag(IIPAR,JJPAR,24)
-      REAL*4                     :: ScCO, ScNOx, ScSO2, ScNH3, ScPM10
-      REAL*4                     :: ScNH3_Ag, ScNH3_NonAg
-      REAL*4                     :: ScPM25, ScVOC
-      CHARACTER(LEN=255)         :: DATA_DIR_NEI
-      CHARACTER(LEN=255)         :: FILENAMEWD, FILENAMEWE
-      CHARACTER(LEN=255)         :: FILENAMEWDPT, FILENAMEWEPT
-      CHARACTER(LEN=255)         :: FILENAMEWDPTN, FILENAMEWEPTN
-      CHARACTER(LEN=255)         :: FILENAMEWDC3, FILENAMEWEC3
-      CHARACTER(LEN=24)          :: SPCLIST(18)
-      CHARACTER(LEN=4)           :: SYEAR, SId
-      CHARACTER(LEN=5)           :: SNAME
-      CHARACTER(LEN=3)           :: TTMON
-
-      ! For scaling NH3 agricultural emissions (jaf, 12/12/13)
-      REAL*4, POINTER            :: NCARR(:,:,:) => NULL()
-      REAL*8                     :: ScAgNH3_MASAGE(IIPAR,JJPAR)
-      LOGICAL                    :: LSCALE2MASAGE
-      CHARACTER(LEN=255)         :: DATA_DIR_NH3_ag
-      CHARACTER(LEN=255)         :: FILENAMEWD_NH3ag, FILENAMEWE_NH3ag
-      CHARACTER(LEN=255)         :: FILENAME_ScAg
-
-      !=================================================================
-      ! EMISS_NEI2008_ANTHRO begins here!
-      !=================================================================
-
-      ! First-time initialization
-      IF ( FIRST ) THEN
-         CALL INIT_NEI2008_ANTHRO( am_I_Root, Input_Opt, RC )
-         FIRST = .FALSE.
-      ENDIF
-
-      ! Copy values from Input_Opt
-      LFUTURE   = Input_Opt%LFUTURE
-      LSCALE2MASAGE = Input_Opt%LSCALE2MASAGE
-
-      ! Get emissions year
-      THISYEAR = GET_YEAR()
-
-      ! Initialize scaling factors
-      ScCO        = 1.0
-      ScNOx       = 1.0
-      ScPM10      = 1.0
-      ScPM25      = 1.0
-      ScSO2       = 1.0
-      ScVOC       = 1.0
-      ScNH3       = 1.0
-      ScNH3_Ag    = 1.0
-      ScNH3_NonAg = 1.0
-
-      ! Apply annual scalar factor.
-      ! Using EPA's National Tier1 CAPS (http://www.epa.gov/ttnchie1/trends/)
-      IF ( THISYEAR == 2011 ) THEN  ! scale based on 2010
-         ScCO   = 0.916
-         ScNOx  = 0.897
-         ScPM10 = 0.998
-         ScPM25 = 0.988
-         ScSO2  = 0.905
-         ScVOC  = 0.955
-         ScNH3  = 0.996
-         ScNH3_Ag    = 1.000
-         ScNH3_NonAg = 0.952
-      ELSEIF ( THISYEAR .ge. 2012 ) THEN ! scale based on 2010
-         ScCO   = 0.820
-         ! To better model SEAC4RS reduce mobile NOx (Anderson et al etc)
-         !  Mobile NOx is 38% of total according to NEI for 2013
-         !  Scale down 50% of mobile = 0.38 & 0.5 = 0.19 (krt, 9/19/14)
-         !  To better reconcile inventory, scale CO and NOx both by 50%
-         ScNOx  = 0.794 * 0.5
-         ScCO   = 0.820 * 0.5
-         ScPM10 = 0.995
-         ScPM25 = 0.975
-         ! Scale down on the basis of surface station and wet deposition data
-         ! skim, 9/18/14
-         ScSO2  = 0.700
-         !ScSO2  = 0.899
-         ScVOC  = 0.905
-         ScNH3  = 0.991
-         ScNH3_Ag    = 1.000
-         ScNH3_NonAg = 0.901
-      ENDIF
-
-      SPECIES_ID = (/ IDTCO,   IDTNO,   IDTNO2,  IDTHNO2,          &
-                      IDTSO2,  IDTNH3,  IDTALD2, IDTRCHO, IDTC2H6, &
-                      IDTPRPE, IDTALK4, IDTSO4,  IDTCH2O, IDTOCPO, & 
-                      IDTBCPO, IDTTOLU, IDTXYLE, IDTBENZ /)!, IDTC2H4/)
-                      !IDTMOH, IDTEOH,IDTCH4/)
-
-      SPCLIST =    (/ 'CO',   'NO',   'NO2',  'HNO2', 'SO2',  'NH3',  &
-                      'ALD2', 'RCHO', 'C2H6', 'PRPE', 'ALK4', 'SO4',  &
-                      'CH2O', 'OC',   'BC',   'TOLU', 'XYLE', 'BENZ'/)!, &
-                      !'C2H4'/)!,'MOH', 'EOH','CH4' /)
-
-     ! ID #'s for that are not tied to IDTxxxx flags
-      OFFLINE_ID = (/ 2, 1, 64, 66, 26, 30, 11, 12, &
-                     21, 18, 5, 27, 20, 36, 37    /)
-
-      ! Base data directory
-      DATA_DIR_NEI = TRIM( Input_Opt%DATA_DIR ) // 'NEI2008_201307/'
-     
-      ! Add the proper resolution extension
-#if   defined( GRID05x0666 )
-      DATA_DIR_NEI = TRIM( DATA_DIR_NEI ) // 'NEI08_2010_05x667_' 
-#elif defined( GRID025x03125)
-      DATA_DIR_NEI = TRIM( DATA_DIR_NEI ) // 'NEI08_2010_25x3125_' 
-#endif
-
-      ! For NH3 -- files with agricultural emissions only (jaf, 12/12/13)
-      ! Eventually these files will move to the data directory
-!!!      DATA_DIR_NH3_ag = TRIM( Input_Opt%DATA_DIR ) // &
-!!!                        'NEI2008_201307/'
-      DATA_DIR_NH3_ag = '/home/jaf/emissions/NH3/NH3_NEI08/ag_only/'
-
-      ! Get month
-      THISMONTH = GET_MONTH()
-
-      ! GET NEI2008 FILES! 1 for wday, 1 for wkend
-      IF (THISMONTH == 1)  THEN
-         TTMON = 'Jan'
-      ELSEIF (THISMONTH == 2)  THEN
-         TTMON = 'Feb'
-      ELSEIF (THISMONTH == 3)  THEN
-         TTMON = 'Mar'
-      ELSEIF (THISMONTH == 4)  THEN
-         TTMON = 'Apr'
-      ELSEIF (THISMONTH == 5)  THEN
-         TTMON = 'May'
-      ELSEIF (THISMONTH == 6)  THEN
-         TTMON = 'Jun'
-      ELSEIF (THISMONTH == 7)  THEN
-         TTMON = 'Jul'
-      ELSEIF (THISMONTH == 8)  THEN
-         TTMON = 'Aug'
-      ELSEIF (THISMONTH == 9)  THEN
-         TTMON = 'Sep'
-      ELSEIF (THISMONTH == 10) THEN
-         TTMON = 'Oct'
-      ELSEIF (THISMONTH == 11) THEN
-         TTMON = 'Nov'
-      ELSEIF (THISMONTH == 12) THEN
-         TTMON = 'Dec'
-      ENDIF
-
-      ! model ready
-      FILENAMEWD    = TRIM( DATA_DIR_NEI ) //                        &
-                      TRIM( TTMON        ) // '_wkday_regrid.nc'
       FILENAMEWE    = TRIM( DATA_DIR_NEI ) //                        &
                       TRIM( TTMON        ) // '_wkend_regrid.nc'
 
@@ -2298,9 +762,9 @@
       ! Allocate start and count arrays
       st3d = (/1, 1, 1/)            !Start lat/lon/time
       st4d = (/1, 1, 1, 1/)         !Start lat/lon/time/lev
-      ct3d = (/IIPAR, JJPAR, 24/)     !Count lat/lon/time
-      ct4da= (/2, IIPAR, JJPAR, 24/)  !Count lat/lon/time/lev - pt
-      ct4db= (/3, IIPAR, JJPAR, 24/)  !Count lat/lon/time/lev - ptn
+      ct3d = (/225, 202, 24/)     !Count lat/lon/time
+      ct4da= (/2, 225, 202, 24/)  !Count lat/lon/time/lev - pt
+      ct4db= (/3, 225, 202, 24/)  !Count lat/lon/time/lev - ptn
 
       ! Open weekday netCDF files for reading
       CALL Ncop_Rd(fId1,  TRIM(FILENAMEWD))
@@ -2330,12 +794,12 @@
          CALL Ncop_Rd(fId2e, TRIM(FILENAMEWE_NH3ag)) ! NH3ag weekend
       ENDIF
 
- 100  FORMAT( '     - EMISS_NEI2008_ANTHRO_NATIVE:  Reading ', &
+ 100  FORMAT( '     - EMISS_NEI2008_ANTHRO:  Reading ', &
                       a, ' -> ', a )
 
       ! Loop over species
-      DO KLM = 1, SIZE( SPECIES_ID )
-
+      DO KLM = 1, SIZE( SPCLIST )
+ 
          IF ( Input_Opt%ITS_A_FULLCHEM_SIM ) THEN
             SId = SPCLIST( KLM )
             SNo = SPECIES_ID( KLM ) 
@@ -2346,6 +810,11 @@
          ! Skip undefined tracers
          IF ( SNo == 0 ) CYCLE
 
+         GEOS_NATIVEWD = 0d0
+         GEOS_NATIVEWE = 0d0
+         GEOS_NATIVEWD_NH3ag = 0d0
+         GEOS_NATIVEWE_NH3ag = 0d0
+
          ! Read variable from weekday netCDF files
          WRITE( 6, 100 )  TRIM( FILENAMEWD ), SID
          Call NcRd(ARRAYWD,       fId1,  TRIM(SId), st3d, ct3d )
@@ -2353,11 +822,11 @@
          Call NcRd(ARRAYWDPTN,    fId1c, TRIM(SId), st4d, ct4db)
          Call NcRd(ARRAYWDC3,     fId1d, TRIM(SId), st3d, ct3d )
 
-         ! Cast to REAL*8 before regridding
-         GEOS_NATIVEWD(:,:,1,:) = ARRAYWD(:,:,:) + ARRAYWDPT(1,:,:,:)  &
-                                + ARRAYWDPTN(1,:,:,:) + ARRAYWDC3(:,:,:)
-         GEOS_NATIVEWD(:,:,2,:) = ARRAYWDPT(2,:,:,:)+ARRAYWDPTN(2,:,:,:)
-         GEOS_NATIVEWD(:,:,3,:) = ARRAYWDPTN(3,:,:,:)
+         GEOS_NATIVEWD(160:384,399:600,1,:) = ARRAYWD(:,:,:) + &
+              ARRAYWDPT(1,:,:,:) + ARRAYWDPTN(1,:,:,:) + ARRAYWDC3(:,:,:)
+         GEOS_NATIVEWD(160:384,399:600,2,:) = ARRAYWDPT(2,:,:,:) + &
+              ARRAYWDPTN(2,:,:,:)
+         GEOS_NATIVEWD(160:384,399:600,3,:) = ARRAYWDPTN(3,:,:,:)
 
          ! Read variable from weekend netCDF files
          WRITE( 6, 100 ) TRIM( FILENAMEWE ), SId
@@ -2366,191 +835,219 @@
          Call NcRd(ARRAYWEPTN,    fId2c, TRIM(SId), st4d, ct4db)
          Call NcRd(ARRAYWEC3,     fId2d, TRIM(SId), st3d, ct3d )
 
-         ! Cast to REAL*8 before regridding
-         GEOS_NATIVEWE(:,:,1,:) = ARRAYWE(:,:,:) + ARRAYWEPT(1,:,:,:)  &
-                                + ARRAYWEPTN(1,:,:,:) + ARRAYWEC3(:,:,:)
-         GEOS_NATIVEWE(:,:,2,:) = ARRAYWEPT(2,:,:,:)+ARRAYWEPTN(2,:,:,:)
-         GEOS_NATIVEWE(:,:,3,:) = ARRAYWEPTN(3,:,:,:)
+         GEOS_NATIVEWE(160:384,399:600,1,:) = ARRAYWE(:,:,:) + &
+              ARRAYWEPT(1,:,:,:) + ARRAYWEPTN(1,:,:,:) + ARRAYWEC3(:,:,:)
+         GEOS_NATIVEWE(160:384,399:600,2,:) = ARRAYWEPT(2,:,:,:) + &
+              ARRAYWEPTN(2,:,:,:)
+         GEOS_NATIVEWE(160:384,399:600,3,:) = ARRAYWEPTN(3,:,:,:)
 
-! Moved into section below to avoid all the loops
-!         DO L=1,3
-!           DO HH=1,24  ! check on whether this is correct
-!              SELECT CASE ( SId) 
-!              CASE ('CO')
-!                 GEOS_NATIVEWD(:,:,L,HH) = GEOS_NATIVEWD(:,:,L,HH) * ScCO  
-!                 GEOS_NATIVEWE(:,:,L,HH) = GEOS_NATIVEWE(:,:,L,HH) * ScCO
-!              CASE ('NO','NO2','HNO2')
-!                GEOS_NATIVEWD(:,:,L,HH) = GEOS_NATIVEWD(:,:,L,HH) * ScNOx  
-!                GEOS_NATIVEWE(:,:,L,HH) = GEOS_NATIVEWE(:,:,L,HH) * ScNOx
-!             CASE ('BENZ','TOLU','XYLE','RCHO','CH2O','ALD2','C2H6',   &
-!                   'PRPE','ALK4')
-!                GEOS_NATIVEWD(:,:,L,HH) = GEOS_NATIVEWD(:,:,L,HH) * ScVOC  
-!                GEOS_NATIVEWE(:,:,L,HH) = GEOS_NATIVEWE(:,:,L,HH) * ScVOC
-!              CASE('BC','OC')
-!                GEOS_NATIVEWD(:,:,L,HH) = GEOS_NATIVEWD(:,:,L,HH) * ScPM25
-!                GEOS_NATIVEWE(:,:,L,HH) = GEOS_NATIVEWE(:,:,L,HH) * ScPM25
-!              CASE('SO2')   
-!                GEOS_NATIVEWD(:,:,L,HH) = GEOS_NATIVEWD(:,:,L,HH) * ScSO2 
-!                GEOS_NATIVEWE(:,:,L,HH) = GEOS_NATIVEWE(:,:,L,HH) * ScSO2  
-!              CASE ('NH3')
-!                GEOS_NATIVEWD(:,:,L,HH) = GEOS_NATIVEWD(:,:,L,HH) * ScNH3 
-!                GEOS_NATIVEWE(:,:,L,HH) = GEOS_NATIVEWE(:,:,L,HH) * ScNH3
-!             END SELECT
-!          ENDDO
-!       ENDDO
-
-         ! Begin loopthrough tracers
-         IF ( TRIM(SId) == 'CO') THEN !CO
-            CO       = GEOS_NATIVEWD * ScCO
-            CO_WKEND = GEOS_NATIVEWE * ScCO
-         ELSEIF ( TRIM(SId) == 'NO') THEN !NO
-            NO       = GEOS_NATIVEWD * ScNOx
-            NO_WKEND = GEOS_NATIVEWE * ScNOx
-         ELSEIF ( TRIM(SId) == 'NO2') THEN !NO2
-            NO2       = GEOS_NATIVEWD * ScNOx
-            NO2_WKEND = GEOS_NATIVEWE * ScNOx
-         ELSEIF ( TRIM(SId) == 'HNO2') THEN !HNO2
-            HNO2       = GEOS_NATIVEWD * ScNOx
-            HNO2_WKEND = GEOS_NATIVEWE * ScNOx
-         ELSEIF ( TRIM(SId) == 'SO2') THEN !SO2
-            SO2       = GEOS_NATIVEWD * ScSO2
-            SO2_WKEND = GEOS_NATIVEWE * ScSO2
-         ELSEIF ( TRIM(SId) == 'NH3') THEN !NH3
-
+         IF ( LSCALE2MASAGE .and. SId == 'NH3' ) THEN
+            CALL NcRd(ARRAYWD_NH3ag, fId1e, TRIM(SId), st3d, ct3d )
+            CALL NcRd(ARRAYWE_NH3ag, fId2e, TRIM(SId), st3d, ct3d )
             ! Special case for NH3 emissions -- scale agricultural
             ! component based on MASAGE monthly gridded values from Paulot
             ! et al., 2013 (jaf, 12/10/13)
-            IF ( LSCALE2MASAGE ) THEN
+            ! Read ag files
+            
+            ! Cast to REAL*8
+            GEOS_NATIVEWD_NH3ag(160:384,399:600,:) = ARRAYWD_NH3ag(:,:,:)
+            GEOS_NATIVEWE_NH3ag(160:384,399:600,:) = ARRAYWE_NH3ag(:,:,:)
 
-               ! Read ag files
-               CALL NcRd(ARRAYWD_NH3ag, fId1e, TRIM(SId), st3d, ct3d )
-               CALL NcRd(ARRAYWE_NH3ag, fId2e, TRIM(SId), st3d, ct3d )
+            ! Subtract agricultural component from total
+            GEOS_NATIVEWD(:,:,1,:) = GEOS_NATIVEWD(:,:,1,:) - &
+                 GEOS_NATIVEWD_NH3ag(:,:,:)
+            GEOS_NATIVEWE(:,:,1,:) = GEOS_NATIVEWE(:,:,1,:) - &
+                 GEOS_NATIVEWE_NH3ag(:,:,:)
 
-               ! Close ag files
-               CALL NcCl( fId1e )
-               CALL NcCl( fId2e )
-
-               ! Cast to REAL*8
-               GEOS_NATIVEWD_NH3ag = ARRAYWD_NH3ag
-               GEOS_NATIVEWE_NH3ag = ARRAYWE_NH3ag
-
-               ! Subtract agricultural component from total
-               GEOS_NATIVEWD(:,:,1,:) = GEOS_NATIVEWD(:,:,1,:) -   &
-                                        GEOS_NATIVEWD_NH3ag(:,:,:)
-               GEOS_NATIVEWE(:,:,1,:) = GEOS_NATIVEWE(:,:,1,:) -   &
-                                        GEOS_NATIVEWE_NH3ag(:,:,:)
-
-               ! Read scaling factor (ratio of MASAGE to NEI08
-               CALL NC_READ( NC_PATH = TRIM(FILENAME_ScAg),     &
-                             PARA = 'ratio', ARRAY = NCARR,     &
-                             YEAR = 2010,    MONTH = THISMONTH, &
-                             DAY = 01,       VERBOSE = .FALSE.    )
-
-               ! Cast to REAL*8
-               ScAgNH3_MASAGE = NCARR(:,:,1)
-
-               ! Deallocate ncdf-array
-               IF ( ASSOCIATED ( NCARR ) ) DEALLOCATE ( NCARR )
-
-               ! Scale agricultural component to MASAGE monthly totals
-               DO HH = 1, 24
-                  GEOS_NATIVEWD_NH3ag(:,:,HH) =              &
-                     GEOS_NATIVEWD_NH3ag(:,:,HH) * ScAgNH3_MASAGE
-                  GEOS_NATIVEWE_NH3ag(:,:,HH) =              &
-                     GEOS_NATIVEWE_NH3ag(:,:,HH) * ScAgNH3_MASAGE
-               ENDDO
-
-               ! Add scaled agricultural component back to total and
-               ! apply interannual scaling factors
-               GEOS_NATIVEWD(:,:,1,:) = GEOS_NATIVEWD(:,:,1,:) *     &
-                                        ScNH3_NonAg                  &
-                                      + GEOS_NATIVEWD_NH3ag(:,:,:) * &
-                                        ScNH3_Ag
-               GEOS_NATIVEWE(:,:,1,:) = GEOS_NATIVEWE(:,:,1,:) *     &
-                                        ScNH3_NonAg                  &
-                                      + GEOS_NATIVEWE_NH3ag(:,:,:) * &
-                                        ScNH3_Ag
-               NH3       = GEOS_NATIVEWD
-               NH3_WKEND = GEOS_NATIVEWE
-
-            ELSE
-
-               ! If we can't separate out the agricultural component
-               ! (e.g. for the 05x0667 grid), then just apply the single
-               ! annual scaling factor to NH3 emissions.
-               NH3       = GEOS_NATIVEWD * ScNH3
-               NH3_WKEND = GEOS_NATIVEWE * ScNH3
-
-            ENDIF
-         ELSEIF ( TRIM(SId) == 'ALD2') THEN !ALD2
-            ALD2       = GEOS_NATIVEWD * ScVOC
-            ALD2_WKEND = GEOS_NATIVEWE * ScVOC
-         ELSEIF ( TRIM(SId) == 'RCHO') THEN !RCHO
-            RCHO       = GEOS_NATIVEWD * ScVOC
-            RCHO_WKEND = GEOS_NATIVEWE * ScVOC
-         ELSEIF ( TRIM(SId) == 'C2H6') THEN !C2H6
-            C2H6       = GEOS_NATIVEWD * ScVOC
-            C2H6_WKEND = GEOS_NATIVEWE * ScVOC
-         ELSEIF ( TRIM(SId) == 'PRPE' ) THEN !PRPE
-            PRPE       = GEOS_NATIVEWD * ScVOC
-            PRPE_WKEND = GEOS_NATIVEWE * ScVOC
-         ELSEIF ( TRIM(SId) == 'ALK4' ) THEN !ALK4
-            ALK4       = GEOS_NATIVEWD * ScVOC
-            ALK4_WKEND = GEOS_NATIVEWE * ScVOC
-         ELSEIF ( TRIM(SId) == 'BENZ' ) THEN !BENZ
-            BENZ       = GEOS_NATIVEWD * ScVOC
-            BENZ_WKEND = GEOS_NATIVEWE * ScVOC
-         ELSEIF ( TRIM(SId) == 'TOLU' ) THEN !TOLU
-            TOLU       = GEOS_NATIVEWD * ScVOC
-            TOLU_WKEND = GEOS_NATIVEWE * ScVOC
-         ELSEIF ( TRIM(SId) == 'XYLE') THEN !XYLE
-            XYLE       = GEOS_NATIVEWD * ScVOC
-            XYLE_WKEND = GEOS_NATIVEWE * ScVOC
-         ELSEIF ( TRIM(SId) == 'CH2O') THEN !CH2O
-            CH2O       = GEOS_NATIVEWD * ScVOC
-            CH2O_WKEND = GEOS_NATIVEWE * ScVOC
-         ELSEIF ( TRIM(SId) == 'SO4') THEN !SO4 - scale to SO2
-            SO4       = GEOS_NATIVEWD * ScSO2
-            SO4_WKEND = GEOS_NATIVEWE * ScSO2
-         ELSEIF ( TRIM(SId) == 'OC') THEN !OCPO
-            OCPO       = GEOS_NATIVEWD * ScPM25
-            OCPO_WKEND = GEOS_NATIVEWE * ScPM25
-         ELSEIF ( TRIM(SId) == 'BC') THEN !BCPO
-            ! Scale BC down by 30% on the basis of SEAC4RS comparisons
-            ! (skim, 5/23/14)
-            BCPO       = GEOS_NATIVEWD * ScPM25 * 0.7
-            BCPO_WKEND = GEOS_NATIVEWE * ScPM25 * 0.7
-! Species not currently used
-!         ELSEIF ( TRIM(SId) == 'C2H4') THEN !C2H4 - no scaling
-!            C2H4       = GEOS_NATIVEWD
-!            C2H4_WKEND = GEOS_NATIVEWE
-!         ELSEIF ( TRIM(SId) == 'MOH') THEN !MOH - no scaling
-!            MOH       = GEOS_NATIVEWD
-!            MOH_WKEND = GEOS_NATIVEWE
-!         ELSEIF ( TRIM(SId) == 'EOH') THEN !EOH - no scaling
-!            EOH       = GEOS_NATIVEWD
-!            EOH_WKEND = GEOS_NATIVEWE
-!         ELSEIF ( TRIM(SId) == 'CH4') THEN !CH4 - no scaling
-!            CH4       = GEOS_NATIVEWD
-!            CH4_WKEND = GEOS_NATIVEWE
+            ! Read scaling factor (ratio of MASAGE to NEI08
+            CALL NC_READ( NC_PATH = TRIM(FILENAME_ScAg),     &
+                 PARA = 'ratio', ARRAY = NCARR,     & 
+                 YEAR = 2010,    MONTH = THISMONTH, &
+                 DAY = 01,       VERBOSE = .FALSE.    )
+                     
+            ! Cast to REAL*8
+            ScAgNH3_MASAGE = NCARR(:,:,1)
+            ScAgNH3_MASAGE2(160:384,399:600) = ScAgNH3_MASAGE(:,:)
+            ! Deallocate ncdf-array
+            IF ( ASSOCIATED ( NCARR ) ) DEALLOCATE ( NCARR )
+            ! Scale agricultural component to MASAGE monthly totals
+            DO HH = 1, 24
+               GEOS_NATIVEWD_NH3ag(:,:,HH) = &
+                    GEOS_NATIVEWD_NH3ag(:,:,HH) * ScAgNH3_MASAGE2
+               GEOS_NATIVEWE_NH3ag(:,:,HH) = &
+                    GEOS_NATIVEWE_NH3ag(:,:,HH) * ScAgNH3_MASAGE2
+            ENDDO
+            ! Add scaled agricultural component back to total and apply
+            ! interannual scaling factors
+            GEOS_NATIVEWD(:,:,1,:) = GEOS_NATIVEWD(:,:,1,:) * ScNH3_NonAg + &
+                          GEOS_NATIVEWD_NH3ag(:,:,:) * ScNH3_Ag
+            GEOS_NATIVEWE(:,:,1,:) = GEOS_NATIVEWE(:,:,1,:) * ScNH3_NonAg + &
+                 GEOS_NATIVEWE_NH3ag(:,:,:) * ScNH3_Ag
          ENDIF
+         
+         ! Regrid from GEOS 0.25x0.3125 --> model resolution [molec/cm2/2]
+         DO L=1,3
+            DO HH=1,24
+               !-------WEEKDAY------------
+               ! Point to array slices
+               INGRID  => GEOS_NATIVEWD(:,:,L,HH)
+               OUTGRID => TMPARR_WD(:,:)
+               ! Regrid
+               CALL DO_REGRID_A2A( LLFILENAME, I025x03125,  J025x03125, &
+                    INGRID,     OUTGRID, IS_MASS=0, &
+                    netCDF=.TRUE.                   )
+               ! Free pointers
+               NULLIFY( INGRID, OUTGRID )
+               !-------WEEKEND------------
+               ! Point to array slices
+               INGRID  => GEOS_NATIVEWE(:,:,L,HH)
+               OUTGRID => TMPARR_WE(:,:)
+               ! Regrid
+               CALL DO_REGRID_A2A( LLFILENAME, I025x03125,  J025x03125, &
+                    INGRID,     OUTGRID, IS_MASS=0, &
+                    netCDF=.TRUE.                   )
+               ! Free pointers
+               NULLIFY( INGRID, OUTGRID )
+               
+               ! Add offset
+!$OMP PARALLEL DO        &
+!$OMP DEFAULT( SHARED )  &
+!$OMP PRIVATE( I, J )
+               DO J=1,JJPAR
+                  DO I=1,IIPAR
+                     TMP_WD(I,J,L,HH)=TMPARR_WD(I+I0,J+J0)
+                     TMP_WE(I,J,L,HH)=TMPARR_WE(I+I0,J+J0)
+                  END DO
+               END DO
+!$OMP END PARALLEL DO
 
-      ENDDO
+               IF ( SId == 'CO' ) THEN
+                  !-----------------
+                  ! Apply scaling factor and masks
+                  CO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScCO * USA_MASK
+                  CO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScCO * USA_MASK
+               ELSEIF ( SId == 'NO' ) THEN
+                  ! Apply scaling factor and masks
+                  NO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScNOx * USA_MASK
+                  NO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScNOx * USA_MASK
+               ELSEIF ( TRIM(SId) == 'NO2' ) THEN
+                  ! Apply scaling factor and masks
+                  NO2(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScNOx * USA_MASK
+                  NO2_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScNOx * USA_MASK
+               ELSEIF ( TRIM(SId) == 'HNO2' ) THEN
+                  ! Apply scaling factor and masks
+                  HNO2(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScNOx * USA_MASK
+                  HNO2_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScNOx * USA_MASK
+               ELSEIF ( TRIM(SId) == 'ALD2' ) THEN
+                  ! Apply scaling factor and masks
+                  ALD2(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
+                  ALD2_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+               ELSEIF ( TRIM(SId) == 'RCHO' ) THEN
+                  ! Apply scaling factor and masks
+                  RCHO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
+                  RCHO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+               ELSE IF ( TRIM(SId) == 'BENZ' ) THEN
+                  ! Apply scaling factor and masks
+                  BENZ(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
+                  BENZ_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+               ELSE IF ( TRIM(SId) == 'TOLU' ) THEN
+                  ! Apply scaling factor and masks
+                  TOLU(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
+                  TOLU_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+               ELSE IF ( TRIM(SId) == 'XYLE' ) THEN
+                  ! Apply scaling factor and masks
+                  XYLE(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
+                  XYLE_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+               ELSE IF ( TRIM(SId) == 'C2H6' ) THEN
+                  ! Apply scaling factor and masks
+                  C2H6(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
+                  C2H6_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+               ELSE IF ( TRIM(SId) == 'PRPE' ) THEN
+                  ! Apply scaling factor and masks
+                  PRPE(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
+                  PRPE_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+               ELSE IF ( TRIM(SId) == 'ALK4' ) THEN
+                  ! Apply scaling factor and masks
+                  ALK4(:,:,L,HH)       = TMP_WD(:,:,L,HH)* 0.87 * ScVOC * USA_MASK
+                  ALK4_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)* 0.87 * ScVOC * USA_MASK
+                  C3H8(:,:,L,HH)       = TMP_WD(:,:,L,HH)* 0.03 * ScVOC * USA_MASK
+                  C3H8_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)* 0.03 * ScVOC * USA_MASK
+                  ACET(:,:,L,HH)       = TMP_WD(:,:,L,HH)* 0.06 * ScVOC * USA_MASK
+                  ACET_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)* 0.06 * ScVOC * USA_MASK
+                  MEK(:,:,L,HH)        = TMP_WD(:,:,L,HH)* 0.02 * ScVOC * USA_MASK
+                  MEK_WKEND(:,:,L,HH)  = TMP_WE(:,:,L,HH)* 0.02 * ScVOC * USA_MASK
+                  ! I used the graph of the top 50 VOCs from the following paper:
+                  ! http://www.epa.gov/ttnchie1/software/speciate/atmospheric.pdf
+                  ! And determined the PAR weighting from the following report:
+                  ! http://www.camx.com/publ/pdfs/cb05_final_report_120805.pdf
+                  ! I then determined the fraction by carbon of PAR for each of the
+                  !  following species.
+                  ! Note that it will not add to 100% since some species are double
+                  ! counted (benzene) (krt, 2/3/15)
+               ELSE IF ( TRIM(SId) == 'CH2O' ) THEN
+                  ! Apply scaling factor and masks
+                  CH2O(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
+                  CH2O_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+               ELSE IF ( TRIM(SId) == 'BC' ) THEN
+                  ! Scale down by 30% on the basis of comparisons to
+                  ! SEAC4RS (skim, 5/23/14)
+                  ! Apply scaling factor and masks
+                  BCPO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScPM25 * USA_MASK *0.7
+                  BCPO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScPM25 * USA_MASK *0.7
+               ELSE IF ( TRIM(SId) == 'OC' ) THEN
+                  ! Apply scaling factor and masks
+                  OCPO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScPM25 * USA_MASK
+                  OCPO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScPM25 * USA_MASK
+               ELSE IF ( TRIM(SId) == 'SO2' ) THEN
+                  ! Apply scaling factor and masks
+                  SO2(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScSO2 * USA_MASK
+                  SO2_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScSO2 * USA_MASK
+               ELSE IF ( TRIM(SId) == 'SO4' ) THEN
+                  ! Apply scaling factor and masks
+                  SO4(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScSO2 * USA_MASK
+                  SO4_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScSO2 * USA_MASK
+                  ! ELSE IF ( TRIM(SId) == 'C2H4' ) THEN
+                  ! ELSE IF ( TRIM(SId) == 'CH4' ) THEN
+                  ! ELSE IF ( TRIM(SId) == 'EOH' ) THEN
+                  ! ELSE IF ( TRIM(SId) == 'MOH' ) THEN
+               ELSEIF ( TRIM(SId) == 'NH3' ) THEN
+                  IF ( .not. LSCALE2MASAGE ) THEN
+                     ! If we can't separate out the agricultural component
+                     ! (e.g. for the 05x0667 grid), then just apply the single
+                     ! annual scaling factor to NH3 emissions.
+                     NH3(:,:,L,HH)  = TMP_WD(:,:,L,HH)* ScNH3 * USA_MASK
+                     NH3_WKEND(:,:,L,HH)  = TMP_WE(:,:,L,HH)* ScNH3 * USA_MASK
+                  ELSE
+                     ! Apply masks
+                     NH3(:,:,L,HH)       = TMP_WD(:,:,L,HH) * USA_MASK
+                     NH3(:,:,L,HH)       = TMP_WD(:,:,L,HH) * USA_MASK
+                  ENDIF  ! MASAGE scaling                 
+               ENDIF
+            ENDDO
+         ENDDO
 
-      ! Close netCDF file
+      ENDDO ! END SPECIES
+
+      ! Close netCDF files
       CALL NcCl( fId1  )
       CALL NcCl( fId1b )
       CALL NcCl( fId1c )
       CALL NcCl( fId1d )
       CALL NcCl( fId2  )
-      CALL NcCl( fId2b ) 
-      CALL NcCl( fId2c ) 
-      CALL NcCl( fId2d ) 
+      CALL NcCl( fId2b )
+      CALL NcCl( fId2c )
+      CALL NcCl( fId2d )
+
+      ! Close ag files
+      IF ( LSCALE2MASAGE ) THEN
+         CALL NcCl( fId1e )
+         CALL NcCl( fId2e )
+      ENDIF
 
       !--------------------------
       ! Compute future emissions
       !--------------------------
-      IF ( LFUTURE ) THEN
+      IF ( LFUTURE ) THEN 
          CALL NEI2008_SCALE_FUTURE
       ENDIF
 
@@ -2561,8 +1058,7 @@
       CALL TOTAL_ANTHRO_Tg( THISMONTH )
 
       ! Return to calling program
-      END SUBROUTINE EMISS_NEI2008_ANTHRO_NATIVE
-
+      END SUBROUTINE EMISS_NEI2008_ANTHRO
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
@@ -2818,11 +1314,11 @@
       USE GRID_MOD,     ONLY : GET_AREA_CM2
       USE TRACER_MOD,   ONLY : XNUMOL
       USE TRACERID_MOD, ONLY : IDTCO, IDTNO,IDTNO2, IDTHNO2 
-      USE TRACERID_MOD, ONLY : IDTSO2, IDTNH3
+      USE TRACERID_MOD, ONLY : IDTSO2, IDTNH3, IDTMEK
       USE TRACERID_MOD, ONLY : IDTALD2, IDTRCHO, IDTC2H6
       USE TRACERID_MOD, ONLY : IDTPRPE, IDTALK4!, IDTC2H4
       USE TRACERID_MOD, ONLY : IDTBENZ, IDTTOLU, IDTXYLE
-      USE TRACERID_MOD, ONLY : IDTSO4, IDTCH2O
+      USE TRACERID_MOD, ONLY : IDTSO4, IDTCH2O, IDTACET, IDTC3H8
       USE TRACERID_MOD, ONLY : IDTOCPO,  IDTBCPO 
       !USE TRACERID_MOD, ONLY : IDTMOH, IDTEOH, IDTCH4
 
@@ -2842,8 +1338,8 @@
       INTEGER             :: II, JJ, IH, LL
       INTEGER             :: DAY_LIST(12), DL
       REAL*8              :: T_CO, T_NO, T_NO2, T_HNO2, T_SO2, T_NH3
-      REAL*8              :: T_ALD2,  T_RCHO, T_C2H6
-      REAL*8              :: T_PRPE, T_ALK4, T_TOLU, T_XYLE
+      REAL*8              :: T_ALD2,  T_RCHO, T_C2H6, T_C3H8, T_ACET
+      REAL*8              :: T_PRPE, T_ALK4, T_TOLU, T_XYLE, T_MEK
       REAL*8              :: T_CH2O,T_BC, T_OC, T_SO4
       REAL*8              :: T_BENZ!, T_C2H4
       REAL*8              :: tmpArea(IIPAR, JJPAR,3)
@@ -2962,6 +1458,27 @@
                SUM(SUM( ALK4_WKEND,4 )  * tmpArea) * &
                SEC_IN_HOUR *1d-9/XNUMOL(IDTALK4)* WEFRAC
 
+      ! Total C3H8 [Tg C]
+      IF ( IDTC3H8 .NE. 0 ) &
+      T_C3H8 = SUM( SUM( C3H8,4)  * tmpArea )* &
+               SEC_IN_HOUR *1d-9/XNUMOL(IDTC3H8) * WDFRAC + &
+               SUM(SUM( C3H8_WKEND,4 )  * tmpArea) * &
+               SEC_IN_HOUR *1d-9/XNUMOL(IDTC3H8)* WEFRAC
+
+      ! Total MEK [Tg C]
+      IF ( IDTMEK .NE. 0 ) &
+      T_MEK = SUM( SUM( MEK,4)  * tmpArea )* &
+               SEC_IN_HOUR *1d-9/XNUMOL(IDTMEK) * WDFRAC + &
+               SUM(SUM( MEK_WKEND,4 )  * tmpArea) * &
+               SEC_IN_HOUR *1d-9/XNUMOL(IDTMEK)* WEFRAC
+
+      ! Total ACET [Tg C]
+      IF ( IDTACET .NE. 0 ) &
+      T_ACET = SUM( SUM( ACET,4)  * tmpArea )* &
+               SEC_IN_HOUR *1d-9/XNUMOL(IDTACET) * WDFRAC + &
+               SUM(SUM( ACET_WKEND,4 )  * tmpArea) * &
+               SEC_IN_HOUR *1d-9/XNUMOL(IDTACET)* WEFRAC
+
       ! Total TOLU [Tg C]
       IF ( IDTTOLU .NE. 0 ) &
       T_TOLU = SUM( SUM( TOLU,4)  *tmpArea )* &
@@ -3024,6 +1541,9 @@
       WRITE( 6, 110 ) 'C2H6 ', MONTH, T_C2H6, '[Tg C]'
       WRITE( 6, 110 ) 'PRPE ', MONTH, T_PRPE, '[Tg C]'
       WRITE( 6, 110 ) 'ALK4 ', MONTH, T_ALK4, '[Tg C]'
+      WRITE( 6, 110 ) 'C3H8 ', MONTH, T_C3H8, '[Tg C]'
+      WRITE( 6, 110 ) 'MEK ',  MONTH, T_MEK, '[Tg C]'
+      WRITE( 6, 110 ) 'ACET ', MONTH, T_ACET, '[Tg C]'
       WRITE( 6, 110 ) 'TOLU ', MONTH, T_TOLU, '[Tg C]'
       WRITE( 6, 110 ) 'XYLE ', MONTH, T_XYLE, '[Tg C]'
       WRITE( 6, 110 ) 'CH2O ', MONTH, T_CH2O, '[Tg CH2O]'
@@ -3104,6 +1624,22 @@
          CALL READ_NEI2008_MASK
       ENDIF
 
+      ALLOCATE( TMP_WD( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMP_WD' )
+      TMP_WD = 0d0
+
+      ALLOCATE( TMPARR_WD( IIPAR, JJPAR ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMPARR_WD' )
+      TMPARR_WD = 0d0
+
+      ALLOCATE( TMP_WE( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMP_WE' )
+      TMP_WE = 0d0
+
+      ALLOCATE( TMPARR_WE( IIPAR, JJPAR ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMPARR_WE' )
+      TMPARR_WE = 0d0
+
       ALLOCATE( CO( IIPAR, JJPAR, 3, 24 ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'CO' )
       CO = 0d0
@@ -3155,6 +1691,18 @@
       ALLOCATE( ALK4( IIPAR, JJPAR, 3, 24 ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'ALK4' )
       ALK4 = 0d0 
+
+      ALLOCATE( C3H8( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'C3H8' )
+      C3H8 = 0d0 
+
+      ALLOCATE( MEK( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'MEK' )
+      MEK = 0d0 
+
+      ALLOCATE( ACET( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'ACET' )
+      ACET = 0d0 
 
       ALLOCATE( TOLU( IIPAR, JJPAR, 3, 24 ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TOLU' )
@@ -3250,6 +1798,18 @@
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'ALK4_WKEND' )
       ALK4_WKEND = 0d0 
 
+      ALLOCATE( C3H8_WKEND( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'C3H8_WKEND' )
+      C3H8_WKEND = 0d0 
+
+      ALLOCATE( MEK_WKEND( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'MEK_WKEND' )
+      MEK_WKEND = 0d0 
+
+      ALLOCATE( ACET_WKEND( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'ACET_WKEND' )
+      ACET_WKEND = 0d0 
+
       ALLOCATE( TOLU_WKEND( IIPAR, JJPAR, 3, 24 ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TOLU_WKEND' )
       TOLU_WKEND = 0d0 
@@ -3318,8 +1878,12 @@
       !=================================================================
       ! USA mask
       IF ( ALLOCATED( USA_MASK) ) DEALLOCATE( USA_MASK )
-      IF ( ALLOCATED( CO     ) ) DEALLOCATE( CO    )
+      IF ( ALLOCATED( TMP_WD ) ) DEALLOCATE( TMP_WD )
+      IF ( ALLOCATED( TMP_WE ) ) DEALLOCATE( TMP_WE )
+      IF ( ALLOCATED( TMPARR_WD ) ) DEALLOCATE( TMPARR_WD )
+      IF ( ALLOCATED( TMPARR_WE ) ) DEALLOCATE( TMPARR_WE )
       !IF ( ALLOCATED( NOX    ) ) DEALLOCATE( NOX   )
+      IF ( ALLOCATED( CO     ) ) DEALLOCATE( CO    )
       IF ( ALLOCATED( NO     ) ) DEALLOCATE( NO    )
       IF ( ALLOCATED( NO2    ) ) DEALLOCATE( NO2   )
       IF ( ALLOCATED( HNO2   ) ) DEALLOCATE( HNO2  )
@@ -3331,6 +1895,9 @@
       IF ( ALLOCATED( C2H6   ) ) DEALLOCATE( C2H6  )
       IF ( ALLOCATED( PRPE   ) ) DEALLOCATE( PRPE  )
       IF ( ALLOCATED( ALK4   ) ) DEALLOCATE( ALK4  )
+      IF ( ALLOCATED( C3H8   ) ) DEALLOCATE( C3H8  )
+      IF ( ALLOCATED( MEK    ) ) DEALLOCATE( MEK  )
+      IF ( ALLOCATED( ACET   ) ) DEALLOCATE( ACET  )
       IF ( ALLOCATED( TOLU   ) ) DEALLOCATE( TOLU  )
       IF ( ALLOCATED( XYLE   ) ) DEALLOCATE( XYLE  )
       !IF ( ALLOCATED( C2H4   ) ) DEALLOCATE( C2H4  )
@@ -3355,6 +1922,9 @@
       IF ( ALLOCATED( C2H6_WKEND  ) ) DEALLOCATE( C2H6_WKEND )
       IF ( ALLOCATED( PRPE_WKEND  ) ) DEALLOCATE( PRPE_WKEND )
       IF ( ALLOCATED( ALK4_WKEND  ) ) DEALLOCATE( ALK4_WKEND )
+      IF ( ALLOCATED( C3H8_WKEND  ) ) DEALLOCATE( C3H8_WKEND )
+      IF ( ALLOCATED( MEK_WKEND   ) ) DEALLOCATE( MEK_WKEND  )
+      IF ( ALLOCATED( ACET_WKEND  ) ) DEALLOCATE( ACET_WKEND )
       IF ( ALLOCATED( TOLU_WKEND  ) ) DEALLOCATE( TOLU_WKEND )
       IF ( ALLOCATED( XYLE_WKEND  ) ) DEALLOCATE( XYLE_WKEND )
       !IF ( ALLOCATED( C2H4_WKEND  ) ) DEALLOCATE( C2H4_WKEND )
