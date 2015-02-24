@@ -385,7 +385,7 @@
       REAL*8                     :: ARRAYEGU(225,202,3,24)
       REAL*8                     :: ARRAYEGUPK(225,202,3,24)
       REAL*4                     :: ARRAY_NH3ag(225,202,24)
-      REAL*8, TARGET             :: GEOS_NATIVE_NH3ag(225,202,24)
+      REAL*4                     :: ARRAY_NH3nonag(225,202,24)
       REAL*8, TARGET             :: GEOS_NATIVE(I025x03125,J025x03125,6,24)
       REAL*4                     :: ScCO, ScNOx, ScSO2, ScNH3, ScPM10
       REAL*4                     :: ScNH3_Ag, ScNH3_NonAg
@@ -605,15 +605,9 @@
             CALL NcRd(ARRAY_NH3ag, fId1h, TRIM(SId), st3d, ct3d )
             CALL NcCl( fId1h )
 
-            ! Cast to REAL*8
-            GEOS_NATIVE_NH3ag = ARRAY_NH3ag
-
-            ! Subtract agricultural component from total
-            ! This is a global array so only put in the US segment,
-            ! as above
-            GEOS_NATIVE(160:384,399:600,1,:) = &
-               GEOS_NATIVE(160:384,399:600,1,:) - &
-               GEOS_NATIVE_NH3ag(:,:,:)
+            ! Separate ag and non-ag components
+            ARRAY_NH3nonag = GEOS_NATIVE(160:384,399:600,1,:) - &
+                 ARRAY_NH3ag(:,:,:)
 
             ! Read scaling factor (ratio of MASAGE to NEI08
             CALL NC_READ( NC_PATH = TRIM(FILENAME_ScAg),     &
@@ -629,17 +623,16 @@
 
             ! Scale agricultural component to MASAGE monthly totals
             DO HH = 1, 24
-               GEOS_NATIVE_NH3ag(:,:,HH) =              &
-                  GEOS_NATIVE_NH3ag(:,:,HH) * ScAgNH3_MASAGE
+               ARRAY_NH3ag(:,:,HH) =              &
+                  ARRAY_NH3ag(:,:,HH) * ScAgNH3_MASAGE
             ENDDO
 
             ! Add scaled agricultural component back to total and
             ! apply interannual scaling factors
-            ! This is a global array so only put in the US segment,
-            ! as above
+            ! Overwrite global array
             GEOS_NATIVE(160:384,399:600,1,:) = &
-               GEOS_NATIVE(160:384,399:600,1,:) * ScNH3_NonAg + &
-               GEOS_NATIVE_NH3ag(:,:,:) * ScNH3_Ag
+               ARRAY_NH3nonag(:,:,:) * ScNH3_NonAg + &
+               ARRAY_NH3ag(:,:,:) * ScNH3_Ag
 
             ELSE
                ! If we can't separate out the agricultural component
