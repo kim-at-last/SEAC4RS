@@ -576,24 +576,24 @@
 
          ! Cast to REAL*8 before regridding
          ! ALL FILE TYPES
-         GEOS_NATIVE(160:384,399:600,1,:) = ARRAY(:,:,:) + ARRAYOTH(:,:,1,:)  &
+         GEOS_NATIVE(161:385,400:601,1,:) = ARRAY(:,:,:) + ARRAYOTH(:,:,1,:)  &
               + ARRAYPTN(:,:,1,:) + ARRAYC3(:,:,:) + ARRAYOIL(:,:,1,:) &
               + ARRAYEGU(:,:,1,:) + ARRAYEGUPK(:,:,1,:)
          ! NO SHIPS OR SURFACE FILES
-         GEOS_NATIVE(160:384,399:600,2,:) = ARRAYOTH(:,:,2,:)  &
+         GEOS_NATIVE(161:385,400:601,2,:) = ARRAYOTH(:,:,2,:)  &
               + ARRAYPTN(:,:,2,:) + ARRAYOIL(:,:,2,:) &
               + ARRAYEGU(:,:,2,:) + ARRAYEGUPK(:,:,2,:)
          ! NO SHIPS OR SURFACE FILES
-         GEOS_NATIVE(160:384,399:600,3,:) =  ARRAYOTH(:,:,3,:)  &
+         GEOS_NATIVE(161:385,400:601,3,:) =  ARRAYOTH(:,:,3,:)  &
               + ARRAYPTN(:,:,3,:) + ARRAYOIL(:,:,3,:) &
               + ARRAYEGU(:,:,3,:) + ARRAYEGUPK(:,:,3,:)
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK
-         GEOS_NATIVE(160:384,399:600,4,:) =  ARRAYOTH(:,:,4,:)  &
+         GEOS_NATIVE(161:385,400:601,4,:) =  ARRAYOTH(:,:,4,:)  &
               + ARRAYPTN(:,:,4,:) + ARRAYOIL(:,:,4,:) 
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
-         GEOS_NATIVE(160:384,399:600,5,:) =  ARRAYOTH(:,:,5,:) 
+         GEOS_NATIVE(161:385,400:601,5,:) =  ARRAYOTH(:,:,5,:) 
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
-         GEOS_NATIVE(160:384,399:600,6,:) =  ARRAYOTH(:,:,6,:) 
+         GEOS_NATIVE(161:385,400:601,6,:) =  ARRAYOTH(:,:,6,:) 
                  
 
          ! Special case for NH3 emissions -- scale agricultural
@@ -611,8 +611,8 @@
             ! Subtract agricultural component from total
             ! This is a global array so only put in the US segment,
             ! as above
-            GEOS_NATIVE(160:384,399:600,1,:) = &
-               GEOS_NATIVE(160:384,399:600,1,:) - &
+            GEOS_NATIVE(161:385,400:601,1,:) = &
+               GEOS_NATIVE(161:385,400:601,1,:) - &
                GEOS_NATIVE_NH3ag(:,:,:)
 
             ! Read scaling factor (ratio of MASAGE to NEI08
@@ -637,8 +637,8 @@
             ! apply interannual scaling factors
             ! This is a global array so only put in the US segment,
             ! as above
-            GEOS_NATIVE(160:384,399:600,1,:) = &
-               GEOS_NATIVE(160:384,399:600,1,:) * ScNH3_NonAg + &
+            GEOS_NATIVE(161:385,400:601,1,:) = &
+               GEOS_NATIVE(161:385,400:601,1,:) * ScNH3_NonAg + &
                GEOS_NATIVE_NH3ag(:,:,:) * ScNH3_Ag
 
             ELSE

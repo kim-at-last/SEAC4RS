@@ -823,11 +823,11 @@
          Call NcRd(ARRAYWDPTN,    fId1c, TRIM(SId), st4d, ct4db)
          Call NcRd(ARRAYWDC3,     fId1d, TRIM(SId), st3d, ct3d )
 
-         GEOS_NATIVEWD(160:384,399:600,1,:) = ARRAYWD(:,:,:) + &
+         GEOS_NATIVEWD(161:385,400:601,1,:) = ARRAYWD(:,:,:) + &
               ARRAYWDPT(1,:,:,:) + ARRAYWDPTN(1,:,:,:) + ARRAYWDC3(:,:,:)
-         GEOS_NATIVEWD(160:384,399:600,2,:) = ARRAYWDPT(2,:,:,:) + &
+         GEOS_NATIVEWD(161:385,400:601,2,:) = ARRAYWDPT(2,:,:,:) + &
               ARRAYWDPTN(2,:,:,:)
-         GEOS_NATIVEWD(160:384,399:600,3,:) = ARRAYWDPTN(3,:,:,:)
+         GEOS_NATIVEWD(161:385,400:601,3,:) = ARRAYWDPTN(3,:,:,:)
 
          ! Read variable from weekend netCDF files
          WRITE( 6, 100 ) TRIM( FILENAMEWE ), SId
@@ -836,11 +836,11 @@
          Call NcRd(ARRAYWEPTN,    fId2c, TRIM(SId), st4d, ct4db)
          Call NcRd(ARRAYWEC3,     fId2d, TRIM(SId), st3d, ct3d )
 
-         GEOS_NATIVEWE(160:384,399:600,1,:) = ARRAYWE(:,:,:) + &
+         GEOS_NATIVEWE(161:385,400:601,1,:) = ARRAYWE(:,:,:) + &
               ARRAYWEPT(1,:,:,:) + ARRAYWEPTN(1,:,:,:) + ARRAYWEC3(:,:,:)
-         GEOS_NATIVEWE(160:384,399:600,2,:) = ARRAYWEPT(2,:,:,:) + &
+         GEOS_NATIVEWE(161:385,400:601,2,:) = ARRAYWEPT(2,:,:,:) + &
               ARRAYWEPTN(2,:,:,:)
-         GEOS_NATIVEWE(160:384,399:600,3,:) = ARRAYWEPTN(3,:,:,:)
+         GEOS_NATIVEWE(161:385,400:601,3,:) = ARRAYWEPTN(3,:,:,:)
 
          ! Special case for NH3 emissions -- scale agricultural
          ! component based on MASAGE monthly gridded values from Paulot
@@ -851,9 +851,9 @@
             CALL NcRd(ARRAYWE_NH3ag, fId2e, TRIM(SId), st3d, ct3d )
 
             ! Separate ag and non-ag components
-            ARRAYWD_NH3nonag = GEOS_NATIVEWD(160:384,399:600,1,:) - &
+            ARRAYWD_NH3nonag = GEOS_NATIVEWD(161:385,400:601,1,:) - &
                  ARRAYWD_NH3ag(:,:,:)
-            ARRAYWE_NH3nonag = GEOS_NATIVEWE(160:384,399:600,1,:) - &
+            ARRAYWE_NH3nonag = GEOS_NATIVEWE(161:385,400:601,1,:) - &
                  ARRAYWE_NH3ag(:,:,:)
             
             ! Read scaling factor (ratio of MASAGE to NEI08
@@ -879,10 +879,10 @@
             ! Add scaled agricultural component back to total and apply
             ! interannual scaling factors
             ! Overwrite global array
-            GEOS_NATIVEWD(160:384,399:600,1,:) = &
+            GEOS_NATIVEWD(161:385,400:601,1,:) = &
                 ARRAYWD_NH3nonag * ScNH3_NonAg   + &
                 ARRAYWD_NH3ag    * ScNH3_ag
-            GEOS_NATIVEWE(160:384,399:600,1,:) = &
+            GEOS_NATIVEWE(161:385,400:601,1,:) = &
                 ARRAYWE_NH3nonag * ScNH3_NonAg   + &
                 ARRAYWE_NH3ag    * ScNH3_ag
          ELSE
