@@ -55,8 +55,8 @@
 ! !PRIVATE TYPES:
 !
       ! Arrays for emissions (lat/lon/lev/hrs)
-      REAL*8,  ALLOCATABLE, TARGET :: TMP_WD(:,:,:,:)
-      REAL*8,  ALLOCATABLE, TARGET :: TMP_WE(:,:,:,:)
+      REAL*8,  ALLOCATABLE, TARGET :: TMP_WD(:,:)
+      REAL*8,  ALLOCATABLE, TARGET :: TMP_WE(:,:)
       REAL*8,  ALLOCATABLE, TARGET :: TMPARR_WD(:,:)
       REAL*8,  ALLOCATABLE, TARGET :: TMPARR_WE(:,:)
 
@@ -514,7 +514,7 @@
 !
 ! !USES:
 ! 
-      USE DIRECTORY_MOD,     ONLY : DATA_DIR_NATIVE
+      USE DIRECTORY_MOD,     ONLY : DATA_DIR_1x1
       USE LOGICAL_MOD,       ONLY : LFUTURE
       USE CMN_O3_MOD
       USE CMN_SIZE_MOD
@@ -921,8 +921,8 @@
 !$OMP PRIVATE( I, J )
                DO J=1,JJPAR
                   DO I=1,IIPAR
-                     TMP_WD(I,J,L,HH)=TMPARR_WD(I+I0,J+J0)
-                     TMP_WE(I,J,L,HH)=TMPARR_WE(I+I0,J+J0)
+                     TMP_WD(I,J)=TMPARR_WD(I+I0,J+J0)
+                     TMP_WE(I,J)=TMPARR_WE(I+I0,J+J0)
                   END DO
                END DO
 !$OMP END PARALLEL DO
@@ -930,58 +930,58 @@
                IF ( SId == 'CO' ) THEN
                   !-----------------
                   ! Apply scaling factor and masks
-                  CO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScCO * USA_MASK
-                  CO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScCO * USA_MASK
+                  CO(:,:,L,HH)       = TMP_WD(:,:)*ScCO * USA_MASK
+                  CO_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScCO * USA_MASK
                ELSEIF ( SId == 'NO' ) THEN
                   ! Apply scaling factor and masks
-                  NO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScNOx * USA_MASK
-                  NO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScNOx * USA_MASK
+                  NO(:,:,L,HH)       = TMP_WD(:,:)*ScNOx * USA_MASK
+                  NO_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScNOx * USA_MASK
                ELSEIF ( TRIM(SId) == 'NO2' ) THEN
                   ! Apply scaling factor and masks
-                  NO2(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScNOx * USA_MASK
-                  NO2_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScNOx * USA_MASK
+                  NO2(:,:,L,HH)       = TMP_WD(:,:)*ScNOx * USA_MASK
+                  NO2_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScNOx * USA_MASK
                ELSEIF ( TRIM(SId) == 'HNO2' ) THEN
                   ! Apply scaling factor and masks
-                  HNO2(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScNOx * USA_MASK
-                  HNO2_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScNOx * USA_MASK
+                  HNO2(:,:,L,HH)       = TMP_WD(:,:)*ScNOx * USA_MASK
+                  HNO2_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScNOx * USA_MASK
                ELSEIF ( TRIM(SId) == 'ALD2' ) THEN
                   ! Apply scaling factor and masks
-                  ALD2(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
-                  ALD2_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+                  ALD2(:,:,L,HH)       = TMP_WD(:,:)*ScVOC * USA_MASK
+                  ALD2_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScVOC * USA_MASK
                ELSEIF ( TRIM(SId) == 'RCHO' ) THEN
                   ! Apply scaling factor and masks
-                  RCHO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
-                  RCHO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+                  RCHO(:,:,L,HH)       = TMP_WD(:,:)*ScVOC * USA_MASK
+                  RCHO_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScVOC * USA_MASK
                ELSE IF ( TRIM(SId) == 'BENZ' ) THEN
                   ! Apply scaling factor and masks
-                  BENZ(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
-                  BENZ_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+                  BENZ(:,:,L,HH)       = TMP_WD(:,:)*ScVOC * USA_MASK
+                  BENZ_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScVOC * USA_MASK
                ELSE IF ( TRIM(SId) == 'TOLU' ) THEN
                   ! Apply scaling factor and masks
-                  TOLU(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
-                  TOLU_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+                  TOLU(:,:,L,HH)       = TMP_WD(:,:)*ScVOC * USA_MASK
+                  TOLU_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScVOC * USA_MASK
                ELSE IF ( TRIM(SId) == 'XYLE' ) THEN
                   ! Apply scaling factor and masks
-                  XYLE(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
-                  XYLE_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+                  XYLE(:,:,L,HH)       = TMP_WD(:,:)*ScVOC * USA_MASK
+                  XYLE_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScVOC * USA_MASK
                ELSE IF ( TRIM(SId) == 'C2H6' ) THEN
                   ! Apply scaling factor and masks
-                  C2H6(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
-                  C2H6_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+                  C2H6(:,:,L,HH)       = TMP_WD(:,:)*ScVOC * USA_MASK
+                  C2H6_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScVOC * USA_MASK
                ELSE IF ( TRIM(SId) == 'PRPE' ) THEN
                   ! Apply scaling factor and masks
-                  PRPE(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
-                  PRPE_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+                  PRPE(:,:,L,HH)       = TMP_WD(:,:)*ScVOC * USA_MASK
+                  PRPE_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScVOC * USA_MASK
                ELSE IF ( TRIM(SId) == 'ALK4' ) THEN
                   ! Apply scaling factor and masks
-                  ALK4(:,:,L,HH)       = TMP_WD(:,:,L,HH)* 0.87 * ScVOC * USA_MASK
-                  ALK4_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)* 0.87 * ScVOC * USA_MASK
-                  C3H8(:,:,L,HH)       = TMP_WD(:,:,L,HH)* 0.03 * ScVOC * USA_MASK
-                  C3H8_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)* 0.03 * ScVOC * USA_MASK
-                  ACET(:,:,L,HH)       = TMP_WD(:,:,L,HH)* 0.06 * ScVOC * USA_MASK
-                  ACET_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)* 0.06 * ScVOC * USA_MASK
-                  MEK(:,:,L,HH)        = TMP_WD(:,:,L,HH)* 0.02 * ScVOC * USA_MASK
-                  MEK_WKEND(:,:,L,HH)  = TMP_WE(:,:,L,HH)* 0.02 * ScVOC * USA_MASK
+                  ALK4(:,:,L,HH)       = TMP_WD(:,:)* 0.87 * ScVOC * USA_MASK
+                  ALK4_WKEND(:,:,L,HH) = TMP_WE(:,:)* 0.87 * ScVOC * USA_MASK
+                  C3H8(:,:,L,HH)       = TMP_WD(:,:)* 0.03 * ScVOC * USA_MASK
+                  C3H8_WKEND(:,:,L,HH) = TMP_WE(:,:)* 0.03 * ScVOC * USA_MASK
+                  ACET(:,:,L,HH)       = TMP_WD(:,:)* 0.06 * ScVOC * USA_MASK
+                  ACET_WKEND(:,:,L,HH) = TMP_WE(:,:)* 0.06 * ScVOC * USA_MASK
+                  MEK(:,:,L,HH)        = TMP_WD(:,:)* 0.02 * ScVOC * USA_MASK
+                  MEK_WKEND(:,:,L,HH)  = TMP_WE(:,:)* 0.02 * ScVOC * USA_MASK
                   ! I used the graph of the top 50 VOCs from the following paper:
                   ! http://www.epa.gov/ttnchie1/software/speciate/atmospheric.pdf
                   ! And determined the PAR weighting from the following report:
@@ -992,34 +992,34 @@
                   ! counted (benzene) (krt, 2/3/15)
                ELSE IF ( TRIM(SId) == 'CH2O' ) THEN
                   ! Apply scaling factor and masks
-                  CH2O(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScVOC * USA_MASK
-                  CH2O_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScVOC * USA_MASK
+                  CH2O(:,:,L,HH)       = TMP_WD(:,:)*ScVOC * USA_MASK
+                  CH2O_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScVOC * USA_MASK
                ELSE IF ( TRIM(SId) == 'BC' ) THEN
                   ! Scale down by 30% on the basis of comparisons to
                   ! SEAC4RS (skim, 5/23/14)
                   ! Apply scaling factor and masks
-                  BCPO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScPM25 * USA_MASK *0.7
-                  BCPO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScPM25 * USA_MASK *0.7
+                  BCPO(:,:,L,HH)       = TMP_WD(:,:)*ScPM25 * USA_MASK *0.7
+                  BCPO_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScPM25 * USA_MASK *0.7
                ELSE IF ( TRIM(SId) == 'OC' ) THEN
                   ! Apply scaling factor and masks
-                  OCPO(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScPM25 * USA_MASK
-                  OCPO_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScPM25 * USA_MASK
+                  OCPO(:,:,L,HH)       = TMP_WD(:,:)*ScPM25 * USA_MASK
+                  OCPO_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScPM25 * USA_MASK
                ELSE IF ( TRIM(SId) == 'SO2' ) THEN
                   ! Apply scaling factor and masks
-                  SO2(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScSO2 * USA_MASK
-                  SO2_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScSO2 * USA_MASK
+                  SO2(:,:,L,HH)       = TMP_WD(:,:)*ScSO2 * USA_MASK
+                  SO2_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScSO2 * USA_MASK
                ELSE IF ( TRIM(SId) == 'SO4' ) THEN
                   ! Apply scaling factor and masks
-                  SO4(:,:,L,HH)       = TMP_WD(:,:,L,HH)*ScSO2 * USA_MASK
-                  SO4_WKEND(:,:,L,HH) = TMP_WE(:,:,L,HH)*ScSO2 * USA_MASK
+                  SO4(:,:,L,HH)       = TMP_WD(:,:)*ScSO2 * USA_MASK
+                  SO4_WKEND(:,:,L,HH) = TMP_WE(:,:)*ScSO2 * USA_MASK
                   ! ELSE IF ( TRIM(SId) == 'C2H4' ) THEN
                   ! ELSE IF ( TRIM(SId) == 'CH4' ) THEN
                   ! ELSE IF ( TRIM(SId) == 'EOH' ) THEN
                   ! ELSE IF ( TRIM(SId) == 'MOH' ) THEN
                ELSEIF ( TRIM(SId) == 'NH3' ) THEN
                   ! Apply masks - scaling factors applied above
-                  NH3(:,:,L,HH)       = TMP_WD(:,:,L,HH) * USA_MASK
-                  NH3(:,:,L,HH)       = TMP_WD(:,:,L,HH) * USA_MASK
+                  NH3(:,:,L,HH)       = TMP_WD(:,:) * USA_MASK
+                  NH3(:,:,L,HH)       = TMP_WD(:,:) * USA_MASK
                ENDIF
             ENDDO
          ENDDO
@@ -1622,7 +1622,7 @@
          CALL READ_NEI2008_MASK
       ENDIF
 
-      ALLOCATE( TMP_WD( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      ALLOCATE( TMP_WD( IIPAR, JJPAR ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMP_WD' )
       TMP_WD = 0d0
 
@@ -1630,7 +1630,7 @@
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMPARR_WD' )
       TMPARR_WD = 0d0
 
-      ALLOCATE( TMP_WE( IIPAR, JJPAR, 3, 24 ), STAT=RC )
+      ALLOCATE( TMP_WE( IIPAR, JJPAR ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMP_WE' )
       TMP_WE = 0d0
 
