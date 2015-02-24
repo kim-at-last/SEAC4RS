@@ -514,7 +514,7 @@
 !
 ! !USES:
 ! 
-      USE DIRECTORY_MOD,     ONLY : DATA_DIR_1x1
+      USE DIRECTORY_MOD,     ONLY : DATA_DIR_NATIVE
       USE LOGICAL_MOD,       ONLY : LFUTURE
       USE CMN_O3_MOD
       USE CMN_SIZE_MOD
@@ -696,9 +696,9 @@
 
       ! DataDir for year
       ! model ready
-      DATA_DIR_NEI = '/as/scratch/krt/NEI08/REGRID/NEI08_2010_25x3125_'
-      !TRIM( Input_Opt%DATA_DIR_1x1 ) // &
-      !               'NEI2008_201307/NEI08_2010_1x1_'
+      DATA_DIR_NEI = TRIM( DATA_DIR_NATIVE ) // 'NEI2008_20107/' // &
+           'NEI08_2010_25x3125_'
+   
       ! For NH3 -- files with agricultural emissions only (jaf, 12/10/13)
       ! Eventually these files will move to the data directory
 !!!      DATA_DIR_NH3_ag = TRIM( Input_Opt%DATA_DIR_1x1 ) // &
