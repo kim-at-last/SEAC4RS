@@ -586,8 +586,8 @@
       REAL*4                     :: ARRAYWEC3(225,202,24)
       REAL*4                     :: ARRAYWD_NH3ag(225,202,24)
       REAL*4                     :: ARRAYWE_NH3ag(225,202,24)
-      REAL*8, TARGET             :: GEOS_NATIVEWD_NH3ag(I025x03125,J025x03125,24)
-      REAL*8, TARGET             :: GEOS_NATIVEWE_NH3ag(I025x03125,J025x03125,24)
+      REAL*4                     :: ARRAYWD_NH3nonag(225,202,24)
+      REAL*4                     :: ARRAYWE_NH3nonag(225,202,24)
       REAL*8, TARGET             :: GEOS_NATIVEWD(I025x03125,J025x03125,3,24)
       REAL*8, TARGET             :: GEOS_NATIVEWE(I025x03125,J025x03125,3,24)
       REAL*4                     :: ScCO, ScNOx, ScPM10, ScPM25
@@ -608,7 +608,6 @@
       ! For scaling NH3 agricultural emissions (jaf, 12/10/13)
       REAL*4, POINTER            :: NCARR(:,:,:) => NULL()
       REAL*8                     :: ScAgNH3_MASAGE(225,202)
-      REAL*8                     :: ScAgNH3_MASAGE2(I025x03125,J025x03125)
       LOGICAL                    :: LSCALE2MASAGE
       CHARACTER(LEN=255)         :: DATA_DIR_NH3_ag
       CHARACTER(LEN=255)         :: FILENAMEWD_NH3ag, FILENAMEWE_NH3ag
@@ -623,6 +622,10 @@
       ! Copy values from Input_Opt
       LFUTURE   = Input_Opt%LFUTURE
       LSCALE2MASAGE = Input_Opt%LSCALE2MASAGE
+      
+      ! Get the nested-grid offsets
+      I0        = GET_XOFFSET( GLOBAL=.TRUE. )
+      J0        = GET_YOFFSET( GLOBAL=.TRUE. )
       
       ! First-time initialization
       IF ( FIRST ) THEN
@@ -692,13 +695,11 @@
 
       ! File with lat/lon edges for regridding
       LLFILENAME = TRIM( DATA_DIR_1x1) // &
-                  'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos025x03125.nc'
+                 'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos025x03125.nc'
 
       ! DataDir for year
-      ! model ready
-      DATA_DIR_NEI = '/as/scratch/krt/NEI08/REGRID/NEI08_2010_25x3125_'
-      !TRIM( Input_Opt%DATA_DIR_1x1 ) // &
-      !               'NEI2008_201307/NEI08_2010_1x1_'
+      DATA_DIR_NEI = TRIM( Input_Opt%DATA_DIR_1x1 ) // &
+                     'NEI2008_201307/NEI08_2010_25x3125_'
       ! For NH3 -- files with agricultural emissions only (jaf, 12/10/13)
       ! Eventually these files will move to the data directory
 !!!      DATA_DIR_NH3_ag = TRIM( Input_Opt%DATA_DIR_1x1 ) // &
@@ -812,8 +813,8 @@
 
          GEOS_NATIVEWD = 0d0
          GEOS_NATIVEWE = 0d0
-         GEOS_NATIVEWD_NH3ag = 0d0
-         GEOS_NATIVEWE_NH3ag = 0d0
+         !GEOS_NATIVEWD_NH3ag = 0d0
+         !GEOS_NATIVEWE_NH3ag = 0d0
 
          ! Read variable from weekday netCDF files
          WRITE( 6, 100 )  TRIM( FILENAMEWD ), SID
@@ -841,24 +842,20 @@
               ARRAYWEPTN(2,:,:,:)
          GEOS_NATIVEWE(160:384,399:600,3,:) = ARRAYWEPTN(3,:,:,:)
 
+         ! Special case for NH3 emissions -- scale agricultural
+         ! component based on MASAGE monthly gridded values from Paulot
+         ! et al., 2013 (jaf, 12/10/13)
          IF ( LSCALE2MASAGE .and. SId == 'NH3' ) THEN
+            ! Read ag files
             CALL NcRd(ARRAYWD_NH3ag, fId1e, TRIM(SId), st3d, ct3d )
             CALL NcRd(ARRAYWE_NH3ag, fId2e, TRIM(SId), st3d, ct3d )
-            ! Special case for NH3 emissions -- scale agricultural
-            ! component based on MASAGE monthly gridded values from Paulot
-            ! et al., 2013 (jaf, 12/10/13)
-            ! Read ag files
+
+            ! Separate ag and non-ag components
+            ARRAYWD_NH3nonag = GEOS_NATIVEWD(160:384,399:600,1,:) - &
+                 ARRAYWD_NH3ag(:,:,:)
+            ARRAYWE_NH3nonag = GEOS_NATIVEWE(160:384,399:600,1,:) - &
+                 ARRAYWE_NH3ag(:,:,:)
             
-            ! Cast to REAL*8
-            GEOS_NATIVEWD_NH3ag(160:384,399:600,:) = ARRAYWD_NH3ag(:,:,:)
-            GEOS_NATIVEWE_NH3ag(160:384,399:600,:) = ARRAYWE_NH3ag(:,:,:)
-
-            ! Subtract agricultural component from total
-            GEOS_NATIVEWD(:,:,1,:) = GEOS_NATIVEWD(:,:,1,:) - &
-                 GEOS_NATIVEWD_NH3ag(:,:,:)
-            GEOS_NATIVEWE(:,:,1,:) = GEOS_NATIVEWE(:,:,1,:) - &
-                 GEOS_NATIVEWE_NH3ag(:,:,:)
-
             ! Read scaling factor (ratio of MASAGE to NEI08
             CALL NC_READ( NC_PATH = TRIM(FILENAME_ScAg),     &
                  PARA = 'ratio', ARRAY = NCARR,     & 
@@ -867,25 +864,34 @@
                      
             ! Cast to REAL*8
             ScAgNH3_MASAGE = NCARR(:,:,1)
-            ScAgNH3_MASAGE2(160:384,399:600) = ScAgNH3_MASAGE(:,:)
+
             ! Deallocate ncdf-array
             IF ( ASSOCIATED ( NCARR ) ) DEALLOCATE ( NCARR )
             ! Scale agricultural component to MASAGE monthly totals
+
             DO HH = 1, 24
-               GEOS_NATIVEWD_NH3ag(:,:,HH) = &
-                    GEOS_NATIVEWD_NH3ag(:,:,HH) * ScAgNH3_MASAGE2
-               GEOS_NATIVEWE_NH3ag(:,:,HH) = &
-                    GEOS_NATIVEWE_NH3ag(:,:,HH) * ScAgNH3_MASAGE2
+               ARRAYWD_NH3ag(:,:,HH) = &
+                    ARRAYWD_NH3ag(:,:,HH) * ScAgNH3_MASAGE
+               ARRAYWE_NH3ag(:,:,HH) = &
+                    ARRAYWE_NH3ag(:,:,HH) * ScAgNH3_MASAGE
             ENDDO
+
             ! Add scaled agricultural component back to total and apply
             ! interannual scaling factors
-            GEOS_NATIVEWD(:,:,1,:) = GEOS_NATIVEWD(:,:,1,:) * ScNH3_NonAg + &
-                          GEOS_NATIVEWD_NH3ag(:,:,:) * ScNH3_Ag
-            GEOS_NATIVEWE(:,:,1,:) = GEOS_NATIVEWE(:,:,1,:) * ScNH3_NonAg + &
-                 GEOS_NATIVEWE_NH3ag(:,:,:) * ScNH3_Ag
+            ! Overwrite global array
+            GEOS_NATIVEWD(160:384,399:600,1,:) = &
+                ARRAYWD_NH3nonag * ScNH3_NonAg   + &
+                ARRAYWD_NH3ag    * ScNH3_ag
+            GEOS_NATIVEWE(160:384,399:600,1,:) = &
+                ARRAYWE_NH3nonag * ScNH3_NonAg   + &
+                ARRAYWE_NH3ag    * ScNH3_ag
+         ELSE
+            ! Otherwise, apply single interannual scaling
+            GEOS_NATIVEWD = GEOS_NATIVEWD * ScNH3
+            GEOS_NATIVEWE = GEOS_NATIVEWE * ScNH3
          ENDIF
          
-         ! Regrid from GEOS 0.25x0.3125 --> model resolution [molec/cm2/2]
+         ! Regrid from GEOS 0.25x0.3125 --> model resolution [molec/cm2/s]
          DO L=1,3
             DO HH=1,24
                !-------WEEKDAY------------
@@ -1011,17 +1017,9 @@
                   ! ELSE IF ( TRIM(SId) == 'EOH' ) THEN
                   ! ELSE IF ( TRIM(SId) == 'MOH' ) THEN
                ELSEIF ( TRIM(SId) == 'NH3' ) THEN
-                  IF ( .not. LSCALE2MASAGE ) THEN
-                     ! If we can't separate out the agricultural component
-                     ! (e.g. for the 05x0667 grid), then just apply the single
-                     ! annual scaling factor to NH3 emissions.
-                     NH3(:,:,L,HH)  = TMP_WD(:,:,L,HH)* ScNH3 * USA_MASK
-                     NH3_WKEND(:,:,L,HH)  = TMP_WE(:,:,L,HH)* ScNH3 * USA_MASK
-                  ELSE
-                     ! Apply masks
-                     NH3(:,:,L,HH)       = TMP_WD(:,:,L,HH) * USA_MASK
-                     NH3(:,:,L,HH)       = TMP_WD(:,:,L,HH) * USA_MASK
-                  ENDIF  ! MASAGE scaling                 
+                  ! Apply masks - scaling factors applied above
+                  NH3(:,:,L,HH)       = TMP_WD(:,:,L,HH) * USA_MASK
+                  NH3(:,:,L,HH)       = TMP_WD(:,:,L,HH) * USA_MASK
                ENDIF
             ENDDO
          ENDDO
