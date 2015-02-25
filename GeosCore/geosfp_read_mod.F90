@@ -616,11 +616,12 @@ CONTAINS
     CALL Transfer_2d( Q, State_Met%PBLH )
 
     ! Kludge for GEOS-FP PBL Height (skim, 5/2/14)
+    ! Apply correction in pbl_mix_mod instead (skim, 2/25/15)
     !    Based off of CH4 comparisons by kjw
     DO J=1,JJPAR
        DO I=1,IIPAR
           ! Reduce PBL height by some percent.
-          State_Met%PBLH(I,J) = State_Met%PBLH(I,J) * ( 1.0 - 0.4 )
+          State_Met%PBLH(I,J) = State_Met%PBLH(I,J) * ( 1.0 - 0.0 )
        ENDDO
     ENDDO
 
