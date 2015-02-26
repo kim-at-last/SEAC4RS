@@ -445,6 +445,7 @@
          ScPM25 = 0.995
          ScSO2  = 0.802
          ScVOC  = 0.986
+         ScNH3  = 0.999
          ScNH3_NonAg = 0.999
          ScNH3_Ag    = 1.0
       ELSE IF ( THISYEAR .ge. 2013 ) THEN 
@@ -454,6 +455,7 @@
          ScPM25 = 0.991
          ScSO2  = 0.785
          ScVOC  = 0.971
+         ScNH3  = 0.998
          ScNH3_NonAg = 0.998
          ScNH3_Ag    = 1.0
       ENDIF
@@ -563,8 +565,8 @@
             ARRAYC3  = ARRAYC3  * 0d0
          ENDIF
          IF ( TRIM(SId) .ne. 'ACROLEIN' ) THEN
+            Call NcRd(ARRAYOTH,    fId1b, TRIM(SId), st4d, ct4d )
             Call NcRd(ARRAYOIL,    fId1e, TRIM(SId), st4d, ct4d2 )
-            Call NcRd(ARRAYOTH,    fId1b, TRIM(SId), st4d, ct4d2 )
             Call NcRd(ARRAYPTN,    fId1c, TRIM(SId), st4d, ct4d2 )
          ELSE
             ARRAYOIL = ARRAYOIL * 0d0
@@ -594,7 +596,6 @@
          GEOS_NATIVE(161:385,400:601,5,:) =  ARRAYOTH(:,:,5,:) 
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
          GEOS_NATIVE(161:385,400:601,6,:) =  ARRAYOTH(:,:,6,:) 
-                 
 
          ! Special case for NH3 emissions -- scale agricultural
          ! component based on MASAGE monthly gridded values from Paulot
@@ -634,12 +635,12 @@
                ARRAY_NH3nonag(:,:,:) * ScNH3_NonAg + &
                ARRAY_NH3ag(:,:,:) * ScNH3_Ag
 
-            ELSE
+         ELSE
                ! If we can't separate out the agricultural component
                ! then just apply the single
                ! annual scaling factor to NH3 emissions.
-               GEOS_NATIVE = GEOS_NATIVE * ScNH3_NonAg
-            ENDIF
+               GEOS_NATIVE = GEOS_NATIVE * ScNH3
+         ENDIF
 
          DO L=1,6
             DO HH=1,24
