@@ -867,8 +867,8 @@
 
             ! Deallocate ncdf-array
             IF ( ASSOCIATED ( NCARR ) ) DEALLOCATE ( NCARR )
-            ! Scale agricultural component to MASAGE monthly totals
 
+            ! Scale agricultural component to MASAGE monthly totals
             DO HH = 1, 24
                ARRAYWD_NH3ag(:,:,HH) = &
                     ARRAYWD_NH3ag(:,:,HH) * ScAgNH3_MASAGE
@@ -1019,7 +1019,7 @@
                ELSEIF ( TRIM(SId) == 'NH3' ) THEN
                   ! Apply masks - scaling factors applied above
                   NH3(:,:,L,HH)       = TMP_WD(:,:) * USA_MASK
-                  NH3(:,:,L,HH)       = TMP_WD(:,:) * USA_MASK
+                  NH3_WKEND(:,:,L,HH) = TMP_WE(:,:) * USA_MASK
                ENDIF
             ENDDO
          ENDDO
