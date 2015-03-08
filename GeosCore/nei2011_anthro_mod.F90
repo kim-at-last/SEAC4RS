@@ -22,6 +22,7 @@
 ! !PUBLIC DATA MEMBERS:
 !
       REAL*8, PUBLIC, ALLOCATABLE :: USA_MASK(:,:)
+      REAL*8, PUBLIC, ALLOCATABLE, TARGET :: USA_MASK_TMP(:,:)
 !
 ! !PUBLIC MEMBER FUNCTIONS:
 !
@@ -287,6 +288,9 @@
            ALLOCATE( USA_MASK( IIPAR, JJPAR ), STAT=RC )
            IF ( RC /= 0 ) CALL ALLOC_ERR( 'USA_MASK' )
            USA_MASK = 0d0
+           ALLOCATE( USA_MASK_TMP( IIPAR, JJPAR ), STAT=RC )
+           IF ( RC /= 0 ) CALL ALLOC_ERR( 'USA_MASK' )
+           USA_MASK_TMP = 0d0
 
            CALL READ_NEI2011_MASK
            FIRST = .FALSE.
@@ -322,7 +326,7 @@
       USE REGRID_A2A_MOD,    ONLY : DO_REGRID_A2A
       USE LOGICAL_MOD,       ONLY : LFUTURE
       USE TIME_MOD,          ONLY : GET_YEAR, GET_MONTH, GET_DAY
-      USE TIME_MOD,          ONLY : GET_HOUR
+      USE TIME_MOD,          ONLY : GET_HOUR, GET_DAY_OF_WEEK
       USE TRACER_MOD,        ONLY : XNUMOL
 
       USE GIGC_ErrCode_Mod
@@ -370,11 +374,11 @@
 ! !LOCAL VARIABLES:
 !
       LOGICAL, SAVE              :: FIRST = .TRUE.
-      INTEGER                    :: I, J, IH, I0, J0, THISYEAR, THISMONTH, SNo
-      INTEGER                    :: THISDAY
+      INTEGER                    :: I, J, A, B, IH, I0, J0, THISYEAR, THISMONTH, SNo
+      INTEGER                    :: THISDAY, DOY
       INTEGER                    :: L, HH, KLM, SPECIES_ID(23)
       INTEGER                    :: st3d(3), ct3d(3)
-      INTEGER                    :: st4d(4), ct4d(4), ct4d2(4), ct4d3(4)
+      INTEGER                    :: st4d(4), ct4d3(4), ct4d4(4), ct4d6(4)
       INTEGER                    :: fId1, fId1b, fId1c, fId1d, fId1e
       INTEGER                    :: fId1f, fId1g, fId1h
       REAL*8                     :: ARRAY(225,202,24)
@@ -410,6 +414,20 @@
       CHARACTER(LEN=255)         :: FILENAME_NH3ag
       CHARACTER(LEN=255)         :: FILENAME_ScAg
 
+      ! For scaling ONROAD emissions (krt, 2/26/15)
+      CHARACTER(LEN=255)         :: DATA_DIR_ON
+      INTEGER                    :: fId1o, fId1t
+      REAL*8                     :: ARRAYON(225,202,24)
+      REAL*8                     :: ARRAYCATX(225,202,24)
+      LOGICAL                    :: LSCALEONROAD
+      CHARACTER(LEN=255)         :: FILENAMEON, FILENAMECATX
+ 
+      ! For scaling NONROAD emissions (krt, 3/05/15)
+      CHARACTER(LEN=255)         :: DATA_DIR_NON
+      INTEGER                    :: fId1p
+      REAL*8                     :: ARRAYNON(225,202,24)
+      CHARACTER(LEN=255)         :: FILENAMENON
+
       !=================================================================
       ! EMISS_NEI2011_ANTHRO begins here!
       !=================================================================
@@ -423,6 +441,7 @@
       ! Copy values from Input_Opt
       LFUTURE   = Input_Opt%LFUTURE
       LSCALE2MASAGE = Input_Opt%LSCALE2MASAGE
+      LSCALEONROAD  = Input_Opt%LSCALEONROAD
 
       ! Get emissions year
       THISYEAR = GET_YEAR()
@@ -476,8 +495,15 @@
                   'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos025x03125.nc'
 
       ! Base data directory
-      DATA_DIR_NEI =  '/as/cache/2015-02/krt/'// &
+      DATA_DIR_NEI =  '/as/cache/2015-03/krt/'// &
            'NEI11_025x03125_2011'
+      ! Base data directory
+      DATA_DIR_ON =  '/as/cache/2015-03/krt/onroad/'// &
+           'NEI11_025x03125_2011'
+
+      DATA_DIR_NON =  '/as/cache/2015-03/krt/nonroad/'// &
+           'NEI11_025x03125_2011'
+
       ! For NH3 -- files with agricultural emissions only (jaf, 12/12/13)
       ! Eventually these files will move to the data directory
       DATA_DIR_NH3_ag = '/as/cache/2015-02/krt/ag/'
@@ -487,6 +513,8 @@
       THISMONTH = GET_MONTH()
       ! Get day
       THISDAY   = GET_DAY()
+      DOY       = GET_DAY_OF_WEEK()
+
       WRITE (FDAY, '(I2.2)') THISDAY
       WRITE (FMON, '(I2.2)')  THISMONTH
       
@@ -512,23 +540,46 @@
       FILENAMEC3  = TRIM( DATA_DIR_NEI ) //  &
            TRIM(FMON) // TRIM(FDAY)//  '_c3marine.nc'
 
+      ! Onroad and NH3 ag are sector-specific files incorporated
+      ! into the surface above.  We use them to subtract out their
+      ! contribution, scale it, and then add it back in. (krt, 2/14/15)
+      ! Onroad
+      FILENAMEON  = TRIM( DATA_DIR_ON ) //  &
+           TRIM(FMON) // TRIM(FDAY)//  '_onroad.nc'
+      ! Onroad - california and texas are separate
+      FILENAMECATX  = TRIM( DATA_DIR_ON ) //  &
+           TRIM(FMON) // TRIM(FDAY)//  '_onroad_catx.nc'
+      ! Nonroad
+      IF ( DOY == 0 ) THEN
+         FILENAMENON  = TRIM( DATA_DIR_NON ) // TRIM(FMON) // '_Sun_nonroad.nc'
+      ELSEIF ( DOY == 6 ) THEN
+         FILENAMENON  = TRIM( DATA_DIR_NON ) // TRIM(FMON) // '_Sat_nonroad.nc'
+      ELSEIF ( DOY == 1 ) THEN
+         FILENAMENON  = TRIM( DATA_DIR_NON ) // TRIM(FMON) //'_Mon_nonroad.nc'
+      ELSE
+         FILENAMENON  = TRIM( DATA_DIR_NON ) // TRIM(FMON) //  '_WK_nonroad.nc'
+      ENDIF
+
       ! Allocate start and count arrays
-      st3d = (/1, 1, 1/)            !Start lat/lon/time
+      st3d = (/1, 1, 1/)          !Start lat/lon/time
       ct3d = (/225, 202, 24/)     !Count lat/lon/time
-      st4d = (/1, 1, 1, 1/)         !Start lat/lon/time/lev
-      ct4d= (/225, 202, 6, 24/)  !Count lat/lon/time/lev 
-      ct4d2= (/225, 202, 4, 24/)  !Count lat/lon/time/lev 
+      st4d = (/1, 1, 1, 1/)       !Start lat/lon/time/lev
+      ct4d6= (/225, 202, 6, 24/)  !Count lat/lon/time/lev 
+      ct4d4= (/225, 202, 4, 24/)  !Count lat/lon/time/lev 
       ct4d3= (/225, 202, 3, 24/)  !Count lat/lon/time/lev 
 
 
       ! Open netCDF files for reading
-      CALL Ncop_Rd(fId1,  TRIM(FILENAME))
-      CALL Ncop_Rd(fId1b, TRIM(FILENAMEOTH))     ! ptipm
+      CALL Ncop_Rd(fId1,  TRIM(FILENAME))       ! surface
+      CALL Ncop_Rd(fId1b, TRIM(FILENAMEOTH))    ! ptipm
       CALL Ncop_Rd(fId1c, TRIM(FILENAMEPTN))    ! ptnonipm
       CALL Ncop_Rd(fId1d, TRIM(FILENAMEC3))     ! c3marine
-      CALL Ncop_Rd(fId1e, TRIM(FILENAMEOIL))     ! oilgas
-      CALL Ncop_Rd(fId1f, TRIM(FILENAMEEGU))     ! egu
-      CALL Ncop_Rd(fId1g, TRIM(FILENAMEEGUPK))     ! egupk
+      CALL Ncop_Rd(fId1e, TRIM(FILENAMEOIL))    ! oilgas
+      CALL Ncop_Rd(fId1f, TRIM(FILENAMEEGU))    ! egu
+      CALL Ncop_Rd(fId1g, TRIM(FILENAMEEGUPK))  ! egupk
+      CALL Ncop_Rd(fId1o, TRIM(FILENAMEON))     ! onroad
+      CALL Ncop_Rd(fId1t, TRIM(FILENAMECATX))   ! onroad, catx
+      CALL Ncop_Rd(fId1p, TRIM(FILENAMENON))    ! nonroad
 
       ! Open NH3 ag files (only avail at 025x03125)
       IF ( LSCALE2MASAGE ) THEN
@@ -551,7 +602,14 @@
 
          ! Skip undefined tracers
          !IF ( SNo == 0 ) CYCLE
-
+         ARRAY = 0.0d0
+         ARRAYEGU = 0.0d0
+         ARRAYEGUPK = 0.0d0
+         ARRAYC3 = 0.0d0
+         ARRAYOIL = 0.0d0
+         ARRAYOTH = 0.0d0
+         ARRAYPTN = 0.0d0
+         
          ! Read variable from netCDF files
          ! Units are in kg/m2/s
          WRITE( 6, 100 )  TRIM( FILENAME ), SID
@@ -565,9 +623,9 @@
             ARRAYC3  = ARRAYC3  * 0d0
          ENDIF
          IF ( TRIM(SId) .ne. 'ACROLEIN' ) THEN
-            Call NcRd(ARRAYOTH,    fId1b, TRIM(SId), st4d, ct4d )
-            Call NcRd(ARRAYOIL,    fId1e, TRIM(SId), st4d, ct4d2 )
-            Call NcRd(ARRAYPTN,    fId1c, TRIM(SId), st4d, ct4d2 )
+            Call NcRd(ARRAYOIL,    fId1e, TRIM(SId), st4d, ct4d4 )
+            Call NcRd(ARRAYOTH,    fId1b, TRIM(SId), st4d, ct4d6 )
+            Call NcRd(ARRAYPTN,    fId1c, TRIM(SId), st4d, ct4d4 )
          ELSE
             ARRAYOIL = ARRAYOIL * 0d0
             ARRAYOTH = ARRAYOTH * 0d0
@@ -575,6 +633,9 @@
          ENDIF
 
          GEOS_NATIVE = 0.0d0
+         ARRAYON = 0.0d0
+         ARRAYCATX = 0.0d0
+         ARRAYNON = 0.0d0
 
          ! Cast to REAL*8 before regridding
          ! ALL FILE TYPES
@@ -596,6 +657,30 @@
          GEOS_NATIVE(161:385,400:601,5,:) =  ARRAYOTH(:,:,5,:) 
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
          GEOS_NATIVE(161:385,400:601,6,:) =  ARRAYOTH(:,:,6,:) 
+         IF ( LSCALEONROAD ) THEN
+            IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2' &
+                 .or. TRIM(SId) .eq. 'HONO' ) THEN
+               Call NcRd(ARRAYON,   fId1o,  TRIM(SId), st3d, ct3d )
+               Call NcRd(ARRAYCATX, fId1t,  TRIM(SId), st3d, ct3d )
+               Call NcRd(ARRAYNON,  fId1p,  TRIM(SId), st3d, ct3d )
+               WRITE(*,*) 'REMOVING 90% OF ONROAD and NONROAD EMISSIONS', sum(GEOS_NATIVE)
+!$OMP PARALLEL DO        &
+!$OMP DEFAULT( SHARED )  &
+!$OMP PRIVATE( I, J, A, B, HH )
+               DO HH=1,24
+                  DO J=400,601
+                     B = J - 399
+                     DO I=161,385
+                        A = I - 161
+                        GEOS_NATIVE(I,J,1,HH) = GEOS_NATIVE(I,J,1,HH) - 0.90 * &
+                             (ARRAYON(A,B,HH) + ARRAYCATX(A,B,HH) + ARRAYNON(A,B,HH))
+                     END DO
+                  END DO
+               END DO
+!$OMP END PARALLEL DO
+               WRITE(*,*) 'AFTER', sum(GEOS_NATIVE)
+            ENDIF
+         ENDIF
 
          ! Special case for NH3 emissions -- scale agricultural
          ! component based on MASAGE monthly gridded values from Paulot
@@ -784,6 +869,8 @@
       USE DIRECTORY_MOD,  ONLY : DATA_DIR_1x1
       USE REGRID_A2A_MOD, ONLY : DO_REGRID_A2A
       USE TRANSFER_MOD,   ONLY : TRANSFER_2D
+      USE GRID_MOD,       ONLY : GET_XOFFSET
+      USE GRID_MOD,       ONLY : GET_YOFFSET
 
       USE CMN_SIZE_MOD         ! Size parameters
 
@@ -809,13 +896,13 @@
 !
 ! !LOCAL VARIABLES:
 !
-      REAL*4             :: ARRAY2(I1x1,J1x1)
-      REAL*8, TARGET     :: GEOS_1x1(I1x1,J1x1)
+      REAL*4             :: ARRAY2(225,202)
+      REAL*8, TARGET     :: GEOS_MASK(I025x03125,J025x03125)
       CHARACTER(LEN=255) :: FILENAME
       CHARACTER(LEN=255) :: LLFILENAME
       REAL*8, POINTER    :: INGRID(:,:) => NULL()
       INTEGER            :: st2d(2), ct2d(2)
-      INTEGER            :: fId1
+      INTEGER            :: fId1, I0, J0, I, J
       !=================================================================
       ! Mask specific to NEI2011 data
       !=================================================================
@@ -832,39 +919,51 @@
 !%%%      FILENAME  = '/as/home/ktravis/' // &     
       !FILENAME  = TRIM( DATA_DIR_1x1) // &
            !'NEI2008_201307/usa.mask.nei2005.geos.1x1.nc' !kyu, 7Feb2014
-      FILENAME = '/as/home/kyu/' // &
-            'regrid/nei2005masktest.nc'
+      FILENAME = '/as/cache/2015-03/krt/USA_mask.geos.NEI11.025x03125.nc'
 
       ! Echo info
       WRITE( 6, 200 ) TRIM( FILENAME )
 200   FORMAT( '     - READ_NEI2011_MASK: Reading ', a )
      
+      I0    = GET_XOFFSET( GLOBAL=.TRUE. )
+      J0    = GET_YOFFSET( GLOBAL=.TRUE. )
+
       ! Allocate start and count arrays
       st2d = (/1, 1/)
-      ct2d = (/I1x1, J1x1/)
+      ct2d = (/225, 202/)
       ! Open and read model_ready data from netCDF file - wkday
       CALL Ncop_Rd(fId1, TRIM(FILENAME))
-      Call NcRd(ARRAY2, fId1, 'MASK',   &
-           st2d,  ct2d )        !Start andCount lat/lon
+      Call NcRd(ARRAY2, fId1, 'mask', st2d,  ct2d )        !Start andCount lat/lon
       ! Close netCDF file
       CALL NcCl( fId1 )
       ! Cast to REAL*8 before regridding
-      GEOS_1x1(:,:) = ARRAY2(:,:)
+      GEOS_MASK(161:385,400:601) = ARRAY2(:,:)
      
       ! File with lat/lon edges for regridding
       LLFILENAME = TRIM( DATA_DIR_1x1) // &
-           'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos1x1.nc'
-      ! Regrid from GEOS 1x1 --> current model resolution [unitless]
-      INGRID => GEOS_1x1(:,:)
-      CALL DO_REGRID_A2A( LLFILENAME, I1x1,     J1x1, &
-           INGRID,     USA_MASK, IS_MASS=0, &
-           netCDF=.TRUE.                   )
+           'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos025x03125.nc'
+      ! Regrid from GEOS 0.25x0.3125 --> current model resolution [unitless]
+      INGRID => GEOS_MASK(:,:)
 
+      CALL DO_REGRID_A2A( LLFILENAME, I025x03125,  J025x03125, &
+           INGRID,     USA_MASK_TMP, IS_MASS=0, &
+           netCDF=.TRUE.                   )
       ! Free pointer
       NULLIFY( INGRID )
+       
+      ! Add offset
+!$OMP PARALLEL DO        &
+!$OMP DEFAULT( SHARED )  &
+!$OMP PRIVATE( I, J )
+      DO J=1,JJPAR
+         DO I=1,IIPAR
+            USA_MASK(I,J)=USA_MASK_TMP(I+I0,J+J0)
+         END DO
+      END DO
+!$OMP END PARALLEL DO
 
-      WHERE ( USA_MASK > 0D0 ) USA_MASK = 1D0
       WRITE(*,*) 'READ NEI2011 MASK!'
+      WHERE ( USA_MASK > 0D0 ) USA_MASK = 1D0
       ! Return to calling program
       END SUBROUTINE READ_NEI2011_MASK
 !------------------------------------------------------------------------------
@@ -1559,6 +1658,7 @@
       ! CLEANUP_NEIO2011_ANTHRO begins here!
       !=================================================================
       ! USA mask
+      IF ( ALLOCATED( USA_MASK_TMP) ) DEALLOCATE( USA_MASK_TMP )
       IF ( ALLOCATED( USA_MASK) ) DEALLOCATE( USA_MASK )
       IF ( ALLOCATED( CO     ) ) DEALLOCATE( CO    )
       IF ( ALLOCATED( T_CO_MON ) ) DEALLOCATE( T_CO_MON    )

@@ -2338,6 +2338,10 @@
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
       READ( SUBSTRS(1:N), * ) LNEI11CARB
 
+      ! Scale NEI2011 onroad emissions by 90%?
+      CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
+      READ( SUBSTRS(1:N), * ) LSCALEONROAD
+
       ! Scale NEI2008/11 ag NH3 to MASAGE?
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
       READ( SUBSTRS(1:N), * ) LSCALE2MASAGE
@@ -2578,6 +2582,7 @@
       LNEI08CARB        = ( LNEI08CARB     .and. LANTHRO   )
       LNEI11            = ( LNEI11         .and. LANTHRO   )
       LNEI11CARB        = ( LNEI11CARB     .and. LANTHRO   )
+      LSCALEONROAD      = ( LSCALEONROAD   .and. LANTHRO   )
       LSCALE2MASAGE     = ( LSCALE2MASAGE  .and. LANTHRO   )
       LRETRO            = ( LRETRO         .and. LANTHRO   )
       LNEI99            = ( LNEI99         .and. LANTHRO   )
@@ -2762,6 +2767,17 @@
          WRITE( 6, '(a)' ) REPEAT( '=', 79 )
          ENDIF
       ENDIF
+      ! Same story for LSCALEONROAD AND NEI11
+      IF ( LSCALEONROAD .and. ( .not. LNEI11 ) ) THEN
+         LSCALEONROAD = .FALSE.
+         IF ( am_I_Root ) THEN
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         WRITE( 6, '(a)' ) 'WARNING! NEI11 emissions are turned off, so'
+         WRITE( 6, '(a)' ) 'we also turn off scaling onroad emissions'
+         WRITE( 6, '(a)' ) 'in order to avoid crashing GEOS-Chem!'
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         ENDIF
+      ENDIF
 
       !=================================================================
       ! Enforce emissions options for Nested China on native GEOS-5 grid
@@ -2781,6 +2797,7 @@
       LNEI11   = .FALSE.
       LNEI11CARB = .FALSE.
       LSCALE2MASAGE = .FALSE.
+      LSCALEONROAD  = .FALSE.
       LVISTAS  = .FALSE.
       LICARTT  = .FALSE.
 
@@ -2811,6 +2828,7 @@
       LNEI11   = .FALSE.
       LNEI11CARB = .FALSE.
       LSCALE2MASAGE = .FALSE.
+      LSCALEONROAD  = .FALSE.
       LVISTAS  = .FALSE.
       LICARTT  = .FALSE.
 
@@ -3035,6 +3053,7 @@
       Input_Opt%LNEI08         = LNEI08
       Input_Opt%LNEI08CARB     = LNEI08CARB
       Input_Opt%LSCALE2MASAGE  = LSCALE2MASAGE
+      Input_Opt%LSCALEONROAD   = LSCALEONROAD
       Input_Opt%LNEI11         = LNEI11
       Input_Opt%LNEI11CARB     = LNEI11CARB
       Input_Opt%LRETRO         = LRETRO
@@ -3116,6 +3135,7 @@
         WRITE( 6, 100 ) '  Scale NEI Ag NH3 to MASAGE: ', LSCALE2MASAGE
         WRITE( 6, 100 ) '  Use EPA/NEI 2011          : ', LNEI11
         WRITE( 6, 100 ) '  Use EPA/NEI 2011 OC/BC    : ', LNEI11CARB
+        WRITE( 6, 100 ) '  Scale NEI11 onroad emissions: ', LSCALEONROAD
         WRITE( 6, 100 ) '  Use RETRO emissions       : ', LRETRO
         WRITE( 6, 100 ) '  Use AEIC emissions        : ', LAEIC
         WRITE( 6, 100 ) '  Use RCP emissions         : ', LRCP
@@ -8773,6 +8793,7 @@
       LNEI08         = .FALSE.
       LNEI08CARB     = .FALSE.
       LSCALE2MASAGE  = .FALSE.
+      LSCALEONROAD   = .FALSE.
       LNEI11         = .FALSE.
       LNEI11CARB     = .FALSE.
       LOTDLOC        = .FALSE.
