@@ -2751,6 +2751,17 @@
          WRITE( 6, '(a)' ) REPEAT( '=', 79 )
          ENDIF
       ENDIF
+      ! NEI08/NEI11 safety switch. Running with both will cause a seg
+      ! fault. For now, default to NEI11 (jaf, 3/9/15)
+      IF ( LNEI11 .and. LNEI08 ) THEN
+         LNEI08 = .FALSE.
+         IF ( am_I_Root ) THEN
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         WRITE( 6, '(a)' ) 'WARNING! Cannot use NEI08 & NEI11'
+         WRITE( 6, '(a)' ) 'simultaneously. Defaulting to NEI11'
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         ENDIF
+      ENDIF
       ! Same story for LSCALE2MASAGE
       IF ( LSCALE2MASAGE .and. ( .not. (LNEI08 .or. LNEI11) ) ) THEN
          LSCALE2MASAGE = .FALSE.
