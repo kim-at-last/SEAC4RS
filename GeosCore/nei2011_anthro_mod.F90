@@ -393,7 +393,7 @@
       REAL*8, TARGET             :: GEOS_NATIVE(I025x03125,J025x03125,6,24)
       REAL*4                     :: ScCO, ScNOx, ScSO2, ScNH3, ScPM10
       REAL*4                     :: ScNH3_Ag, ScNH3_NonAg
-      REAL*4                     :: ScPM25, ScVOC
+      REAL*4                     :: ScPM25, ScVOC, ScON
       CHARACTER(LEN=255)         :: DATA_DIR_NEI
       CHARACTER(LEN=255)         :: FILENAME, FILENAMEOTH, FILENAMEOIL
       CHARACTER(LEN=255)         :: FILENAMEPTN, FILENAMEC3, FILENAMEEGU
@@ -658,12 +658,14 @@
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
          GEOS_NATIVE(161:385,400:601,6,:) =  ARRAYOTH(:,:,6,:) 
          IF ( LSCALEONROAD ) THEN
+            ScON = 0.7
             IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2' &
-                 .or. TRIM(SId) .eq. 'HONO' ) THEN
+                 .or. TRIM(SId) .eq. 'HONO' .or. TRIM(SId) .eq. 'CO' ) THEN
                Call NcRd(ARRAYON,   fId1o,  TRIM(SId), st3d, ct3d )
                Call NcRd(ARRAYCATX, fId1t,  TRIM(SId), st3d, ct3d )
                Call NcRd(ARRAYNON,  fId1p,  TRIM(SId), st3d, ct3d )
-               WRITE(*,*) 'REMOVING 90% OF ONROAD and NONROAD EMISSIONS', sum(GEOS_NATIVE)
+               IF ( TRIM(SId) .eq. 'CO' ) ScON = 0.4 
+               WRITE(*,*) 'REMOVING 70% OF ONROAD and NONROAD NOx and 40% of CO EMISSIONS'
 !$OMP PARALLEL DO        &
 !$OMP DEFAULT( SHARED )  &
 !$OMP PRIVATE( I, J, A, B, HH )
@@ -672,13 +674,12 @@
                      B = J - 399
                      DO I=161,385
                         A = I - 161
-                        GEOS_NATIVE(I,J,1,HH) = GEOS_NATIVE(I,J,1,HH) - 0.90 * &
+                        GEOS_NATIVE(I,J,1,HH) = GEOS_NATIVE(I,J,1,HH) - ScON * &
                              (ARRAYON(A,B,HH) + ARRAYCATX(A,B,HH) + ARRAYNON(A,B,HH))
                      END DO
                   END DO
                END DO
 !$OMP END PARALLEL DO
-               WRITE(*,*) 'AFTER', sum(GEOS_NATIVE)
             ENDIF
          ENDIF
 
@@ -924,7 +925,9 @@
       ! Echo info
       WRITE( 6, 200 ) TRIM( FILENAME )
 200   FORMAT( '     - READ_NEI2011_MASK: Reading ', a )
-     
+      WRITE(*,*) 'WARNING - NEI11 CONTAINS EMISSIONS IN CANADA, MEXICO, and OVER WATER'
+      WRITE(*,*) 'TO GET JUST U.S. TOTALS, USE A MASK JUST FOR THE U.S.'
+
       I0    = GET_XOFFSET( GLOBAL=.TRUE. )
       J0    = GET_YOFFSET( GLOBAL=.TRUE. )
 
@@ -1018,7 +1021,7 @@
 !$OMP PRIVATE( I, J, L, HH )
 
       DO HH=1,24
-      DO L = 1,3
+      DO L = 1,6
       DO J = 1, JJPAR
       DO I = 1, IIPAR
           ! Future NO2 [molec/cm2/s]
