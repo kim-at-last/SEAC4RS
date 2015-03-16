@@ -782,9 +782,9 @@
          ELSEIF ( TRIM(SId) == 'ETHA') THEN !C2H6
             C2H6 = ( TMP * XNUMOL(IDTC2H6)/1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'IOLE' ) THEN !PRPE
-            PRPEa = ( TMP * XNUMOL(IDTPRPE)/1.0E4 ) * ScVOC
+            PRPEa = 0.5 * ( TMP * XNUMOL(IDTPRPE)/1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'OLE' ) THEN !PRPE
-            PRPEb = ( TMP * XNUMOL(IDTPRPE)/1.0E4 ) * ScVOC
+            PRPEb = 0.5 * ( TMP * XNUMOL(IDTPRPE)/1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'PAR' ) THEN 
             ! I used the graph of the top 50 VOCs from the following paper:
             ! http://www.epa.gov/ttnchie1/software/speciate/atmospheric.pdf
