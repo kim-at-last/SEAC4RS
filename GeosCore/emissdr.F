@@ -142,6 +142,8 @@
       USE TRACERID_MOD,       ONLY : IDEMONX,       IDEC2H4,   IDEALD2
       USE TRACERID_MOD,       ONLY : IDTMONX,       IDTC2H4
       USE TRACERID_MOD,       ONLY : IDECHBr3,      IDECH2Br2
+      USE TRACERID_MOD,       ONLY : IDELIM,        IDEAPI
+      USE TRACERID_MOD,       ONLY : IDTLIM,        IDTAPI
 
       ! SEAC4RS passive tracer (jaf, 6/14/13)
       ! Remove SEAC4RS passive tracers (skim, 5/23/14)
@@ -716,6 +718,22 @@
                   EMISRR(I,J,IDEMONX) = EMISRR(I,J,IDEMONX) + 
      &                 ( EMIS_MONO / DTSRCE )
                ENDIF
+
+               ! Two lumped monoterpenes for SEAC4RS:
+               ! API = alpha-pinene, beta-pinene, sabinene, d3-carene
+               ! LIM = limonene, myrcene, ocimene
+               ! Based on RACM2 and Browne et al., 2014 (jaf, 3/16/15)
+               IF ( IDTAPI /= 0 ) THEN
+                  EMISRR(I,J,IDEAPI) = EMISRR(I,J,IDEAPI) + 
+     &                 ( (EMIS_APIN + EMIS_BPIN + EMIS_SABI + EMIS_CARE)
+     &                   / DTSRCE )
+               ENDIF
+               IF ( IDTLIM /= 0 ) THEN
+                  EMISRR(I,J,IDELIM) = EMISRR(I,J,IDELIM) + 
+     &                 ( (EMIS_LIMO + EMIS_MYRC + EMIS_OCIM)
+     &                   / DTSRCE )
+               ENDIF
+
 
 !------------------------------------------------------------------------------
 !
