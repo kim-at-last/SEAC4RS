@@ -279,6 +279,8 @@
       INTEGER            :: IDC2H2, IDC2H4, IDEOH, IDMOH
       INTEGER            :: IDMBO, IDHC187
       INTEGER            :: IDAPAN, IDENPAN, IDMPAN, IDNIPAN
+      INTEGER            :: IDAPI,  IDLIM,   IDPIP,  IDMONIT
+      INTEGER            :: IDAPIO2, IDLIMO2, IDOLNN,  IDOLND
 
       INTEGER            :: IDDRYNO2,   IDDRYO3,   IDDRYPAN
       INTEGER            :: IDDRYHNO3,  IDDRYHNO2, IDDRYH2O2
@@ -520,6 +522,9 @@
       INTEGER            :: IDTONITAam
       INTEGER            :: IDTONITApm
 
+      ! Add monoterpene tracers (jaf, 3/16/15)
+      INTEGER            :: IDTAPI, IDTLIM, IDTMONIT
+
       ! For tagged Hg simulation
       INTEGER              :: N_Hg_CATS
       INTEGER, ALLOCATABLE :: ID_Hg0(:),  ID_Hg2(:), ID_HgP(:)
@@ -560,6 +565,9 @@
       INTEGER            :: IDENO2, IDEHNO2 
       INTEGER            :: IDEMOH, IDEEOH
       INTEGER            :: IDEAPINE
+
+      ! Add monoterpene tracers (jaf, 3/16/15)
+      INTEGER            :: IDEAPI, IDELIM
 
       ! SEAC4RS tracers (jaf, 6/13/13)
       ! Remove passive tracers for now (skim, 5/23/14)
@@ -1577,6 +1585,14 @@
 
             CASE ( 'ONITAPM' )
                IDTONITApm  = N
+
+            ! Add monoterpene tracers (jaf, 3/16/15)
+            CASE ( 'API' )
+               IDTAPI  = N
+            CASE ( 'LIM' )
+               IDTLIM  = N
+            CASE ( 'MONIT' )
+               IDTMONIT= N
 
             !--------------------------------
             ! Tagged Ox Tracers
@@ -3144,6 +3160,14 @@
             NEMBIOG   = NEMBIOG + 1
             IDEBr2    = NEMANTHRO + NEMBIOG
          ENDIF
+         IF ( IDTAPI  > 0 ) THEN
+           NEMBIOG    = NEMBIOG   + 1
+           IDEAPI     = NEMANTHRO + NEMBIOG
+         ENDIF
+         IF ( IDTLIM  > 0 ) THEN
+           NEMBIOG    = NEMBIOG   + 1
+           IDELIM     = NEMANTHRO + NEMBIOG
+         ENDIF
          ! SEAC4RS passive tracer (jaf, 6/14/13)
          ! Remove passive tracers (skim, 5/23/14)
          !IF ( IDTPISOP > 0 ) THEN
@@ -3204,6 +3228,8 @@
       IF ( IDEHAC /= 0 )  IDEMS(IDEHAC ) = IDTHAC
       !evf
       IF ( IDEPAN  /= 0  )  IDEMS(IDEPAN   ) = IDTPAN  !evf, Aug/12
+      IF ( IDEAPI  /= 0 ) IDEMS(IDEAPI ) = IDTAPI 
+      IF ( IDELIM  /= 0 ) IDEMS(IDELIM ) = IDTLIM 
 
       ! jpp:
       IF ( IDECHBr3  /= 0 ) IDEMS(IDECHBr3 ) = IDTCHBr3
@@ -3224,16 +3250,15 @@
          WRITE( 6, 115 ) 'NEMANTHRO: 10 for standard sims b4 v811'
          WRITE( 6, 115 ) '          + 2 for HNO3 and Ox'
          WRITE( 6, 115 ) '          + 5 for aromatics (B,T,X,C2H2,C2H4)'
-         WRITE( 6, 115 ) '          + 8 for SEAC4RS passive tracers'
-         WRITE( 6, 115 ) 'NEMANTHRO: 25 max'
          WRITE( 6, 115 ) '          + 1 for NAP'  ! hotp
+         WRITE( 6, 115 ) 'NEMANTHRO: 18 max'
          WRITE( 6, 120 ) 'THIS NEMANTHRO: ', NEMANTHRO
          WRITE( 6, 115 ) '---------------------------------------------'
          WRITE( 6, 115 ) 'NEMBIOG:    1 for isoprene'
          WRITE( 6, 115 ) '          + 6 for dicarbonyls'
          WRITE( 6, 115 ) '          + 3 for bromine'
-         WRITE( 6, 115 ) '          + 1 for SEAC4RS passive isop tracer'
-         WRITE( 6, 115 ) 'NEMBIOG:   11 max'
+         WRITE( 6, 115 ) '          + 2 for monoterpenes (API, LIM)'
+         WRITE( 6, 115 ) 'NEMBIOG:   12 max'
          WRITE( 6, 120 ) 'THIS NEMBIOG:   ', NEMBIOG
          WRITE( 6, 115 ) '-----------------------------------------'
          WRITE( 6, 120 ) 'IDENO   ', IDENO
@@ -3265,6 +3290,8 @@
          WRITE( 6, 120 ) 'IDEEOH', IDEMOH
          WRITE( 6, 120 ) 'IDEMOH', IDEEOH
          WRITE( 6, 120 ) 'IDEACTA ', IDEACTA
+         WRITE( 6, 120 ) 'IDEAPI  ', IDEAPI 
+         WRITE( 6, 120 ) 'IDELIM  ', IDELIM 
          ! Remove passive tracers (skim, 5/23/14)
          !WRITE( 6, 120 ) 'IDEPCOFNE', IDEPCOFNE
          !WRITE( 6, 120 ) 'IDEPCOFSE', IDEPCOFSE
@@ -3564,6 +3591,8 @@
          IF ( NAMEGAS(I) == 'MONX'   ) IDMONX   = I 
          IF ( NAMEGAS(I) == 'EOH'    ) IDEOH    = I 
          IF ( NAMEGAS(I) == 'MOH'    ) IDMOH    = I 
+         IF ( NAMEGAS(I) == 'API '   ) IDAPI    = I
+         IF ( NAMEGAS(I) == 'LIM '   ) IDLIM    = I
          ! ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
          IF ( NAMEGAS(I) == 'DRYAPAN' )  IDDRYAPAN  = I
@@ -4807,6 +4836,15 @@
       IDXRIO2MO2  = 0
       IDXSO2      = 0
 
+      IDAPI     = 0
+      IDLIM     = 0
+      IDAPIO2   = 0
+      IDLIMO2   = 0
+      IDPIP     = 0
+      IDOLNN    = 0
+      IDOLND    = 0
+      IDMONIT   = 0
+
       ! GEOS-CHEM Tracer ID #'s
       IDTNO      = 0
       IDTO3      = 0
@@ -4954,6 +4992,11 @@
       ! Add organic nitrate aerosol tracer (jaf, 7/26/14)
       IDTONITAam = 0
       IDTONITApm = 0
+ 
+      ! Add monoterpene tracers (jaf, 3/16/15)
+      IDTAPI    = 0
+      IDTLIM    = 0
+      IDTMONIT  = 0
  
       ! SOAupdate: convert all POA/POG to 1 and 2 (hotp 10/11/09)
        !semivolpoa (hotp 8/24/09)
