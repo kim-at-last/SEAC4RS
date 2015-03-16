@@ -201,8 +201,9 @@
 #else
       ! +3 for SEAC4RS SOA tracers (jaf, 6/24/13)
       ! +2 for organic nitrate aerosols (jaf, 10/5/14)
+      ! +3 for monoterpenes (jaf, 3/16/15)
       !INTEGER, PARAMETER :: MAXDEP    = 55      ! Max # of depositing species
-      INTEGER, PARAMETER :: MAXDEP    = 93      ! Max # of depositing species
+      INTEGER, PARAMETER :: MAXDEP    = 96      ! Max # of depositing species
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      ! SOAupdate: 55 to 105 jje (8/19/2010)
@@ -5850,6 +5851,45 @@ c$$$            FLAG(NUMDEP)    = 2
             XMW(NUMDEP)     = 72d-3
             AIROSOL(NUMDEP) = .TRUE.
             FLAG(NUMDEP)    = 0
+
+         ! SEAC4RS monoterpene tracers (jaf, 3/16/15)
+         ! Use HOTP values from SOA sim for full chem here.
+         ! Lumped MTP with one double bond
+         ELSE IF ( N == IDTAPI ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTAPI
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'API'
+            HSTAR(NUMDEP)   = 0.049d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 136d-3
+            AIROSOL(NUMDEP) = .FALSE.
+
+         ! Lumped MTP with two double bonds
+         ELSE IF ( N == IDTLIM ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTLIM
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'LIM'
+            HSTAR(NUMDEP)   = 0.07d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 136d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
+
+         ! Lumped organic nitrate from MTP
+         ! Treat like HNO3
+         ELSE IF ( N == IDTMONIT ) THEN
+            ! Scale based on molecular weight per Nguyen et al, 2014
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTMONIT
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'MONIT'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 119d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 1d0
 
          !----------------------------------
          ! SEAC4RS SOA tracers (jaf, 6/24/13)
