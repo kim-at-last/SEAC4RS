@@ -1001,7 +1001,8 @@
      &             'VOHRO2', 'RIO1', 'C59O2', 'MAPO2', 
      &             'BRO2', 'TRO2', 'XRO2', 'NRO2',
      &             'MOBAOO', 'ISOPNBO2', 'ISOPNDO2', 'IEPOXOO', 
-     &             'PYPO2', 'MACRNO2', 'PMNO2', 'HC5OO', 'RCO3') 
+     &             'PYPO2', 'MACRNO2', 'PMNO2', 'HC5OO', 'RCO3',
+     &             'APIO2', 'LIMO2' )
                NPRO2       = NPRO2 + 1
                PRO2(NPRO2) = M
 
@@ -1170,7 +1171,7 @@
          SELECT CASE( TRIM( NAMEGAS(M) ) )
 
            CASE ( 'ISOPNB', 'ISOPND', 'MVKN',  'MACRN', 'R4N2',
-     &            'ISN1',   'PROPNN', 'ETHLN', 'DHDN' ) 
+     &            'ISN1',   'PROPNN', 'ETHLN', 'DHDN',  'MONIT' )
 
                NPAN       = NPAN + 1
                P_AN(NPAN) = M
