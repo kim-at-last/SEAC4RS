@@ -457,22 +457,20 @@
      
       ! Apply annual scalar factor.
       ! Using EPA's National Tier1 CAPS (http://www.epa.gov/ttnchie1/trends/)
-      IF ( THISYEAR .eq. 2012 ) THEN ! scale based on 2010
+      IF ( THISYEAR .eq. 2012 ) THEN ! scale based on 2011 (NEI11v1)
          ScCO   = 0.981
-         ScNOx  = 0.940
-         ScPM10 = 0.999
+         ScNOx  = 0.939
          ScPM25 = 0.995
-         ScSO2  = 0.802
+         ScSO2  = 0.800
          ScVOC  = 0.986
          ScNH3  = 0.999
          ScNH3_NonAg = 0.999
          ScNH3_Ag    = 1.0
       ELSE IF ( THISYEAR .ge. 2013 ) THEN 
          ScCO   = 0.962
-         ScNOx  = 0.899
-         ScPM10 = 0.998
+         ScNOx  = 0.887
          ScPM25 = 0.991
-         ScSO2  = 0.785
+         ScSO2  = 0.738
          ScVOC  = 0.971
          ScNH3  = 0.998
          ScNH3_NonAg = 0.998
