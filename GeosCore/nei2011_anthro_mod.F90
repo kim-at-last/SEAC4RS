@@ -327,6 +327,7 @@
       USE LOGICAL_MOD,       ONLY : LFUTURE
       USE TIME_MOD,          ONLY : GET_YEAR, GET_MONTH, GET_DAY
       USE TIME_MOD,          ONLY : GET_HOUR, GET_DAY_OF_WEEK
+      USE TIME_MOD,          ONLY : EXPAND_DATE
       USE TRACER_MOD,        ONLY : XNUMOL
 
       USE GIGC_ErrCode_Mod
@@ -375,26 +376,27 @@
 !
       LOGICAL, SAVE              :: FIRST = .TRUE.
       INTEGER                    :: I, J, A, B, IH, I0, J0, THISYEAR, THISMONTH, SNo
-      INTEGER                    :: THISDAY, DOY
+      INTEGER                    :: THISDAY, DOY, YYYYMMDD
       INTEGER                    :: L, HH, KLM, SPECIES_ID(23)
       INTEGER                    :: st3d(3), ct3d(3)
       INTEGER                    :: st4d(4), ct4d3(4), ct4d4(4), ct4d6(4)
       INTEGER                    :: fId1, fId1b, fId1c, fId1d, fId1e
       INTEGER                    :: fId1f, fId1g, fId1h
-      REAL*8                     :: ARRAY(225,202,24)
-      REAL*8                     :: ARRAYC3(225,202,24)
-      REAL*8                     :: ARRAYOTH(225,202,6,24)
-      REAL*8                     :: ARRAYPTN(225,202,4,24)
-      REAL*8                     :: ARRAYOIL(225,202,4,24)
-      REAL*8                     :: ARRAYEGU(225,202,3,24)
-      REAL*8                     :: ARRAYEGUPK(225,202,3,24)
-      REAL*4                     :: ARRAY_NH3ag(225,202,24)
-      REAL*4                     :: ARRAY_NH3nonag(225,202,24)
-      REAL*8, TARGET             :: GEOS_NATIVE(I025x03125,J025x03125,6,24)
+      REAL*8                     :: ARRAY(900,400,24)
+      REAL*8                     :: ARRAYC3(900,400,24)
+      REAL*8                     :: ARRAYOTH(900,400,6,24)
+      REAL*8                     :: ARRAYPTN(900,400,4,24)
+      REAL*8                     :: ARRAYOIL(900,400,4,24)
+      REAL*8                     :: ARRAYEGU(900,400,3,24)
+      REAL*8                     :: ARRAYEGUPK(900,400,3,24)
+      REAL*4                     :: ARRAY_NH3ag(900,400,24)
+      REAL*4                     :: ARRAY_NH3nonag(900,400,24)
+      REAL*8, TARGET             :: GEOS_NATIVE(I01x01,J01x01,6,24)
       REAL*4                     :: ScCO, ScNOx, ScSO2, ScNH3, ScPM10
       REAL*4                     :: ScNH3_Ag, ScNH3_NonAg
       REAL*4                     :: ScPM25, ScVOC, ScON
       CHARACTER(LEN=255)         :: DATA_DIR_NEI
+      CHARACTER(LEN=4  )         :: TIME_STR
       CHARACTER(LEN=255)         :: FILENAME, FILENAMEOTH, FILENAMEOIL
       CHARACTER(LEN=255)         :: FILENAMEPTN, FILENAMEC3, FILENAMEEGU
       CHARACTER(LEN=255)         :: FILENAMEEGUPK, LLFILENAME
@@ -408,7 +410,7 @@
 
       ! For scaling NH3 agricultural emissions (jaf, 12/12/13)
       REAL*4, POINTER            :: NCARR(:,:,:) => NULL()
-      REAL*8                     :: ScAgNH3_MASAGE(225,202)
+      REAL*8                     :: ScAgNH3_MASAGE(900,400)
       LOGICAL                    :: LSCALE2MASAGE
       CHARACTER(LEN=255)         :: DATA_DIR_NH3_ag
       CHARACTER(LEN=255)         :: FILENAME_NH3ag
@@ -417,15 +419,15 @@
       ! For scaling ONROAD emissions (krt, 2/26/15)
       CHARACTER(LEN=255)         :: DATA_DIR_ON
       INTEGER                    :: fId1o, fId1t
-      REAL*8                     :: ARRAYON(225,202,24)
-      REAL*8                     :: ARRAYCATX(225,202,24)
+      REAL*8                     :: ARRAYON(900,400,24)
+      REAL*8                     :: ARRAYCATX(900,400,24)
       LOGICAL                    :: LSCALEONROAD
       CHARACTER(LEN=255)         :: FILENAMEON, FILENAMECATX
  
       ! For scaling NONROAD emissions (krt, 3/05/15)
       CHARACTER(LEN=255)         :: DATA_DIR_NON
       INTEGER                    :: fId1p
-      REAL*8                     :: ARRAYNON(225,202,24)
+      REAL*8                     :: ARRAYNON(900,400,24)
       CHARACTER(LEN=255)         :: FILENAMENON
 
       !=================================================================
@@ -490,21 +492,25 @@
 
       ! File with lat/lon edges for regridding
       LLFILENAME = TRIM( DATA_DIR_1x1) // &
-                  'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos025x03125.nc'
+                  'MAP_A2A_Regrid_201203/MAP_A2A_latlon_generic01x01.nc'
+
+      TIME_STR =  'MM'
+      ! Base data directory
+      DATA_DIR_NEI =  '/as/data/geos/ExtData/HEMCO/NEI2011/v2015-03/'// &
+        TRIM( TIME_STR ) // 'NEI11_0.1x0.1_2011'
+      
+      CALL EXPAND_DATE( FILENAME, YYYYMMDD, 000000 )
 
       ! Base data directory
-      DATA_DIR_NEI =  '/as/cache/2015-03/krt/'// &
-           'NEI11_025x03125_2011'
-      ! Base data directory
-      DATA_DIR_ON =  '/as/cache/2015-03/krt/onroad/'// &
-           'NEI11_025x03125_2011'
+      DATA_DIR_ON =   '/as/scratch/krt/NEI11/VERYNESTED/onroad/'// &
+           'NEI11_0.1x0.1_2011'
 
-      DATA_DIR_NON =  '/as/cache/2015-03/krt/nonroad/'// &
-           'NEI11_025x03125_2011'
+      DATA_DIR_NON =  '/as/scratch/krt/NEI11/VERYNESTED/nonroad/'// &
+           'NEI11_0.1x0.1_2011'
 
       ! For NH3 -- files with agricultural emissions only (jaf, 12/12/13)
       ! Eventually these files will move to the data directory
-      DATA_DIR_NH3_ag = '/as/cache/2015-02/krt/ag/'
+      DATA_DIR_NH3_ag = '/as/scratch/krt/NEI11/VERYNESTED/ag/'
 
      
       ! Get month
@@ -560,11 +566,11 @@
 
       ! Allocate start and count arrays
       st3d = (/1, 1, 1/)          !Start lat/lon/time
-      ct3d = (/225, 202, 24/)     !Count lat/lon/time
+      ct3d = (/900,400, 24/)     !Count lat/lon/time
       st4d = (/1, 1, 1, 1/)       !Start lat/lon/time/lev
-      ct4d6= (/225, 202, 6, 24/)  !Count lat/lon/time/lev 
-      ct4d4= (/225, 202, 4, 24/)  !Count lat/lon/time/lev 
-      ct4d3= (/225, 202, 3, 24/)  !Count lat/lon/time/lev 
+      ct4d6= (/900,400, 6, 24/)  !Count lat/lon/time/lev 
+      ct4d4= (/900,400, 4, 24/)  !Count lat/lon/time/lev 
+      ct4d3= (/900,400, 3, 24/)  !Count lat/lon/time/lev 
 
 
       ! Open netCDF files for reading
@@ -582,10 +588,10 @@
       ! Open NH3 ag files (only avail at 025x03125)
       IF ( LSCALE2MASAGE ) THEN
          FILENAME_NH3ag = TRIM(DATA_DIR_NH3_ag) // &
-            'NEI11_025x03125_2011'              // &
+            'NEI11_0.1x0.1_2011'              // &
             TRIM(FMON) // TRIM(FDAY) //  '_ag.nc'
          FILENAME_ScAg  = TRIM(DATA_DIR_NH3_ag) // &
-            'MASAGE_NEI11_Ratio.geos.025x03125.nc'
+            'MASAGE_NEI11_Ratio.geos.0.1x0.1.nc'
          CALL Ncop_Rd(fId1h, TRIM(FILENAME_NH3ag)) ! NH3ag
       ENDIF
 
@@ -612,14 +618,21 @@
          ! Units are in kg/m2/s
          WRITE( 6, 100 )  TRIM( FILENAME ), SID
          Call NcRd(ARRAY,       fId1,  TRIM(SId), st3d, ct3d )
-         Call NcRd(ARRAYEGU,    fId1f, TRIM(SId), st4d, ct4d3 )
-         Call NcRd(ARRAYEGUPK,  fId1g, TRIM(SId), st4d, ct4d3 )
+         ! no egu emissions of ammonia
+         IF ( TRIM(SId) .ne. 'NH3') THEN
+            Call NcRd(ARRAYEGU,    fId1f, TRIM(SId), st4d, ct4d3 )
+            Call NcRd(ARRAYEGUPK,  fId1g, TRIM(SId), st4d, ct4d3 )
+         ELSE
+            ARRAYEGU = 0d0
+            ARRAYEGUPK = 0d0
+         ENDIF
          ! no ship emissions of acrolein or ammonia
          IF ( TRIM(SId) .ne. 'ACROLEIN' .and. TRIM(SId) .ne. 'NH3') THEN
             Call NcRd(ARRAYC3, fId1d, TRIM(SId), st3d, ct3d )
          ELSE
             ARRAYC3  = ARRAYC3  * 0d0
          ENDIF
+         ! no oil, othpt, ptnonipm emissions of acrolein
          IF ( TRIM(SId) .ne. 'ACROLEIN' ) THEN
             Call NcRd(ARRAYOIL,    fId1e, TRIM(SId), st4d, ct4d4 )
             Call NcRd(ARRAYOTH,    fId1b, TRIM(SId), st4d, ct4d6 )
@@ -637,24 +650,25 @@
 
          ! Cast to REAL*8 before regridding
          ! ALL FILE TYPES
-         GEOS_NATIVE(161:385,400:601,1,:) = ARRAY(:,:,:) + ARRAYOTH(:,:,1,:)  &
+         GEOS_NATIVE(402:1301,1101:1500,1,:) = ARRAY(:,:,:) + ARRAYOTH(:,:,1,:)  &
               + ARRAYPTN(:,:,1,:) + ARRAYC3(:,:,:) + ARRAYOIL(:,:,1,:) &
               + ARRAYEGU(:,:,1,:) + ARRAYEGUPK(:,:,1,:)
          ! NO SHIPS OR SURFACE FILES
-         GEOS_NATIVE(161:385,400:601,2,:) = ARRAYOTH(:,:,2,:)  &
+         GEOS_NATIVE(402:1301,1101:1500,2,:) = ARRAYOTH(:,:,2,:)  &
               + ARRAYPTN(:,:,2,:) + ARRAYOIL(:,:,2,:) &
               + ARRAYEGU(:,:,2,:) + ARRAYEGUPK(:,:,2,:)
          ! NO SHIPS OR SURFACE FILES
-         GEOS_NATIVE(161:385,400:601,3,:) =  ARRAYOTH(:,:,3,:)  &
+         GEOS_NATIVE(402:1301,1101:1500,3,:) =  ARRAYOTH(:,:,3,:)  &
               + ARRAYPTN(:,:,3,:) + ARRAYOIL(:,:,3,:) &
               + ARRAYEGU(:,:,3,:) + ARRAYEGUPK(:,:,3,:)
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK
-         GEOS_NATIVE(161:385,400:601,4,:) =  ARRAYOTH(:,:,4,:)  &
+         GEOS_NATIVE(402:1301,1101:1500,4,:) =  ARRAYOTH(:,:,4,:)  &
               + ARRAYPTN(:,:,4,:) + ARRAYOIL(:,:,4,:) 
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
-         GEOS_NATIVE(161:385,400:601,5,:) =  ARRAYOTH(:,:,5,:) 
+         GEOS_NATIVE(402:1301,1101:1500,5,:) =  ARRAYOTH(:,:,5,:) 
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
-         GEOS_NATIVE(161:385,400:601,6,:) =  ARRAYOTH(:,:,6,:) 
+         GEOS_NATIVE(402:1301,1101:1500,6,:) =  ARRAYOTH(:,:,6,:) 
+         
          IF ( LSCALEONROAD ) THEN
             ScON = 0.7
             IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2' &
@@ -668,10 +682,10 @@
 !$OMP DEFAULT( SHARED )  &
 !$OMP PRIVATE( I, J, A, B, HH )
                DO HH=1,24
-                  DO J=400,601
-                     B = J - 399
-                     DO I=161,385
-                        A = I - 161
+                  DO J=1101,1500
+                     B = J - 1100
+                     DO I=402,1301
+                        A = I - 401
                         GEOS_NATIVE(I,J,1,HH) = GEOS_NATIVE(I,J,1,HH) - ScON * &
                              (ARRAYON(A,B,HH) + ARRAYCATX(A,B,HH) + ARRAYNON(A,B,HH))
                      END DO
@@ -691,7 +705,7 @@
             CALL NcCl( fId1h )
 
             ! Separate ag and non-ag components
-            ARRAY_NH3nonag = GEOS_NATIVE(161:385,400:601,1,:) - &
+            ARRAY_NH3nonag = GEOS_NATIVE(402:1301,1101:1500,1,:) - &
                  ARRAY_NH3ag(:,:,:)
 
             ! Read scaling factor (ratio of MASAGE to NEI08
@@ -715,7 +729,7 @@
             ! Add scaled agricultural component back to total and
             ! apply interannual scaling factors
             ! Overwrite global array
-            GEOS_NATIVE(161:385,400:601,1,:) = &
+            GEOS_NATIVE(402:1301,1101:1500,1,:) = &
                ARRAY_NH3nonag(:,:,:) * ScNH3_NonAg + &
                ARRAY_NH3ag(:,:,:) * ScNH3_Ag
 
@@ -732,7 +746,7 @@
                INGRID  => GEOS_NATIVE(:,:,L,HH)
                OUTGRID => TMPARR(:,:)
                ! Regrid
-               CALL DO_REGRID_A2A( LLFILENAME, I025x03125,  J025x03125, &
+               CALL DO_REGRID_A2A( LLFILENAME, I01x01, J01x01, &
                     INGRID,     OUTGRID, IS_MASS=0, &
                     netCDF=.TRUE.                   )
                ! Free pointers
@@ -754,13 +768,8 @@
          ![kg/m2/s] to [molec/cm2/s]
          IF ( TRIM(SId) == 'CO') THEN !CO
             CO = ( TMP * XNUMOL(IDTCO) / 1E4 )  * ScCO
-            ! USE VALUES FROM BORBON ET AL, 2013 (JGR) FOR UNKNOWN VOCS
-            !WRITE(*,*) 'USING BORBON ET AL, 2013 for C3H8, ACET'
-            !C3H8 = CO * 1.12E-02 * 3.0 ! FOR 3 CARBONS
-            !ACET = CO * 1.18E-02 * 3.0 ! FOR 3 CARBONS
-            !MVK = CO * 2.40E-04
          ELSEIF ( TRIM(SId) == 'NO') THEN !NO  !convert from kg/m2/s of NO
-            NO  = ( TMP * XNUMOL(IDTNO) / 1.0E4 )  * ScNOx
+            NO  = ( TMP * XNUMOL(IDTNO) / 1.0E4  )  * ScNOx
          ELSEIF ( TRIM(SId) == 'NO2') THEN !NO2
             NO2 = ( TMP * XNUMOL(IDTNO2) / 1.0E4 ) * ScNOx
          ELSEIF( TRIM(SId) == 'HONO') THEN !HNO2
@@ -797,7 +806,7 @@
             MEK  = ( TMP * 0.02 * XNUMOL(IDTMEK)/1.0E4  ) * ScVOC
             ALK4 = ( TMP * 0.87 * XNUMOL(IDTALK4)/1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'BENZENE' ) THEN !BENZ
-            BENZ =  ( TMP * XNUMOL(IDTALD2)*3 / 1.0E4) *ScVOC
+            BENZ =  ( TMP * XNUMOL(IDTALD2)*3 / 1E4) *ScVOC
          ELSEIF ( TRIM(SId) == 'TOL' ) THEN !TOLU
             TOLU =  ( TMP * XNUMOL(IDTALD2)*3.5 / 1.0E4) *ScVOC
          ELSEIF ( TRIM(SId) == 'XYL') THEN !XYLE
@@ -895,9 +904,9 @@
 !
 ! !LOCAL VARIABLES:
 !
-      REAL*4             :: ARRAY2(225,202)
-      REAL*8, TARGET     :: GEOS_MASK(I025x03125,J025x03125)
-      CHARACTER(LEN=255) :: FILENAME
+      REAL*4             :: ARRAY2(900,400)
+      REAL*8, TARGET     :: GEOS_MASK(I01x01,J01x01)
+      CHARACTER(LEN=255) :: FILENAME1, FILENAME2
       CHARACTER(LEN=255) :: LLFILENAME
       REAL*8, POINTER    :: INGRID(:,:) => NULL()
       INTEGER            :: st2d(2), ct2d(2)
@@ -915,13 +924,12 @@
       !IF ( .NOT. LBRAVO ) SNAME = TRIM( SNAME ) // 'mex.'
 
       
-!%%%      FILENAME  = '/as/home/ktravis/' // &     
-      !FILENAME  = TRIM( DATA_DIR_1x1) // &
-           !'NEI2008_201307/usa.mask.nei2005.geos.1x1.nc' !kyu, 7Feb2014
-      FILENAME = '/as/cache/2015-03/krt/USA_mask.geos.NEI11.025x03125.nc'
+      !FILENAME1 = '/as/home/NCL/NEI08/USA_mask.geos.025x03125.nc'
+      FILENAME2 = '/as/scratch/krt/NEI11/VERYNESTED/USA_LANDMASK_NEI2011_0.1x0.1.nc'
+
 
       ! Echo info
-      WRITE( 6, 200 ) TRIM( FILENAME )
+      WRITE( 6, 200 ) TRIM( FILENAME2 )
 200   FORMAT( '     - READ_NEI2011_MASK: Reading ', a )
       WRITE(*,*) 'WARNING - NEI11 CONTAINS EMISSIONS IN CANADA, MEXICO, and OVER WATER'
       WRITE(*,*) 'TO GET JUST U.S. TOTALS, USE A MASK JUST FOR THE U.S.'
@@ -931,22 +939,23 @@
 
       ! Allocate start and count arrays
       st2d = (/1, 1/)
-      ct2d = (/225, 202/)
+      ct2d = (/900, 400/)
       ! Open and read model_ready data from netCDF file - wkday
-      CALL Ncop_Rd(fId1, TRIM(FILENAME))
+      CALL Ncop_Rd(fId1, TRIM(FILENAME2))
       Call NcRd(ARRAY2, fId1, 'mask', st2d,  ct2d )        !Start andCount lat/lon
       ! Close netCDF file
       CALL NcCl( fId1 )
+
+      GEOS_MASK = 0.0
       ! Cast to REAL*8 before regridding
-      GEOS_MASK(161:385,400:601) = ARRAY2(:,:)
-     
+      GEOS_MASK(402:1301,1101:1500) = ARRAY2(:,:)
       ! File with lat/lon edges for regridding
       LLFILENAME = TRIM( DATA_DIR_1x1) // &
-           'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos025x03125.nc'
-      ! Regrid from GEOS 0.25x0.3125 --> current model resolution [unitless]
+           'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos01x01.nc'
+      ! Regrid from GEOS 0.1x0.1 --> current model resolution [unitless]
       INGRID => GEOS_MASK(:,:)
 
-      CALL DO_REGRID_A2A( LLFILENAME, I025x03125,  J025x03125, &
+      CALL DO_REGRID_A2A( LLFILENAME, I01x01, J01x01, &
            INGRID,     USA_MASK_TMP, IS_MASS=0, &
            netCDF=.TRUE.                   )
       ! Free pointer
@@ -1244,7 +1253,7 @@
       ! Total PRPE  [Tg C]
       IF ( IDTPRPE .NE. 0 ) &
            ! Total PRPE [Tg C ]
-           T_PRPE =   SUM(SUM(PRPEa, 4)*tmpArea ) * &
+           T_PRPE = SUM(SUM(PRPEa, 4)*tmpArea ) * &
            SEC_IN_HOUR *1.0d-9/XNUMOL(IDTPRPE) + &
            SUM(SUM(PRPEb, 4)*tmpArea ) * &
            SEC_IN_HOUR *1.0d-9/XNUMOL(IDTPRPE)
