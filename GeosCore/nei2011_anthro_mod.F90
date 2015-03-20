@@ -327,7 +327,6 @@
       USE LOGICAL_MOD,       ONLY : LFUTURE
       USE TIME_MOD,          ONLY : GET_YEAR, GET_MONTH, GET_DAY
       USE TIME_MOD,          ONLY : GET_HOUR, GET_DAY_OF_WEEK
-      USE TIME_MOD,          ONLY : EXPAND_DATE
       USE TRACER_MOD,        ONLY : XNUMOL
 
       USE GIGC_ErrCode_Mod
@@ -376,7 +375,7 @@
 !
       LOGICAL, SAVE              :: FIRST = .TRUE.
       INTEGER                    :: I, J, A, B, IH, I0, J0, THISYEAR, THISMONTH, SNo
-      INTEGER                    :: THISDAY, DOY, YYYYMMDD
+      INTEGER                    :: THISDAY, DOY
       INTEGER                    :: L, HH, KLM, SPECIES_ID(23)
       INTEGER                    :: st3d(3), ct3d(3)
       INTEGER                    :: st4d(4), ct4d3(4), ct4d4(4), ct4d6(4)
@@ -494,13 +493,38 @@
       LLFILENAME = TRIM( DATA_DIR_1x1) // &
                   'MAP_A2A_Regrid_201203/MAP_A2A_latlon_generic01x01.nc'
 
-      TIME_STR =  'MM'
+      ! Get month
+      THISMONTH = GET_MONTH()
+      IF ( THISMONTH == 1 ) THEN 
+         TIME_STR = '01'
+      ELSEIF ( THISMONTH == 2 ) THEN 
+         TIME_STR = '02'
+      ELSEIF ( THISMONTH == 3 ) THEN 
+         TIME_STR = '03'
+      ELSEIF ( THISMONTH == 4 ) THEN 
+         TIME_STR = '04'
+      ELSEIF ( THISMONTH == 5 ) THEN 
+         TIME_STR = '05'
+      ELSEIF ( THISMONTH == 6 ) THEN 
+         TIME_STR = '06'
+      ELSEIF ( THISMONTH == 7 ) THEN 
+         TIME_STR = '07'
+      ELSEIF ( THISMONTH == 8 ) THEN 
+         TIME_STR = '08'
+      ELSEIF ( THISMONTH == 9 ) THEN 
+         TIME_STR = '09'
+      ELSEIF ( THISMONTH == 10 ) THEN 
+         TIME_STR = '10'
+      ELSEIF ( THISMONTH == 11 ) THEN 
+         TIME_STR = '11'
+      ELSEIF ( THISMONTH == 12 ) THEN 
+         TIME_STR = '12'
+      ENDIF
+
       ! Base data directory
       DATA_DIR_NEI =  '/as/data/geos/ExtData/HEMCO/NEI2011/v2015-03/'// &
-        TRIM( TIME_STR ) // 'NEI11_0.1x0.1_2011'
+        TRIM( TIME_STR ) // '/NEI11_0.1x0.1_2011'
       
-      CALL EXPAND_DATE( FILENAME, YYYYMMDD, 000000 )
-
       ! Base data directory
       DATA_DIR_ON =   '/as/scratch/krt/NEI11/VERYNESTED/onroad/'// &
            'NEI11_0.1x0.1_2011'
@@ -513,8 +537,6 @@
       DATA_DIR_NH3_ag = '/as/scratch/krt/NEI11/VERYNESTED/ag/'
 
      
-      ! Get month
-      THISMONTH = GET_MONTH()
       ! Get day
       THISDAY   = GET_DAY()
       DOY       = GET_DAY_OF_WEEK()
