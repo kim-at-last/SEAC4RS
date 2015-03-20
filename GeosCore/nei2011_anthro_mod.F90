@@ -951,7 +951,7 @@
       GEOS_MASK(402:1301,1101:1500) = ARRAY2(:,:)
       ! File with lat/lon edges for regridding
       LLFILENAME = TRIM( DATA_DIR_1x1) // &
-           'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos01x01.nc'
+           'MAP_A2A_Regrid_201203/MAP_A2A_latlon_generic01x01.nc'
       ! Regrid from GEOS 0.1x0.1 --> current model resolution [unitless]
       INGRID => GEOS_MASK(:,:)
 
