@@ -942,7 +942,7 @@
       ct2d = (/900, 400/)
       ! Open and read model_ready data from netCDF file - wkday
       CALL Ncop_Rd(fId1, TRIM(FILENAME2))
-      Call NcRd(ARRAY2, fId1, 'mask', st2d,  ct2d )        !Start andCount lat/lon
+      Call NcRd(ARRAY2, fId1, 'LANDMASK', st2d,  ct2d )        !Start andCount lat/lon
       ! Close netCDF file
       CALL NcCl( fId1 )
 
