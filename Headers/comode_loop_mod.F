@@ -233,7 +233,8 @@
       !PARAMETER ( IGAS    = 321,               IAERTY  = 1           )
       !PARAMETER ( IGAS    = 328,               IAERTY  = 1           )      
       ! +11 for monoterpenes & dry species (jaf, 3/16/15)
-      PARAMETER ( IGAS    = 339,               IAERTY  = 1           )      
+      ! +3 spec, 2 dry dep for splitting MONIT (jaf, 3/18/15)
+      PARAMETER ( IGAS    = 344,               IAERTY  = 1           )      
       ! +8 for SEAC4RS FF passive tracers (jaf, 6/13/13)
       ! +8 for SEAC4RS BB passive tracers (jaf, 6/14/13)
       ! +2 for SEAC4RS ISOP passive tracer (jaf, 6/14/13)
@@ -244,7 +245,8 @@
       ! +5 for monoterpenes emission & dry dep (jaf, 3/16/15)
       ! +30 for monoterpenes chemistry, +1 for mtp phot (jaf, 3/17/15)
       ! +1 for MONIT+OH, +1 for MONIT photolysis (jaf, 3/17/15)
-      PARAMETER ( NMRATE  = 795,               IPHOT   = 94          )
+      ! +2 rxns, 2 photolysis for splitting MONIT (jaf, 3/18/15)
+      PARAMETER ( NMRATE  = 797,               IPHOT   = 96          )
       PARAMETER ( NMTRATE = NMRATE + IPHOT,    NMQRATE = 1           ) 
       PARAMETER ( NMRPROD = 25,                NMDEAD  = 100         )
       PARAMETER ( MAXGL   = 1000,              MAXGL2  = 90          )
@@ -491,6 +493,7 @@
      &  NSURFACE(ICS), NPRESM( ICS), NMAIR(   ICS),   NMO2(     ICS),
      &  NMN2(    ICS), NNEQ(   ICS), NARR(    ICS),   NABR(     ICS),
      &  NACR(    ICS), NABC(   ICS), NKSPECW( ICS),   NKSPECX(  ICS),
+     &  NKSPECXX(  ICS), ! HONIT (jaf, 3/20/15)
      &  NKSPECY( ICS), NKSPECZ(ICS), NKSPECV(MAXGL2,ICS),ISLOSSR(ICS),
      &  NKSPECA(  MAXGL3,ICS), NKSPECB(  MAXGL3,ICS),
      &  NKSPECC(MAXGL3,ICS),NKSPECD(MAXGL3,ICS),NKSPECK(MAXGL3,ICS),
