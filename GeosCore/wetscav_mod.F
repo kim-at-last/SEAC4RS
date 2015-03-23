@@ -168,8 +168,8 @@
       ! + 1 for ISN1 - krt, 7/15/14
       ! + 2 for HCOOH, RCHO - krt, 7/18/14
       ! + 1 for DHDN - jaf, 7/14
-      ! + 3 for monoterpenes - jaf, 3/16/15
-      INTEGER, PARAMETER   :: NSOLMAX = 71      ! Max # of soluble tracers
+      ! + 4 for monoterpenes - jaf, 3/16/15
+      INTEGER, PARAMETER   :: NSOLMAX = 72      ! Max # of soluble tracers
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      ! SOAupdate: Increase NSOLMAX from 60 to 110 for SOA + semivol POA
@@ -882,7 +882,7 @@
       USE TRACERID_MOD,       ONLY : IDTONITApm
  
       ! SEAC4RS monoterpenes (jaf, 3/16/15)
-      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
  
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
@@ -1975,6 +1975,61 @@
      &                      State_Met%BXHEIGHT(I,J,L) ) 
 
             ! F is the fraction of MONIT scavenged out of the updraft
+            ! (Eq. 2, Jacob et al, 2000)
+            F(I,J,L) = 1d0 - EXP( -K * TMP / Vud(I,J) )
+
+         ENDDO
+         ENDDO
+         ENDDO
+
+         ! ND38 index
+         ISOL = GET_ISOL( N )
+
+      !-------------------------------
+      ! HONIT - 2nd gen organic nitrate from MTPs
+      !-------------------------------
+      ELSE IF ( N == IDTHONIT ) THEN
+
+         ! No scavenging at the surface
+         F(:,:,1) = 0d0
+
+         ! Start scavenging at level 2
+         DO L = 2, LLPAR
+         DO J = 1, JJPAR
+         DO I = 1, IIPAR
+
+            ! Compute liquid to gas ratio for HONIT, using
+            ! the appropriate parameters for Henry's law
+            ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+            ! KSTAR, H298_R from Browne et al. 2014
+            CALL COMPUTE_L2G( 2.69d13,  5487d0, State_Met%T(I,J,L),
+     &                        CLDLIQ(I,J,L), L2G )
+
+            ! Fraction of HONIT in liquid phase
+            ! (Eq. 4, 5, 6, Jacob et al, 2000)
+            C_TOT = 1d0 + L2G
+            F_L   = L2G / C_TOT
+
+            ! Compute the rate constant K.  Assume retention factor  
+            ! for liquid HONIT is 0.0 for T <= 248 K and 0.02 for 
+            ! 248 K < T < 268 K.  (Eq. 1, Jacob et al, 2000)
+            IF ( State_Met%T(I,J,L) >= 268d0 ) THEN
+               K = KC * F_L  
+
+            ELSE IF ( State_Met%T(I,J,L) > 248d0   .and.
+     &                State_Met%T(I,J,L) < 268d0 ) THEN
+               K = KC * ( 2d-2 * F_L ) 
+                  
+            ELSE
+               K = 0d0
+
+            ENDIF
+               
+            ! Distance between grid box centers [m]
+            TMP = 0.5d0 * ( State_Met%BXHEIGHT(I,J,L-1) +
+     &                      State_Met%BXHEIGHT(I,J,L) ) 
+
+            ! F is the fraction of HONIT scavenged out of the updraft
             ! (Eq. 2, Jacob et al, 2000)
             F(I,J,L) = 1d0 - EXP( -K * TMP / Vud(I,J) )
 
@@ -3552,7 +3607,7 @@
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
  
       ! SEAC4RS monoterpenes (jaf, 3/16/15)
-      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
  
 #if defined( TOMAS )
       USE TRACERID_MOD, ONLY : IDTH2SO4,IDTNK1,   IDTSF1,  IDTSS1
@@ -4526,6 +4581,40 @@
          ! Compute RAINFRAC, the fraction of rained-out MONIT
          ! (Eq. 10, Jacob et al, 2000)
          RAINFRAC = GET_RAINFRAC( K, F, DT )
+
+      !------------------------------
+      ! HONIT
+      !------------------------------
+      ELSE IF ( N == IDTHONIT ) THEN
+
+         ! Compute liquid to gas ratio for HONIT, using
+         ! the appropriate parameters for Henry's law
+         ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+         ! KSTAR, H298_K from Browne et al. 2014
+         CALL COMPUTE_L2G( 2.69d13, 5487d0, TK, CLDLIQ(I,J,L), L2G )
+
+         ! Fraction of HONIT in liquid phase
+         ! (Eqs. 4, 5, Jacob et al, 2000)
+         C_TOT = 1d0 + L2G
+         F_L   = L2G / C_TOT
+
+         ! Compute the rate constant K.  Assume that the retention factor
+         ! for liquid HONIT is 0.02 for 248 K < T < 268 K, and
+         ! 1.0 for T > 268 K. (Eq. 1, Jacob et al, 2000)
+         IF ( TK >= 268d0 ) THEN
+            K = K_RAIN * F_L
+
+         ELSE IF ( TK > 248d0 .and. TK < 268d0 ) THEN
+            K = K_RAIN * ( 2d-2 * F_L )
+
+         ELSE
+            K = 0d0
+
+         ENDIF
+
+         ! Compute RAINFRAC, the fraction of rained-out HONIT
+         ! (Eq. 10, Jacob et al, 2000)
+         RAINFRAC = GET_RAINFRAC( K, F, DT )
 ! End SEAC4RS monoterpenes
 
       !------------------------------
@@ -5180,7 +5269,7 @@
       USE GET_POPSINFO_MOD, ONLY : GET_POP_HSTAR, GET_POP_DEL_Hw
  
       ! SEAC4RS monoterpenes (jaf, 3/16/15)
-      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
 
 #if defined( TOMAS )
       USE TRACERID_MOD, ONLY : IDTH2SO4, IDTNK1,   IDTSF1,  IDTSS1
@@ -5667,6 +5756,15 @@
       ELSE IF ( N == IDTMONIT ) THEN
          KIN      = .FALSE.
          CALL WASHFRAC_LIQ_GAS( 1.7d4, 9200d0, PP,       DT,  F,  
+     &                          DZ,     TK,   WASHFRAC, KIN  )
+
+      !------------------------------
+      ! HONIT
+      !------------------------------
+      ! From Browne et al. 2014 - use biogenic hydroxy nitrates
+      ELSE IF ( N == IDTHONIT ) THEN
+         KIN      = .FALSE.
+         CALL WASHFRAC_LIQ_GAS( 2.69d13, 5487d0, PP,       DT,  F,  
      &                          DZ,     TK,   WASHFRAC, KIN  )
 ! End SEAC4RS monoterpenes
 
@@ -8805,7 +8903,7 @@
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
       ! SEAC4RS monoterpenes (jaf, 3/16/15)
-      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
       ! SOAudpate: update biogenics (new mtp) (hotp 5/24/10)
       USE TRACERID_MOD, ONLY : IDTMTPA,  IDTLIMO,  IDTMTPO
       USE TRACERID_MOD, ONLY : IDTTSOA1, IDTTSOA2, IDTTSOA3
@@ -9100,6 +9198,10 @@
          ELSE IF ( N == IDTMONIT ) THEN
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTMONIT
+
+         ELSE IF ( N == IDTHONIT ) THEN
+            NSOL         = NSOL + 1
+            IDWETD(NSOL) = IDTHONIT
 ! End SEAC4RS monoterpenes
 
          ! new mtp (hotp 5/24/10), SOAupdate
@@ -9470,7 +9572,7 @@
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
       ! SEAC4RS monoterpenes (jaf, 3/16/15)
-      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
 #if defined( TOMAS )
       USE TRACERID_MOD,       ONLY : IDTNK1
       USE TOMAS_MOD,          ONLY : IBINS, IDIAG, ICOMP
@@ -9585,6 +9687,7 @@
             IF ( IDTAPI   /= 0 ) NMAX = NMAX + 1           ! SEAC4RS MTP
             IF ( IDTLIM   /= 0 ) NMAX = NMAX + 1           ! SEAC4RS MTP
             IF ( IDTMONIT /= 0 ) NMAX = NMAX + 1           ! SEAC4RS MTP
+            IF ( IDTHONIT /= 0 ) NMAX = NMAX + 1           ! SEAC4RS MTP
 
          ENDIF
 
