@@ -5877,14 +5877,24 @@ c$$$            FLAG(NUMDEP)    = 2
             AIROSOL(NUMDEP) = .FALSE.
             FLAG(NUMDEP)    = 0
 
-         ! Lumped organic nitrate from MTP
+         ! Lumped organic nitrate from MTP (MONITU + MONITS)
          ! Treat like HNO3
          ELSE IF ( N == IDTMONIT ) THEN
             ! Scale based on molecular weight per Nguyen et al, 2014
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMONIT
             NDVZIND(NUMDEP) = DRYDHNO3
-            DEPNAME(NUMDEP) = 'MONIT'
+            DEPNAME(NUMDEP) = 'MONITS'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 119d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 1d0
+            ! Scale based on molecular weight per Nguyen et al, 2014
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTMONIT
+            NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'MONITU'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 119d-3
