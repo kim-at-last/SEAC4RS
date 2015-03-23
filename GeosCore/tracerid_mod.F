@@ -298,6 +298,8 @@
       INTEGER            :: IDDRYIAP,  IDDRYINPN, IDDRYMP, IDDRYMRP
       INTEGER            :: IDDRYPP,   IDDRYR4P, IDDRYRA3P, IDDRYPRPN
       INTEGER            :: IDDRYRB3P, IDDRYRP, IDDRYDHDN, IDDRYHPALD
+      INTEGER            :: IDDRYAPI, IDDRYLIM, IDDRYMONITU, IDDRYMONITS
+      INTEGER            :: IDHONIT,  IDDRYHONIT
 
       INTEGER            :: IDDRYAPAN, IDDRYENPAN, IDDRYGLPAN
       INTEGER            :: IDDRYGPAN, IDDRYMPAN, IDDRYNIPAN
@@ -523,7 +525,7 @@
       INTEGER            :: IDTONITApm
 
       ! Add monoterpene tracers (jaf, 3/16/15)
-      INTEGER            :: IDTAPI, IDTLIM, IDTMONIT
+      INTEGER            :: IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
 
       ! For tagged Hg simulation
       INTEGER              :: N_Hg_CATS
@@ -1593,6 +1595,8 @@
                IDTLIM  = N
             CASE ( 'MONIT' )
                IDTMONIT= N
+            CASE ( 'HONIT' )
+               IDTHONIT= N
 
             !--------------------------------
             ! Tagged Ox Tracers
@@ -3584,6 +3588,11 @@
          IF ( NAMEGAS(I) == 'DRYALD2'  ) IDDRYALD2 = I
          IF ( NAMEGAS(I) == 'DRYNH3'   ) IDDRYNH3  = I
          IF ( NAMEGAS(I) == 'DRYAPINE' ) IDDRYAPINE = I
+         IF ( NAMEGAS(I) == 'DRYAPI'   ) IDDRYAPI = I
+         IF ( NAMEGAS(I) == 'DRYLIM'   ) IDDRYLIM = I
+         IF ( NAMEGAS(I) == 'DRYHONIT' ) IDDRYHONIT = I
+         IF ( NAMEGAS(I) == 'DRYMONITS') IDDRYMONITS = I
+         IF ( NAMEGAS(I) == 'DRYMONITU') IDDRYMONITU = I
 
          IF ( NAMEGAS(I) == 'BENZ'   ) IDBENZ   = I 
          IF ( NAMEGAS(I) == 'TOLU'   ) IDTOLU   = I 
@@ -4741,6 +4750,11 @@
       IDDRYALD2   = 0
       IDDRYNH3    = 0
       IDDRYAPINE  = 0
+      IDDRYAPI  = 0
+      IDDRYLIM  = 0
+      IDDRYHONIT = 0
+      IDDRYMONITS = 0
+      IDDRYMONITU = 0
 
       IDDRYIAP  = 0
       IDDRYINPN = 0
@@ -4844,6 +4858,7 @@
       IDOLNN    = 0
       IDOLND    = 0
       IDMONIT   = 0
+      IDHONIT   = 0
 
       ! GEOS-CHEM Tracer ID #'s
       IDTNO      = 0
@@ -4997,6 +5012,7 @@
       IDTAPI    = 0
       IDTLIM    = 0
       IDTMONIT  = 0
+      IDTHONIT  = 0
  
       ! SOAupdate: convert all POA/POG to 1 and 2 (hotp 10/11/09)
        !semivolpoa (hotp 8/24/09)
