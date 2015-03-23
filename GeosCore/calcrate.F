@@ -749,6 +749,16 @@
             ENDDO
          ENDIF
 !
+! ---  OH + HONIT: same as OH+HNO3 (jaf, 3/20/15)
+         IF (NKSPECXX(NCS).GT.0) THEN
+            NK               = NKSPECXX(NCS)
+            DO KLOOP     = 1, KTLOOP
+            RRATE2=RRATE(KLOOP,NK+2)*DENAIR(KLOOP)
+            RRATE(KLOOP,NK) = RRATE(KLOOP,NK) + RRATE2 /
+     1           (1.D0 + RRATE2 / RRATE(KLOOP,NK+1))    
+            ENDDO
+         ENDIF
+!
 ! ---    OH + CO: K = K0(1+0.6 Patm)  ------------ 
 !    CONSTC includes a factor to convert PRESS3 from (dyn cm-2) to (atm)
          IF (NKSPECY(NCS).GT.0) THEN
