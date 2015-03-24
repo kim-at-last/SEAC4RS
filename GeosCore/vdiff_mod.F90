@@ -1906,7 +1906,7 @@ contains
     REAL*8,  POINTER :: p_as2   (:,:,:,:)
 
     ! For values from Input_Opt
-    LOGICAL            :: IS_CH4,    IS_FULLCHEM, IS_Hg,     IS_TAGOx
+    LOGICAL            :: IS_CH4,    IS_FULLCHEM, IS_Hg,     IS_TAGO3
     LOGICAL            :: IS_TAGCO,  IS_AEROSOL,  IS_RnPbBe, LDYNOCEAN
     LOGICAL            :: LGTMM,     LSOILNOX
     INTEGER            :: N_TRACERS 
@@ -1949,7 +1949,7 @@ contains
     IS_FULLCHEM  = Input_Opt%ITS_A_FULLCHEM_SIM
     IS_Hg        = Input_Opt%ITS_A_MERCURY_SIM
     IS_TAGCO     = Input_Opt%ITS_A_TAGCO_SIM
-    IS_TAGOX     = Input_Opt%ITS_A_TAGOX_SIM
+    IS_TAGO3     = Input_Opt%ITS_A_TAGO3_SIM
     IS_AEROSOL   = Input_Opt%ITS_AN_AEROSOL_SIM
     IS_RnPbBe    = Input_Opt%ITS_A_RnPbBe_SIM
     LDYNOCEAN    = Input_Opt%LDYNOCEAN
@@ -2328,7 +2328,7 @@ contains
        ! Apply dry deposition frequencies for Tagged Ox simulation
        ! (Jintai Lin, 06/21/08)
        !----------------------------------------------------------------
-       IF ( IS_TAGOX ) THEN
+       IF ( IS_TAGO3 ) THEN
           do N = 2, N_TRACERS ! the first species, Ox, has been done above
              if (pbl_mean_drydep) then
                 wk1 = 0.d0
@@ -2463,7 +2463,7 @@ contains
        enddo
 
        ! Add ITS_A_TAGOX_SIM (Lin, 06/21/08)
-       IF ( IS_TAGOX ) THEN
+       IF ( IS_TAGO3 ) THEN
           ! The first species, Ox, has been done above
           do N = 2, N_TRACERS 
              ! Convert : kg/m2/s -> molec/cm2/s

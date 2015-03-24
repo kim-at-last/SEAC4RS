@@ -1527,7 +1527,7 @@
       Input_Opt%ITS_A_CH3I_SIM         = ( SIM_TYPE == 2  )
       Input_Opt%ITS_A_FULLCHEM_SIM     = ( SIM_TYPE == 3  )
       Input_Opt%ITS_A_HCN_SIM          = ( SIM_TYPE == 4  )
-      Input_Opt%ITS_A_TAGOX_SIM        = ( SIM_TYPE == 6  )
+      Input_Opt%ITS_A_TAGO3_SIM        = ( SIM_TYPE == 6  )
       Input_Opt%ITS_A_TAGCO_SIM        = ( SIM_TYPE == 7  )
       Input_Opt%ITS_A_C2H6_SIM         = ( SIM_TYPE == 8  )
       Input_Opt%ITS_A_CH4_SIM          = ( SIM_TYPE == 9  )
@@ -1560,7 +1560,7 @@
       Input_Opt%ITS_A_SPECIALTY_SIM    =
      &     ( Input_Opt%ITS_A_CH3I_SIM      .or.
      &       Input_Opt%ITS_A_HCN_SIM       .or.
-     &       Input_Opt%ITS_A_TAGOX_SIM     .or.
+     &       Input_Opt%ITS_A_TAGO3_SIM     .or.
      &       Input_Opt%ITS_A_TAGCO_SIM     .or.
      &       Input_Opt%ITS_A_C2H6_SIM      .or.
      &       Input_Opt%ITS_A_CH4_SIM       .or.
@@ -3874,7 +3874,7 @@
       USE LOGICAL_MOD,        ONLY : LFILL
       USE LOGICAL_MOD,        ONLY : LTRAN
       USE TRACER_MOD,         ONLY : ITS_A_FULLCHEM_SIM
-      USE TRACER_MOD,         ONLY : ITS_A_TAGOX_SIM
+      USE TRACER_MOD,         ONLY : ITS_A_TAGO3_SIM
 #if defined( EXTERNAL_GRID ) || defined( EXTERNAL_FORCING )
       USE TIME_MOD,           ONLY : Accept_External_Date_Time
 #endif
@@ -4251,7 +4251,7 @@
       USE TRACER_MOD,  ONLY : ITS_A_C2H6_SIM,    ITS_A_CH3I_SIM
       USE TRACER_MOD,  ONLY : ITS_A_CH4_SIM,     ITS_A_HCN_SIM
       USE TRACER_MOD,  ONLY : ITS_A_MERCURY_SIM, ITS_A_TAGCO_SIM
-      USE TRACER_MOD,  ONLY : ITS_A_TAGOX_SIM
+      USE TRACER_MOD,  ONLY : ITS_A_TAGO3_SIM
       USE WETSCAV_MOD, ONLY : WETDEPID
 #if   defined( APM )
       USE APM_WETS_MOD, ONLY : WETDEPBINID
@@ -4327,7 +4327,7 @@
       ! Turn off wetdep for simulations that don't need it
       IF ( ITS_A_CH3I_SIM()    ) LWETD = .FALSE.
       IF ( ITS_A_HCN_SIM()     ) LWETD = .FALSE.
-      IF ( ITS_A_TAGOX_SIM()   ) LWETD = .FALSE.
+      IF ( ITS_A_TAGO3_SIM()   ) LWETD = .FALSE.
       IF ( ITS_A_TAGCO_SIM()   ) LWETD = .FALSE.
       IF ( ITS_A_C2H6_SIM()    ) LWETD = .FALSE.
       IF ( ITS_A_CH4_SIM()     ) LWETD = .FALSE.
@@ -4633,7 +4633,7 @@
       USE TRACER_MOD,   ONLY : N_TRACERS
       USE TRACER_MOD,   ONLY : ITS_A_CO2_SIM,        ITS_A_FULLCHEM_SIM
       USE TRACER_MOD,   ONLY : ITS_A_MERCURY_SIM,    ITS_A_RnPbBe_SIM
-      USE TRACER_MOD,   ONLY : ITS_A_TAGOX_SIM,      ITS_A_CH3I_SIM
+      USE TRACER_MOD,   ONLY : ITS_A_TAGO3_SIM,      ITS_A_CH3I_SIM
       USE TRACER_MOD,   ONLY : SALA_REDGE_um,        ITS_A_CH4_SIM
       USE TRACER_MOD,   ONLY : ITS_A_POPS_SIM
       USE TRACERID_MOD, ONLY : NEMANTHRO
@@ -5054,7 +5054,7 @@
       ! Number of tracers depends on simulation type
 ! This causes trouble for tracers set in drydep_mod.F to use IDTXXX in
 ! NTRAIND when IDTXXX > NUMDEP. (jaf, 11/27/14)
-!      IF ( ITS_A_TAGOX_SIM() ) THEN
+!      IF ( ITS_A_TAGO3_SIM() ) THEN
          N_TMP = N_TRACERS 
 !      ELSE
 !         N_TMP = NUMDEP
@@ -6622,7 +6622,7 @@
       USE DIAG_PL_MOD, ONLY : INIT_DIAG_PL
       USE ERROR_MOD,   ONLY : ERROR_STOP
       USE TRACER_MOD,  ONLY : N_TRACERS,       ITS_A_TAGCO_SIM
-      USE TRACER_MOD,  ONLY : ITS_A_TAGOX_SIM, ITS_AN_AEROSOL_SIM
+      USE TRACER_MOD,  ONLY : ITS_A_TAGO3_SIM, ITS_AN_AEROSOL_SIM
       USE LOGICAL_MOD, ONLY : LKPP
 
       USE CMN_SIZE_MOD      ! MAXFAM
@@ -6773,7 +6773,7 @@
       !=================================================================
 
       ! Tagged Ox
-      IF ( DO_SAVE_PL .and. ITS_A_TAGOX_SIM() ) THEN
+      IF ( DO_SAVE_PL .and. ITS_A_TAGO3_SIM() ) THEN
          IF ( NFAM /= 2*N_TRACERS ) THEN
             MSG = 'Wrong number of P/L families for Tagged Ox!'
             CALL ERROR_STOP( MSG, LOCATION )

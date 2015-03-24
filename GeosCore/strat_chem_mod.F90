@@ -181,7 +181,7 @@ CONTAINS
           write(6,*) '    ### Shunting GMI strat chem, doing LINOZ instead'
        ENDIF
 
-       ! Convert Ox tracer from [kg] to [v/v] before LINOZ
+       ! Convert O3 tracer from [kg] to [v/v] before LINOZ
        State_Chm%TRACERS(:,:,:,IDTO3) = State_Chm%TRACERS(:,:,:,IDTO3) &
                                       * Input_Opt%TCVV   (      IDTO3) &
                                       / State_Met%AD     (:,:,:      )
@@ -287,7 +287,7 @@ CONTAINS
 
     ! Flags for simulation types
     LOGICAL           :: IT_IS_A_FULLCHEM_SIM
-    LOGICAL           :: IT_IS_A_TAGOX_SIM
+    LOGICAL           :: IT_IS_A_TAGO3_SIM
     LOGICAL           :: IT_IS_A_H2HD_SIM
 
     ! Scalars
@@ -325,7 +325,7 @@ CONTAINS
     LLINOZ               = Input_Opt%LLINOZ
     LPRT                 = Input_Opt%LPRT
     IT_IS_A_FULLCHEM_SIM = Input_Opt%ITS_A_FULLCHEM_SIM
-    IT_IS_A_TAGOX_SIM    = Input_Opt%ITS_A_TAGOX_SIM  
+    IT_IS_A_TAGO3_SIM    = Input_Opt%ITS_A_TAGO3_SIM  
     IT_IS_A_H2HD_SIM     = Input_Opt%ITS_A_H2HD_SIM
     TCVV                 = Input_Opt%TCVV(1:N_TRACERS)
 
@@ -590,7 +590,7 @@ CONTAINS
     !======================================================================
     ! Tagged Ox simulation
     !======================================================================
-    ELSE IF ( IT_IS_A_TAGOX_SIM ) THEN
+    ELSE IF ( IT_IS_A_TAGO3_SIM ) THEN
 
        ! Tagged Ox only makes use of Synoz or Linoz. We apply either to
        ! the total Ox tracer, and the stratospheric Ox tracer.
@@ -1550,7 +1550,7 @@ CONTAINS
     CHARACTER(LEN=16) :: sname
     INTEGER           :: AS, N, NN
     LOGICAL           :: IT_IS_A_FULLCHEM_SIM
-    LOGICAL           :: IT_IS_A_TAGOX_SIM
+    LOGICAL           :: IT_IS_A_TAGO3_SIM
     LOGICAL           :: LLINOZ
     INTEGER           :: N_TRACERS
 
@@ -1573,7 +1573,7 @@ CONTAINS
     LLINOZ                   = Input_Opt%LLINOZ
     N_TRACERS                = Input_Opt%N_TRACERS
     IT_IS_A_FULLCHEM_SIM     = Input_Opt%ITS_A_FULLCHEM_SIM
-    IT_IS_A_TAGOX_SIM        = Input_Opt%ITS_A_TAGOX_SIM
+    IT_IS_A_TAGO3_SIM        = Input_Opt%ITS_A_TAGO3_SIM
     TRACER_NAME(1:N_TRACERS) = Input_Opt%TRACER_NAME(1:N_TRACERS)
 
     ! Initialize GEOS-Chem tracer array [kg] from Chemistry State object
@@ -1704,7 +1704,7 @@ CONTAINS
        !===========!
        ! Tagged Ox !
        !===========!
-    ELSE IF ( IT_IS_A_TAGOX_SIM ) THEN
+    ELSE IF ( IT_IS_A_TAGO3_SIM ) THEN
        IF ( LLINOZ ) THEN
           IF ( am_I_Root ) THEN
              WRITE(6,*) 'Linoz ozone performed on: '
@@ -1851,7 +1851,7 @@ CONTAINS
     USE LOGICAL_MOD,        ONLY : LVARTROP 
     USE PRESSURE_MOD,       ONLY : GET_PEDGE,   GET_PCENTER
     USE TIME_MOD,           ONLY : GET_TS_CHEM, GET_YEAR
-    USE TRACERID_MOD,       ONLY : IDTO3,       IDTOxStrt
+    USE TRACERID_MOD,       ONLY : IDTO3,       IDTO3Strt
     USE TROPOPAUSE_MOD,     ONLY : GET_TPAUSE_LEVEL
 
     USE CMN_SIZE_MOD             ! Size parameters
@@ -2103,7 +2103,7 @@ CONTAINS
 #endif
 
     ! Store in the proper Ox tracer #
-    IF ( Input_Opt%ITS_A_TAGOX_SIM ) THEN
+    IF ( Input_Opt%ITS_A_TAGO3_SIM ) THEN
        NTRACER = IDTO3
     ELSE
        NTRACER = IDTO3
@@ -2213,12 +2213,12 @@ CONTAINS
                 PO3 = PO3 * H70mb / State_Met%BXHEIGHT(I,J,L) 
              ENDIF
 
-             IF ( Input_Opt%ITS_A_TAGOX_SIM ) THEN
+             IF ( Input_Opt%ITS_A_TAGO3_SIM ) THEN
                 ! Store O3 flux in the proper tracer number
                 STT(I,J,L,IDTO3) = STT(I,J,L,IDTO3) + PO3 
 
-                ! Store O3 flux for strat Ox tracer (Tagged Ox only)
-                STT(I,J,L,IDTOxStrt) = STT(I,J,L,IDTOxStrt) + PO3
+                ! Store O3 flux for strat Ox tracer (Tagged O3 only)
+                STT(I,J,L,IDTO3Strt) = STT(I,J,L,IDTO3Strt) + PO3
              ELSE
                 ! Store O3 flux in the proper tracer number
                 STT(I,J,L,IDTO3) = STT(I,J,L,IDTO3) + PO3 

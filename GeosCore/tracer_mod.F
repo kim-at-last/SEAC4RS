@@ -25,7 +25,7 @@
       PUBLIC :: ITS_A_CH3I_SIM
       PUBLIC :: ITS_A_FULLCHEM_SIM
       PUBLIC :: ITS_A_HCN_SIM
-      PUBLIC :: ITS_A_TAGOX_SIM
+      PUBLIC :: ITS_A_TAGO3_SIM
       PUBLIC :: ITS_A_TAGCO_SIM
       PUBLIC :: ITS_A_C2H6_SIM
       PUBLIC :: ITS_A_CH4_SIM
@@ -250,13 +250,13 @@
 !
 ! !IROUTINE: its_a_tagox_sim
 !
-! !DESCRIPTION: Function ITS\_A\_TAGOX\_SIM returns TRUE if we are doing a
+! !DESCRIPTION: Function ITS\_A\_TAGO3\_SIM returns TRUE if we are doing a
 !  GEOS-CHEM tagged Ox simulation.
 !\\
 !\\
 ! !INTERFACE:
 !
-      FUNCTION ITS_A_TAGOX_SIM() RESULT( VALUE )
+      FUNCTION ITS_A_TAGO3_SIM() RESULT( VALUE )
 ! 
 ! !REVISION HISTORY: 
 !  15 Jul 2004 - R. Yantosca - Initial version
@@ -270,11 +270,11 @@
       LOGICAL :: VALUE
       
       !=================================================================
-      ! ITS_A_TAGOX_SIM begins here!
+      ! ITS_A_TAGO3_SIM begins here!
       !=================================================================
       VALUE = ( SIM_TYPE == 6 )
 
-      END FUNCTION ITS_A_TAGOX_SIM
+      END FUNCTION ITS_A_TAGO3_SIM
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !

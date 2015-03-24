@@ -3,16 +3,16 @@
 !------------------------------------------------------------------------------
 !BOP
 !
-! !MODULE: tagged_ox_mod
+! !MODULE: tagged_o3_mod
 !
-! !DESCRIPTION: Module TAGGED\_OX\_MOD contains variables and routines to 
-!  perform a tagged Ox simulation.  P(Ox) and L(Ox) rates need to be archived 
-!  from a full chemistry simulation before you can run w/ Tagged Ox. 
+! !DESCRIPTION: Module TAGGED\_O3\_MOD contains variables and routines to 
+!  perform a tagged O3 simulation.  P(O3) and L(O3) rates need to be archived 
+!  from a full chemistry simulation before you can run w/ Tagged O3. 
 !\\
 !\\
 ! !INTERFACE: 
 !
-      MODULE TAGGED_OX_MOD
+      MODULE TAGGED_O3_MOD
 !
 ! !USES:
 !
@@ -21,15 +21,15 @@
 !
 ! !PUBLIC MEMBER FUNCTIONS:
 ! 
-      PUBLIC  :: ADD_STRAT_POX 
-      PUBLIC  :: CHEM_TAGGED_OX 
-      PUBLIC  :: CLEANUP_TAGGED_OX 
+      PUBLIC  :: ADD_STRAT_PO3 
+      PUBLIC  :: CHEM_TAGGED_O3 
+      PUBLIC  :: CLEANUP_TAGGED_O3 
 !
 ! !PRIVATE MEMBER FUNCTIONS:
 ! 
-      PRIVATE :: GET_REGIONAL_POX
-      PRIVATE :: INIT_TAGGED_OX
-      PRIVATE :: READ_POX_LOX
+      PRIVATE :: GET_REGIONAL_PO3
+      PRIVATE :: INIT_TAGGED_O3
+      PRIVATE :: READ_PO3_LO3
 !
 ! !REVISION HISTORY:
 !  20 Aug 2003 - A. Fiore    - Initial version  
@@ -64,18 +64,18 @@
 ! !DEFINED PARAMETERS:
 ! 
       !------------------------------------------------------
-      !%%% Modification for quick Ox spinup (bmy, 5/31/07) 
-      !%%%INTEGER, PARAMETER, PRIVATE :: N_TAGGED = 13
-      !%%%INTEGER, PARAMETER, PRIVATE :: N_STRAT  = 11
-      !%%%INTEGER, PARAMETER, PRIVATE :: N_INIT   = 12
-      !%%%INTEGER, PARAMETER, PRIVATE :: N_USA    = 13
+      !%%% Modification for quick O3 spinup (bmy, 5/31/07) 
+      INTEGER, PARAMETER, PRIVATE :: N_TAGGED = 13
+      INTEGER, PARAMETER, PRIVATE :: N_STRAT  = 11
+      INTEGER, PARAMETER, PRIVATE :: N_INIT   = 12
+      INTEGER, PARAMETER, PRIVATE :: N_USA    = 13
       !------------------------------------------------------
       ! dbj: stratospheric tracers must be tracer 2
       !------------------------------------------------------
-      INTEGER, PARAMETER,   PRIVATE :: N_TAGGED = 2
-      INTEGER, PARAMETER,   PRIVATE :: N_STRAT  = 2
-      INTEGER, PARAMETER,   PRIVATE :: N_INIT   = 3
-      INTEGER, PARAMETER,   PRIVATE :: N_USA    = -1
+      !INTEGER, PARAMETER,   PRIVATE :: N_TAGGED = 2
+      !INTEGER, PARAMETER,   PRIVATE :: N_STRAT  = 2
+      !INTEGER, PARAMETER,   PRIVATE :: N_INIT   = 3
+      !INTEGER, PARAMETER,   PRIVATE :: N_USA    = -1
 
       CONTAINS
 !EOC
@@ -84,21 +84,21 @@
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: add_strat_pox
+! !IROUTINE: add_strat_po3
 !
-! !DESCRIPTION: Subroutine ADD\_STRAT\_POX adds the stratospheric influx of 
-!  Ox to the stratospheric Ox tracer.  This is called from routine 
+! !DESCRIPTION: Subroutine ADD\_STRAT\_PO3 adds the stratospheric influx of 
+!  O3 to the stratospheric O3 tracer.  This is called from routine 
 !  Do\_Synoz, which is applied when the tracer array has units of [v/v].  
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE ADD_STRAT_POX( I, J, L, POx, State_Chm )
+      SUBROUTINE ADD_STRAT_PO3( I, J, L, PO3, State_Chm )
 !
 ! !USES:
 !
       USE GIGC_State_Chm_Mod, ONLY : ChmState
-      USE TRACERID_MOD, ONLY : IDTOxStrt
+      USE TRACERID_MOD,       ONLY : IDTO3Strt
 
       USE CMN_SIZE_MOD           ! Size parameters
 !
@@ -107,7 +107,7 @@
       INTEGER, INTENT(IN) :: I     ! GEOS-Chem grid box lon index
       INTEGER, INTENT(IN) :: J     ! GEOS-Chem grid box lat index
       INTEGER, INTENT(IN) :: L     ! GEOS-Chem grid box level index
-      REAL*8,  INTENT(IN) :: POx   ! P(Ox) in the stratosphere [v/v]
+      REAL*8,  INTENT(IN) :: PO3   ! P(O3) in the stratosphere [v/v]
 !
 ! !INPUT/OUTPUT PARAMETERS: 
 !
@@ -130,34 +130,34 @@
       REAL*8, POINTER :: STT(:,:,:,:)
 
       !=================================================================
-      ! GET_STRAT_POX begins here!
+      ! GET_STRAT_PO3 begins here!
       !=================================================================
 
       ! Initialize GEOS-Chem tracer array [kg] from Chemistry State object
       ! (mpayer, 12/6/12)
       STT => State_Chm%Tracers
 
-      STT(I,J,L,IDTOxStrt) = STT(I,J,L,IDTOxStrt) + POx
+      STT(I,J,L,IDTO3Strt) = STT(I,J,L,IDTO3Strt) + PO3
 
       ! Free pointer
       NULLIFY( STT )
 
-      END SUBROUTINE ADD_STRAT_POX
+      END SUBROUTINE ADD_STRAT_PO3
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: read_pox_lox
+! !IROUTINE: read_po3_lo3
 !
-! !DESCRIPTION: Subroutine READ\_POX\_LOX reads previously-archived Ox 
+! !DESCRIPTION: Subroutine READ\_PO3\_LO3 reads previously-archived O3 
 !  production and loss rates from binary punch file format. 
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE READ_POX_LOX
+      SUBROUTINE READ_PO3_LO3
 !
 ! !USES:
 !
@@ -207,7 +207,7 @@
       CHARACTER(LEN=2)   :: MM_STR, DD_STR
 
       !=================================================================
-      ! READ_POX_LOX begins here!
+      ! READ_PO3_LO3 begins here!
       !=================================================================
 
       ! Filename string
@@ -257,7 +257,7 @@
 
       ! Echo information
       WRITE( 6, 100 ) TRIM( FILENAME )
- 100  FORMAT( '     - READ_POX_LOX: Reading ', a )
+ 100  FORMAT( '     - READ_PO3_LO3: Reading ', a )
 
 !------------------------------------------------------------------------------
 ! Comment out for now (bmy, 2/4/11)
@@ -311,23 +311,23 @@
       ! Cast from REAL*4 to REAL*8 
       CALL TRANSFER_3D_TROP( ARRAY, L24H )
 
-      END SUBROUTINE READ_POX_LOX
+      END SUBROUTINE READ_PO3_LO3
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: get_regional_pox
+! !IROUTINE: get_regional_po3
 !
-! !DESCRIPTION: Subroutine GET\_REGIONAL\_POX returns the P(Ox) for each of 
-!  the tagged Ox tracers. Tagged Ox tracers are defined by both geographic 
+! !DESCRIPTION: Subroutine GET\_REGIONAL\_PO3 returns the P(O3) for each of 
+!  the tagged O3 tracers. Tagged O3 tracers are defined by both geographic 
 !  location and altitude. 
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE GET_REGIONAL_POX( I, J, L, PP, State_Met )
+      SUBROUTINE GET_REGIONAL_PO3( I, J, L, PP, State_Met )
 !
 ! !USES:
 !
@@ -350,8 +350,8 @@
 !
 ! !OUTPUT PARAMETERS:
 !
-      ! Array containing P(Ox) for each tagged tracer
-      REAL*8,  INTENT(OUT) :: PP(IIPAR,JJPAR,LD65,N_TAGGED)
+      ! Array containing P(O3) for each tagged tracer
+      REAL*8,  INTENT(OUT) :: PP(IIPAR,JJPAR,LLTROP,N_TAGGED)
 ! 
 ! !REVISION HISTORY:
 !  19 Aug 2003 - A. Fiore - Initial version
@@ -388,7 +388,7 @@
       REAL*8, EXTERNAL :: BOXVL
 
       !=================================================================
-      ! GET_REGIONAL_POX begins here!
+      ! GET_REGIONAL_PO3 begins here!
       !=================================================================
 
       ! Initialize
@@ -419,116 +419,121 @@
       MTTOP  = 10
 #endif
 
-!      ! Define flags for various geographic & altitude regions
-!      ITS_IN_PBL = ( L <= PBLTOP                                       )
-!      ITS_IN_MT  = ( L >  PBLTOP .and. L <= MTTOP                      )
-!      ITS_IN_UT  = ( L >  MTTOP  .and. ITS_IN_TROP                     )
-!
-!      ITS_IN_NH  = ( Y >=   0.0                                        )
-!      ITS_IN_EUR = ( Y >=  36.0 .and. ( X >  -15.0 .and. X >=   55.0 ) )
-!      ITS_IN_NAM = ( Y >=  15.0 .and. ( X > -127.5 .and. X <=  -65.0 ) )
-!      ITS_IN_AS  = ( Y >= -10.0 .and. ( X >   55.0 .and. X <=  145.0 ) )
-!      ITS_IN_ATL = ( ITS_IN_NH  .and. ( X >  -65.0 .and. X <=  -15.0 ) )
-!      ITS_IN_PAC = ( ITS_IN_NH  .and. ( X >  145.0  .or. X <= -127.5 ) )
-!
-!      ITS_IN_NAF = ( ( X >= -15.0 .and. X <=  55.0 ) .and. 
-!     &               ( Y >=   0.0 .and. Y <   36.0 ) )  
-!
-!      ITS_IN_USA = ( ( X > -127.5 .and. X <= -65.0 ) .and. 
-!     &               ( Y >   22.0 .and. Y <=  50.0 ) )
-
       !=================================================================
-      ! Assign P(Ox) to tagged tracers by geographic/altitude regions
+      ! For the simulation with all tagged O3 tracers: find the 
+      ! regions corresponding to this particular longitude & latitude
       !=================================================================
 
-      ! P(Ox) [kg]
+      ! Define flags for various geographic & altitude regions
+      ITS_IN_PBL = ( L <= PBLTOP                                       )
+      ITS_IN_MT  = ( L >  PBLTOP .and. L <= MTTOP                      )
+      ITS_IN_UT  = ( L >  MTTOP  .and. ITS_IN_TROP                     )
+
+      ITS_IN_NH  = ( Y >=   0.0                                        )
+      ITS_IN_EUR = ( Y >=  36.0 .and. ( X >  -15.0 .and. X >=   55.0 ) )
+      ITS_IN_NAM = ( Y >=  15.0 .and. ( X > -127.5 .and. X <=  -65.0 ) )
+      ITS_IN_AS  = ( Y >= -10.0 .and. ( X >   55.0 .and. X <=  145.0 ) )
+      ITS_IN_ATL = ( ITS_IN_NH  .and. ( X >  -65.0 .and. X <=  -15.0 ) )
+      ITS_IN_PAC = ( ITS_IN_NH  .and. ( X >  145.0  .or. X <= -127.5 ) )
+
+      ITS_IN_NAF = ( ( X >= -15.0 .and. X <=  55.0 ) .and. 
+     &               ( Y >=   0.0 .and. Y <   36.0 ) )  
+
+      ITS_IN_USA = ( ( X > -127.5 .and. X <= -65.0 ) .and. 
+     &               ( Y >   22.0 .and. Y <=  50.0 ) )
+
+      !=================================================================
+      ! Assign P(O3) to tagged tracers by geographic/altitude regions
+      !=================================================================
+
+      ! P(O3) [kg]
       PPROD = P24H(I,J,L)     * BOXVL(I,J,L,State_Met) *
      &        ( GET_TS_CHEM() * 60d0 )
 
       !-----------------------
-      ! #1: Total P(Ox)
+      ! #1: Total P(O3)
       !-----------------------
       PP(I,J,L,1) = PPROD
 
-!      !-----------------------
-!      ! #2: P(Ox) in UT
-!      !-----------------------
-!      IF ( ITS_IN_UT ) THEN
-!         PP(I,J,L,2) = PPROD
-!         
-!      !-----------------------
-!      ! #3: P(Ox) in MT 
-!      !-----------------------
-!      ELSE IF ( ITS_IN_MT ) THEN
-!         PP(I,J,L,3) = PPROD
-!                                
-!      !-----------------------
-!      ! #5: P(Ox) in Pac BL
-!      !-----------------------
-!      ELSE IF ( ITS_IN_PAC .and. ITS_IN_PBL ) THEN
-!         PP(I,J,L,5) = PPROD
-!
-!      !-----------------------
-!      ! #6: P(Ox) in NAm BL
-!      !-----------------------
-!      ELSE IF ( ITS_IN_NAM .and. ITS_IN_PBL ) THEN     
-!         PP(I,J,L,6) = PPROD
-!                  
-!      !-----------------------
-!      ! #7: P(Ox) in Atl BL
-!      !-----------------------
-!      ELSE IF ( ITS_IN_ATL .and. ITS_IN_PBL ) THEN
-!         PP(I,J,L,7) = PPROD  
-!         
-!      !-----------------------
-!      ! #8: P(Ox) in Eur BL
-!      !-----------------------
-!      ELSE IF ( ITS_IN_EUR .and. ITS_IN_PBL ) THEN
-!         PP(I,J,L,8) = PPROD
-!                  
-!      !-----------------------
-!      ! #9: P(Ox) in NAfr BL
-!      !-----------------------
-!      ELSE IF ( ITS_IN_NAF .and. ITS_IN_PBL ) THEN
-!         PP(I,J,L,9) = PPROD
-! 
-!      !-----------------------
-!      ! #10: P(Ox) in Asia BL
-!      !-----------------------          
-!      ELSE IF ( ITS_IN_AS .and. ITS_IN_PBL ) THEN
-!         PP(I,J,L,10) = PPROD                   
-!
-!      !-----------------------
-!      ! #4: P(Ox) in R.O.W
-!      !-----------------------
-!      ELSE 
-!         PP(I,J,L,4) = PPROD
-!
-!      ENDIF
-!
-!      !-------------------------
-!      ! #13: P(Ox) in USA
-!      !-------------------------
-!      IF ( ITS_IN_USA ) THEN
-!         PP(I,J,L,N_USA) = PPROD               
-!      ENDIF
+      !-----------------------
+      ! #2: P(O3) in UT
+      !-----------------------
+      IF ( ITS_IN_UT ) THEN
+         PP(I,J,L,3) = PPROD
+         
+      !-----------------------
+      ! #3: P(O3) in MT 
+      !-----------------------
+      ELSE IF ( ITS_IN_MT ) THEN
+         PP(I,J,L,4) = PPROD
+                                
+      !-----------------------
+      ! #5: P(O3) in Pac BL
+      !-----------------------
+      ELSE IF ( ITS_IN_PAC .and. ITS_IN_PBL ) THEN
+         PP(I,J,L,6) = PPROD
 
-      END SUBROUTINE GET_REGIONAL_POX
+      !-----------------------
+      ! #6: P(O3) in NAm BL
+      !-----------------------
+      ELSE IF ( ITS_IN_NAM .and. ITS_IN_PBL ) THEN     
+         PP(I,J,L,7) = PPROD
+                  
+      !-----------------------
+      ! #7: P(O3) in Atl BL
+      !-----------------------
+      ELSE IF ( ITS_IN_ATL .and. ITS_IN_PBL ) THEN
+         PP(I,J,L,8) = PPROD  
+         
+      !-----------------------
+      ! #8: P(O3) in Eur BL
+      !-----------------------
+      ELSE IF ( ITS_IN_EUR .and. ITS_IN_PBL ) THEN
+         PP(I,J,L,9) = PPROD
+                  
+      !-----------------------
+      ! #9: P(O3) in NAfr BL
+      !-----------------------
+      ELSE IF ( ITS_IN_NAF .and. ITS_IN_PBL ) THEN
+         PP(I,J,L,10) = PPROD
+ 
+      !-----------------------
+      ! #10: P(O3) in Asia BL
+      !-----------------------          
+      ELSE IF ( ITS_IN_AS .and. ITS_IN_PBL ) THEN
+         PP(I,J,L,11) = PPROD                   
+
+      !-----------------------
+      ! #4: P(O3) in R.O.W
+      !-----------------------
+      ELSE 
+         PP(I,J,L,5) = PPROD
+
+      ENDIF
+
+      !-------------------------
+      ! #13: P(O3) in USA
+      !-------------------------
+      IF ( ITS_IN_USA ) THEN
+         PP(I,J,L,13) = PPROD               
+      ENDIF
+
+      END SUBROUTINE GET_REGIONAL_PO3
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: chem_tagged_ox 
+! !IROUTINE: chem_tagged_o3 
 !
-! !DESCRIPTION: Subroutine CHEM\_TAGGED\_OX performs chemistry for several 
-!  Ox tracers which are tagged by geographic and altitude regions. 
+! !DESCRIPTION: Subroutine CHEM\_TAGGED\_O3 performs chemistry for several 
+!  O3 tracers which are tagged by geographic and altitude regions. 
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE CHEM_TAGGED_OX( am_I_Root, Input_Opt,
+      SUBROUTINE CHEM_TAGGED_O3( am_I_Root, Input_Opt,
      &                           State_Met, State_Chm, RC )
 !
 ! !USES:
@@ -549,7 +554,7 @@
       USE TIME_MOD,           ONLY : GET_TS_CHEM
       USE TIME_MOD,           ONLY : ITS_A_NEW_DAY 
       USE TIME_MOD,           ONLY : TIMESTAMP_STRING
-      USE TRACERID_MOD,       ONLY : IDTOX
+      USE TRACERID_MOD,       ONLY : IDTO3
       USE TROPOPAUSE_MOD,     ONLY : ITS_IN_THE_TROP
 
       IMPLICIT NONE
@@ -604,11 +609,11 @@
       LOGICAL, SAVE     :: FIRST   = .TRUE.
       INTEGER, SAVE     :: LASTDAY = -1
       INTEGER           :: I, J, L, N
-      REAL*8            :: PP(IIPAR,JJPAR,LD65,N_TAGGED)
-      REAL*8            :: ND44_TMP(IIPAR,JJPAR,LD65)
+      REAL*8            :: PP(IIPAR,JJPAR,LLTROP,N_TAGGED)
+      REAL*8            :: ND44_TMP(IIPAR,JJPAR,LLTROP)
       REAL*8            :: DTCHEM,  FREQ,    FLUX
-      REAL*8            :: LL,      PL,      Ox_0
-      REAL*8            :: Ox_LOST, PBL_MAX, F_UNDER_TOP
+      REAL*8            :: LL,      PL,      O3_0
+      REAL*8            :: O3_LOST, PBL_MAX, F_UNDER_TOP
       CHARACTER(LEN=16) :: STAMP
 
       ! For fields from Input_Opt
@@ -627,7 +632,7 @@
       REAL*8, EXTERNAL :: BOXVL
 
       !=================================================================
-      ! CHEM_TAGGED_OX begins here!
+      ! CHEM_TAGGED_O3 begins here!
       !=================================================================
 
       ! Assume success
@@ -650,49 +655,49 @@
       ! First-time initialization only
       !%%% NOTE: Need to eventually move this to the init stage %%%
       IF ( FIRST ) THEN 
-         CALL INIT_TAGGED_OX( am_I_Root, Input_Opt, RC )
+         CALL INIT_TAGGED_O3( am_I_Root, Input_Opt, RC )
          FIRST = .FALSE.
       ENDIF
 
-      ! Read P(Ox) and L(Ox) if it's a new day
+      ! Read P(O3) and L(O3) if it's a new day
       IF ( ITS_A_NEW_DAY() ) THEN
-         CALL READ_POX_LOX
+         CALL READ_PO3_LO3
       ENDIF
 
       ! Maximum extent of the PBL [model layers]
       PBL_MAX = GET_PBL_MAX_L()
 
       !=================================================================
-      ! Tagged Ox chemistry contains the following terms:
+      ! Tagged O3 chemistry contains the following terms:
       !
-      !   New Ox = Old Ox - Drydep(Ox) + ( P(Ox,region) - L(Ox) )
+      !   New O3 = Old O3 - Drydep(O3) + ( P(O3,region) - L(O3) )
       !
-      ! P(Ox) and L(Ox) are archived from a previous fullchem run using
-      ! the ND20 diagnostic.  P(Ox,region) is the P(Ox) for a specific
-      ! tagged Ox tracer, as computed by routine GET_REGIONAL_POX.
+      ! P(O3) and L(O3) are archived from a previous fullchem run using
+      ! the ND20 diagnostic.  P(O3,region) is the P(O3) for a specific
+      ! tagged O3 tracer, as computed by routine GET_REGIONAL_PO3.
       !
-      ! Tagged Ox tracers are defined by both geographic location and
+      ! Tagged O3 tracers are defined by both geographic location and
       ! altitude, as listed below:
       !
       !%%% Modification for quicker spinup
-      !%%% (1 ) Total Ox
-      !%%% (2 ) Ox produced in Upper Trop     (350 hPa    - tropopause) 
-      !%%% (3 ) Ox produced in Middle Trop    (PBL top    - 350 hPa   )
-      !%%% (4 ) Ox produced in Rest of World  (surface    - PBL top   )
-      !%%% (5 ) Ox produced in Pacific BL     (surface    - PBL top   )
-      !%%% (6 ) Ox produced in N. American BL (surface    - PBL top   )
-      !%%% (7 ) Ox produced in Atlantic BL    (surface    - PBL top   )
-      !%%% (8 ) Ox produced in European BL    (surface    - PBL top   )
-      !%%% (9 ) Ox produced in N. African BL  (surface    - PBL top   )
-      !%%% (10) Ox produced in Asian          (surface    - PBL top   )
-      !%%% (11) Ox from the Stratosphere      (tropopause - atm top   )
-      !%%% (12) Ox initial conditions         (all levels             )        
-      !%%% (13) Ox produced over the USA      (all levels             )
+      !%%% (1 ) Total O3
+      !%%% (2 ) O3 produced in Upper Trop     (350 hPa    - tropopause) 
+      !%%% (3 ) O3 produced in Middle Trop    (PBL top    - 350 hPa   )
+      !%%% (4 ) O3 produced in Rest of World  (surface    - PBL top   )
+      !%%% (5 ) O3 produced in Pacific BL     (surface    - PBL top   )
+      !%%% (6 ) O3 produced in N. American BL (surface    - PBL top   )
+      !%%% (7 ) O3 produced in Atlantic BL    (surface    - PBL top   )
+      !%%% (8 ) O3 produced in European BL    (surface    - PBL top   )
+      !%%% (9 ) O3 produced in N. African BL  (surface    - PBL top   )
+      !%%% (10) O3 produced in Asian          (surface    - PBL top   )
+      !%%% (11) O3 from the Stratosphere      (tropopause - atm top   )
+      !%%% (12) O3 initial conditions         (all levels             )        
+      !%%% (13) O3 produced over the USA      (all levels             )
       !
       ! NOTE: MODIFIED FOR QUICKER SPINUP:
-      ! (1 ) Total Ox
-      ! (2 ) Ox from the Stratosphere      (tropopause - atm top   )
-      ! (3 ) Ox initial conditions         (all levels             )        
+      ! (1 ) Total O3
+      ! (2 ) O3 from the Stratosphere      (tropopause - atm top   )
+      ! (3 ) O3 initial conditions         (all levels             )        
       !=================================================================
       DO N = 1, N_TRACERS
 
@@ -701,22 +706,22 @@
 
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
-!$OMP+PRIVATE( I, J, L, LL, PL, FREQ, Ox_0, Ox_LOST, FLUX, F_UNDER_TOP )  
+!$OMP+PRIVATE( I, J, L, LL, PL, FREQ, O3_0, O3_LOST, FLUX, F_UNDER_TOP )  
 !$OMP+SCHEDULE( DYNAMIC )
-         DO L = 1, LD65 ! LLTROP !_FIX
+         DO L = 1, LLTROP
          DO J = 1, JJPAR
          DO I = 1, IIPAR
 
             !===========================================================
-            ! Get P(Ox) and L(Ox) for each tagged tracer in [kg]
+            ! Get P(O3) and L(O3) for each tagged tracer in [kg]
             !===========================================================
 
-            ! P(Ox) is a function of geographic & altitude location
+            ! P(O3) is a function of geographic & altitude location
             ! NOTE: We call this only when N==1 for optimal looping
-            IF ( N == 1 ) CALL GET_REGIONAL_POX( I, J, L, PP,
+            IF ( N == 1 ) CALL GET_REGIONAL_PO3( I, J, L, PP,
      &                                           State_Met   )
             
-            ! L(Ox) is originally in [1/cm3/s]; convert to [kg] 
+            ! L(O3) is originally in [1/cm3/s]; convert to [kg] 
             IF ( ITS_IN_THE_TROP( I, J, L, State_Met ) ) THEN
                LL = STT(I,J,L,N)           * L24H(I,J,L) *
      &              BOXVL(I,J,L,State_Met) * DTCHEM
@@ -743,8 +748,8 @@
             ENDIF
 
             !===========================================================
-            ! Apply drydep of Ox to each tagged tracer.  We need 
-            ! to do this using before P(Ox) - L(Ox) is applied.
+            ! Apply drydep of O3 to each tagged tracer.  We need 
+            ! to do this using before P(O3) - L(O3) is applied.
             !===========================================================
             IF ( LDRYD ) THEN
 
@@ -753,7 +758,7 @@
 
                IF ( F_UNDER_TOP > 0d0 ) THEN
                
-                  ! Ox Drydep frequency [1/s]
+                  ! O3 Drydep frequency [1/s]
                   FREQ = DEPSAV(I,J,1) * F_UNDER_TOP
 
                   ! Add option for non-local PBL (Lin, 03/31/09)  
@@ -762,25 +767,25 @@
                   ! Only proceed if drydep frequency is nonzero
                   IF ( FREQ > 0d0 ) THEN
 
-                     ! Initial Ox [kg]
-                     Ox_0    = STT(I,J,L,N)
+                     ! Initial O3 [kg]
+                     O3_0    = STT(I,J,L,N)
 
-                     ! Amount of Ox LOST to drydep [kg]
-                     Ox_LOST = Ox_0 * ( 1d0 - EXP( -FREQ * DTCHEM ) )
+                     ! Amount of O3 LOST to drydep [kg]
+                     O3_LOST = O3_0 * ( 1d0 - EXP( -FREQ * DTCHEM ) )
                   
                      ! Prevent underflow condition
-                     IF ( Ox_LOST < 1d-20 ) Ox_LOST = 0d0
+                     IF ( O3_LOST < 1d-20 ) O3_LOST = 0d0
                        
-                     ! Subtract Ox lost [kg] 
-                     STT(I,J,L,N) = Ox_0 - Ox_LOST 
+                     ! Subtract O3 lost [kg] 
+                     STT(I,J,L,N) = O3_0 - O3_LOST 
                   
                      !==================================================
-                     ! ND44 diagnostic: Ox lost to drydep [molec/cm2/s]
+                     ! ND44 diagnostic: O3 lost to drydep [molec/cm2/s]
                      !==================================================
-                     IF ( ND44 > 0 .and. Ox_LOST > 0d0 ) THEN
+                     IF ( ND44 > 0 .and. O3_LOST > 0d0 ) THEN
 
                         ! Convert from [kg] to [molec/cm2/s]
-                        FLUX = Ox_LOST             * XNUMOL(IDTOX) / 
+                        FLUX = O3_LOST             * XNUMOL(IDTO3) / 
      &                         GET_AREA_CM2(I,J,L) / DTCHEM 
                      
                         ! Store dryd flx in ND44_TMP as a placeholder
@@ -791,8 +796,8 @@
             ENDIF
                
             !===========================================================
-            ! After removing Ox lost to dry deposition, apply 
-            ! chemical P(Ox) - L(Ox) to each tagged tracer
+            ! After removing O3 lost to dry deposition, apply 
+            ! chemical P(O3) - L(O3) to each tagged tracer
             !===========================================================
             STT(I,J,L,N) = STT(I,J,L,N) + PP(I,J,L,N) - LL
          ENDDO
@@ -822,22 +827,22 @@
       ! Free pointer
       NULLIFY( STT )
 
-      END SUBROUTINE CHEM_TAGGED_OX
+      END SUBROUTINE CHEM_TAGGED_O3
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: init_tagged_ox
+! !IROUTINE: init_tagged_o3
 !
-! !DESCRIPTION: Subroutine INIT\_TAGGED\_OX allocates and zeroes all module
+! !DESCRIPTION: Subroutine INIT\_TAGGED\_O3 allocates and zeroes all module
 !  arrays.
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE INIT_TAGGED_OX( am_I_Root, Input_Opt, RC )
+      SUBROUTINE INIT_TAGGED_O3( am_I_Root, Input_Opt, RC )
 !
 ! !USES:
 !
@@ -875,7 +880,7 @@
       INTEGER :: AS
 
       !=================================================================
-      ! INIT_TAGGED_OX begins here
+      ! INIT_TAGGED_O3 begins here
       !=================================================================
 
       ! Assume success
@@ -883,8 +888,8 @@
 
       ! Safety valve
       IF ( Input_Opt%N_TRACERS > N_TAGGED ) THEN
-         CALL ERROR_STOP( 'NTRACE is too large for Tagged Ox!', 
-     &                    'INIT_TAGGED_OX (tagged_ox_mod.f)' )
+         CALL ERROR_STOP( 'NTRACE is too large for Tagged O3!', 
+     &                    'INIT_TAGGED_O3 (tagged_o3_mod.f)' )
       ENDIF
 
       ! Allocate P24H
@@ -897,21 +902,21 @@
       IF ( AS /= 0 ) CALL ALLOC_ERR( 'L24H' ) 
       L24H = 0d0
 
-      END SUBROUTINE INIT_TAGGED_OX
+      END SUBROUTINE INIT_TAGGED_O3
 !EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: cleanup_tagged_ox
+! !IROUTINE: cleanup_tagged_o3
 !
-! !DESCRIPTION:Subroutine CLEANUP\_TAGGED\_OX deallocates all module arrays. 
+! !DESCRIPTION:Subroutine CLEANUP\_TAGGED\_O3 deallocates all module arrays. 
 !\\
 !\\
 ! !INTERFACE:
 !
-      SUBROUTINE CLEANUP_TAGGED_OX
+      SUBROUTINE CLEANUP_TAGGED_O3
 ! 
 ! !REVISION HISTORY:
 !  20 Aug 2003 - R. Yantosca - Initial version
@@ -923,6 +928,6 @@
       IF ( ALLOCATED( P24H ) ) DEALLOCATE( P24H )
       IF ( ALLOCATED( L24H ) ) DEALLOCATE( L24H )
 
-      END SUBROUTINE CLEANUP_TAGGED_OX
+      END SUBROUTINE CLEANUP_TAGGED_O3
 !EOC
-      END MODULE TAGGED_OX_MOD
+      END MODULE TAGGED_O3_MOD
