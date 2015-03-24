@@ -368,7 +368,10 @@
       INTEGER :: IDTGLPAN, IDTGPAN, IDTPYPAN
 
       ! For tagged Ox simulation
-      INTEGER            :: IDTOxStrt, IDTOX
+      INTEGER :: IDTO3Strt, IDTO3UT, IDTO3MT, IDTO3ROW
+      INTEGER :: IDTO3PacBL, IDTO3NABL, IDTO3AtlBL
+      INTEGER :: IDTO3EurBL, IDTO3AfrBL, IDTO3AsBL
+      INTEGER :: IDTO3Init, IDTO3USA
 
       ! For POPs simulation (clf, 2/11/2011)
       INTEGER            :: IDTPOPPOC,  IDTPOPPBC,   IDTPOPG
@@ -1582,12 +1585,33 @@
             ! Tagged Ox Tracers
             !--------------------------------
              
-            CASE ( 'OX' )
-               IDTOX    = N
+            !CASE ( 'OX' )
+            !   IDTOX    = N
 
-            CASE ( 'OXSTRT' )
-               IDTOxStrt = N
-
+            CASE ( 'O3STRT' )
+               IDTO3Strt = N
+            CASE ( 'O3UT' )
+               IDTO3UT = N
+            CASE ( 'O3MT' )
+               IDTO3MT = N
+            CASE ( 'O3ROW' )
+               IDTO3ROW = N
+            CASE ( 'O3PACBL' )
+               IDTO3PacBL = N
+            CASE ( 'O3NABL' )
+               IDTO3NABL = N
+            CASE ( 'O3ATLBL' )
+               IDTO3AtlBL = N
+            CASE ( 'O3EURBL' )
+               IDTO3EurBL = N
+            CASE ( 'O3AFRBL' )
+               IDTO3AfrBL = N
+            CASE ( 'O3ASBL' )
+               IDTO3AsBL = N
+            CASE ( 'O3INIT' )
+               IDTO3Init = N
+            CASE ( 'O3USA' )
+               IDTO3USA = N
             !--------------------------------
             ! Rn-Pb-Be tracers
             !--------------------------------
@@ -4902,8 +4926,20 @@
       IDTNH4aq  = 0
       IDTLET    = 0
       IDTSO4aq  = 0
-      IDTOxStrt = 0
-      IDTOX     = 0  
+
+      IDTO3Strt = 0
+      IDTO3UT   = 0
+      IDTO3MT   = 0
+      IDTO3ROW  = 0
+      IDTO3PacBL = 0
+      IDTO3NABL = 0
+      IDTO3AtlBL = 0
+      IDTO3EurBL = 0
+      IDTO3AfrBL = 0
+      IDTO3AsBL = 0
+      IDTO3Init = 0
+      IDTO3USA = 0
+
       IDTRN     = 0
       IDTPB     = 0
       IDTBE7    = 0
