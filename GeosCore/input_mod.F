@@ -448,10 +448,12 @@
       ! NOTE: Call this in the FIRSTCHEM block of chemdr.F
       ! after the calls to READER/READCHEM.  This is a kludge
       ! but it should be sufficent. (bmy, 6/24/13)
-      IF ( .not. Input_Opt%LCHEM ) THEN
+      !IF ( .not. Input_Opt%LCHEM ) THEN
          ! Create "diaginfo.dat" and "tracerinfo.dat" files for GAMAP
-         CALL DO_GAMAP( am_I_Root, Input_Opt, RC )
-      ENDIF
+      ! krt, this doesn't work for tagged O3.  Let's just call it twice
+      ! if we are in fullchem (3/24/15)
+      CALL DO_GAMAP( am_I_Root, Input_Opt, RC )
+      !ENDIF
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
       ! Echo output
