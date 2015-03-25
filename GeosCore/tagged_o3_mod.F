@@ -455,6 +455,13 @@
       !-----------------------
       PP(I,J,L,1) = PPROD
 
+      !-------------------------
+      ! #13: P(O3) in USA
+      !-------------------------
+      IF ( ITS_IN_USA ) THEN
+         PP(I,J,L,13) = PPROD               
+      ENDIF
+
       !-----------------------
       ! #2: P(O3) in UT
       !-----------------------
@@ -509,13 +516,6 @@
       ELSE 
          PP(I,J,L,5) = PPROD
 
-      ENDIF
-
-      !-------------------------
-      ! #13: P(O3) in USA
-      !-------------------------
-      IF ( ITS_IN_USA ) THEN
-         PP(I,J,L,13) = PPROD               
       ENDIF
 
       END SUBROUTINE GET_REGIONAL_PO3
