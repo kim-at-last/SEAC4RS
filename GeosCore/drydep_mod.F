@@ -259,6 +259,7 @@
       ! Scalars
       INTEGER              :: NUMDEP,   NWATER
       INTEGER              :: DRYDHNO3, DRYDNO2, DRYDPAN, DRYDH2O2
+      INTEGER              :: DRYDISOPN
       INTEGER              :: DRYHg0,   DRYHg2,  DryHgP
       ! Additional variables for POPs sim (eck, 9/20/10)
       INTEGER              :: DRYPOPP_OC
@@ -333,6 +334,7 @@
       USE GIGC_Input_Opt_Mod, ONLY : OptInput
       USE GIGC_State_Chm_Mod, ONLY : ChmState
       USE GIGC_State_Met_Mod, ONLY : MetState
+      USE TRACERID_MOD,       ONLY : IDTISOPN
 !
 ! !INPUT PARAMETERS:
 !
@@ -416,6 +418,7 @@
 !
       ! Scalars
       INTEGER       :: I,   J,   L,  N, IJLOOP, NN, NDVZ
+      INTEGER       :: NDVZ_ISOPN
       REAL*8        :: DVZ, THIK
 
       ! Arrays
@@ -462,6 +465,8 @@
       ! to the NDVZIND local array.  This will prevent an OOB error.
       DO N = 1, Input_Opt%NUMDEP
          NDVZIND(N) = Input_Opt%NDVZIND(N)
+         ! Kludge for ISOPN species
+         IF ( NTRAIND(N) == IDTISOPN ) NDVZ_ISOPN = NDVZIND(N)
       ENDDO
 
       ! Call METERO to obtain meterological fields (all 1-D arrays)
@@ -524,6 +529,11 @@
             ELSE IF ( FLAG(N) .eq. 3 ) THEN
                ! Scale species to H2O2
                DVZ = DVZ *sqrt(34d-3)/sqrt(XMW(N))            
+            ELSE IF ( FLAG(N) .eq. 4 ) THEN
+               ! Scale species to ISOPN
+               ! Kludge since some species appear before ISOPN in list
+               DVZ = DVEL(IJLOOP,NDVZ_ISOPN) * 100.d0
+               DVZ = DVZ *sqrt(147d-3)/sqrt(XMW(N))            
             ENDIF
 
             ! Set minimum velocity for sulfate tracers
@@ -4423,6 +4433,7 @@
       DRYDHNO3   = 0 
       !(fp, 06/09)
       DRYDH2O2   = 0 
+      DRYDISOPN  = 0 
  
       NUMDEP     = 0
       NTRAIND(:) = 0
@@ -4620,19 +4631,19 @@ c$$$            FLAG(NUMDEP)    = 2
             F0(NUMDEP)      = 1.00d0
             XMW(NUMDEP)     = 147d-3
             AIROSOL(NUMDEP) = .FALSE.
-            FLAG(NUMDEP)    = 0
+            FLAG(NUMDEP)    = 4
 
          ! R4N2 (uses same dep vel as PAN)
          ELSE IF ( N == IDTR4N2 ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTR4N2
-            NDVZIND(NUMDEP) = DRYDPAN
+            NDVZIND(NUMDEP) = DRYDHNO3!DRYDPAN
             DEPNAME(NUMDEP) = 'R4N2'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 119d-3
             AIROSOL(NUMDEP) = .FALSE.
-            FLAG(NUMDEP)    = 2
+            FLAG(NUMDEP)    = 4
 
          ! CH2O 
          ELSE IF ( N == IDTCH2O ) THEN
@@ -5070,6 +5081,7 @@ c$$$            FLAG(NUMDEP)    = 2
 
             ! First species; ISOPND
             NUMDEP          = NUMDEP + 1
+            DRYDISOPN       = NUMDEP
             NTRAIND(NUMDEP) = IDTISOPN
             NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'ISOPND'
@@ -5121,25 +5133,25 @@ c$$$            FLAG(NUMDEP)    = 2
          ELSE IF ( N == IDTETHLN ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTETHLN
-            NDVZIND(NUMDEP) = DRYDPAN
+            NDVZIND(NUMDEP) = DRYDISOPN
             DEPNAME(NUMDEP) = 'ETHLN'
             HSTAR(NUMDEP)   = 0d0  !????
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 105d-3
             AIROSOL(NUMDEP) = .FALSE.   
-            FLAG(NUMDEP)    = 2
+            FLAG(NUMDEP)    = 4
 
          !DHDN (jaf, 5/21/14)
          ELSE IF ( N == IDTDHDN ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTDHDN
-            NDVZIND(NUMDEP) = DRYDPAN
+            NDVZIND(NUMDEP) = DRYDISOPN
             DEPNAME(NUMDEP) = 'DHDN'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 226d-3
             AIROSOL(NUMDEP) = .FALSE.
-            FLAG(NUMDEP)    = 2
+            FLAG(NUMDEP)    = 4
 
          !PROPNN
          ! Nguyen et al, 2014
@@ -5864,6 +5876,7 @@ c$$$            FLAG(NUMDEP)    = 2
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 136d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! Lumped MTP with two double bonds
          ELSE IF ( N == IDTLIM ) THEN
@@ -5883,23 +5896,35 @@ c$$$            FLAG(NUMDEP)    = 2
             ! Scale based on molecular weight per Nguyen et al, 2014
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMONIT
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDISOPN
             DEPNAME(NUMDEP) = 'MONITS'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 119d-3
             AIROSOL(NUMDEP) = .FALSE.
-            FLAG(NUMDEP)    = 1d0
+            FLAG(NUMDEP)    = 4
             ! Scale based on molecular weight per Nguyen et al, 2014
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMONIT
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDISOPN
             DEPNAME(NUMDEP) = 'MONITU'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 119d-3
             AIROSOL(NUMDEP) = .FALSE.
-            FLAG(NUMDEP)    = 1d0
+            FLAG(NUMDEP)    = 4
+
+         ELSE IF ( N == IDTHONIT ) THEN
+            ! Scale based on molecular weight per Nguyen et al, 2014
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTHONIT
+            NDVZIND(NUMDEP) = DRYDISOPN
+            DEPNAME(NUMDEP) = 'HONIT'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 119d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 4
 
          !----------------------------------
          ! SEAC4RS SOA tracers (jaf, 6/24/13)
