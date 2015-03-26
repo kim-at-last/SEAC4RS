@@ -774,22 +774,24 @@
 !      "R(CO)=1.8+/-0.3" : 1.8/10 is about 20%.
 !******************************************************************************
 !
-               !=====================================================
-               ! CO from MONOTERPENE oxidation [molec CO/box/s] 
-               !====================================================
- 
-               ! NOTE: Don't save into EMISRR for the tagged CO simulation.  
-               ! Also for tagged CO we don't use monoterpenes  ??????
-               ! (jaf, mak, bmy, 2/14/08)
-               IF ( NO_TAGCO ) THEN
-                  TMPVAL            = ( EMIS_MONO / DTSRCE ) * 0.2d0
-                  EMISRR(I,J,IDECO) = EMISRR(I,J,IDECO) + TMPVAL
-
-                  ! ND29: CO-source from monoterpenes [molec/cm2/s]
-                  IF ( ND29 > 0 ) THEN
-                     AD29(I,J,1,5) = AD29(I,J,1,5) + ( TMPVAL/AREA_CM2 )
-                  ENDIF
-               ENDIF
+! SEAC4RS MTN simulation -- MTs are explicit so comment this out (jaf,
+! 3/25/15)
+!               !=====================================================
+!               ! CO from MONOTERPENE oxidation [molec CO/box/s] 
+!               !====================================================
+! 
+!               ! NOTE: Don't save into EMISRR for the tagged CO simulation.  
+!               ! Also for tagged CO we don't use monoterpenes  ??????
+!               ! (jaf, mak, bmy, 2/14/08)
+!               IF ( NO_TAGCO ) THEN
+!                  TMPVAL            = ( EMIS_MONO / DTSRCE ) * 0.2d0
+!                  EMISRR(I,J,IDECO) = EMISRR(I,J,IDECO) + TMPVAL
+!
+!                  ! ND29: CO-source from monoterpenes [molec/cm2/s]
+!                  IF ( ND29 > 0 ) THEN
+!                     AD29(I,J,1,5) = AD29(I,J,1,5) + ( TMPVAL/AREA_CM2 )
+!                  ENDIF
+!               ENDIF
 !
 !******************************************************************************
 !  Biogenic source of PRPE
