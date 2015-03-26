@@ -723,15 +723,17 @@
                ! API = alpha-pinene, beta-pinene, sabinene, d3-carene
                ! LIM = limonene, myrcene, ocimene
                ! Based on RACM2 and Browne et al., 2014 (jaf, 3/16/15)
+               ! Double MTP emissions based on comparison to SEAC4RS
+               ! monoterpenes (jaf, 3/26/15)
                IF ( IDTAPI /= 0 ) THEN
                   EMISRR(I,J,IDEAPI) = EMISRR(I,J,IDEAPI) + 
      &                 ( (EMIS_APIN + EMIS_BPIN + EMIS_SABI + EMIS_CARE)
-     &                   / DTSRCE )
+     &                   * 2d0 / DTSRCE )
                ENDIF
                IF ( IDTLIM /= 0 ) THEN
                   EMISRR(I,J,IDELIM) = EMISRR(I,J,IDELIM) + 
      &                 ( (EMIS_LIMO + EMIS_MYRC + EMIS_OCIM)
-     &                   / DTSRCE )
+     &                   * 2d0 / DTSRCE )
                ENDIF
 
 
