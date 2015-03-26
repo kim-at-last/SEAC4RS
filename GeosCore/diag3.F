@@ -2025,9 +2025,9 @@
 !******************************************************************************
 !
 #if   !defined( GEOS_4 ) 
-      IF ( ND27 > 0 .and. ( IDTO3 > 0 .or. IDTOx > 0 )) THEN
+      IF ( ND27 > 0 .and. ( IDTO3 > 0  )) THEN
          IF ( ( IDTO3 > 0 .and. Input_Opt%ITS_A_FULLCHEM_SIM )  .OR.
-     &        ( IDTOx > 0 .and. Input_Opt%ITS_A_TAGOX_SIM    )  .OR. 
+     &        ( IDTO3 > 0 .and. Input_Opt%ITS_A_TAGO3_SIM    )  .OR. 
      &        (                 Input_Opt%ITS_A_H2HD_SIM    )) THEN
 
             CATEGORY = 'STRT-FLX'
@@ -2959,7 +2959,7 @@
          CATEGORY = 'DRYD-FLX'
 
          ! # of drydep flux tracers
-         IF ( Input_Opt%ITS_A_TAGOX_SIM .or. 
+         IF ( Input_Opt%ITS_A_TAGO3_SIM .or. 
      &        Input_Opt%ITS_A_MERCURY_SIM ) THEN
             M = N_TRACERS
          ELSE
@@ -2985,10 +2985,10 @@
                UNIT = 'kg/s'       
                NN   = NTRAIND(N)
  
-            ELSE IF ( Input_Opt%ITS_A_TAGOX_SIM .or. 
+            ELSE IF ( Input_Opt%ITS_A_TAGO3_SIM .or. 
      &                Input_Opt%ITS_A_MERCURY_SIM ) THEN
 
-               ! Tagged Ox or Tagged Hg
+               ! Tagged O3 or Tagged Hg
                UNIT = 'molec/cm2/s'
                NN   = N
   
@@ -3103,7 +3103,7 @@
                   ARRAY(:,:,1) = ( AD44(:,:,N+1,1) / SCALECHEM )
 
                   ! Index under which MONIT is stored
-                  T            = N_TRACERS + 1
+                  T            = N_TRACERS + 3
 
                   ! Write to file
                   ! It's number is NNPAR+1 (see gamap_mod.f)
@@ -3131,7 +3131,7 @@
          UNIT      = 'cm/s'
 
          ! # of drydep velocity tracers
-         IF ( Input_Opt%ITS_A_TAGOX_SIM ) THEN
+         IF ( Input_Opt%ITS_A_TAGO3_SIM ) THEN
             M = 1
          ELSE IF ( Input_Opt%ITS_A_MERCURY_SIM ) THEN  ! Ask Helen
             M = 2
@@ -3222,7 +3222,7 @@
                   ARRAY(:,:,1) = ( AD44(:,:,N+1,2) / SCALECHEM )
 
                   ! Index under which ISOPN is stored
-                  T            = N_TRACERS + 1
+                  T            = N_TRACERS + 3
 
                   ! Write to file
                   ! It's number is NNPAR+1 (see gamap_mod.f)
@@ -4148,7 +4148,7 @@
                   ARRAY(:,:,L) = AD65(:,:,L,N)
                ENDDO
 
-            ELSE IF ( Input_Opt%ITS_A_TAGOX_SIM ) THEN
+            ELSE IF ( Input_Opt%ITS_A_TAGO3_SIM ) THEN
                NN          = N
                UNIT        = 'kg/s'
                
