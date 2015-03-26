@@ -448,10 +448,12 @@
       ! NOTE: Call this in the FIRSTCHEM block of chemdr.F
       ! after the calls to READER/READCHEM.  This is a kludge
       ! but it should be sufficent. (bmy, 6/24/13)
-      IF ( .not. Input_Opt%LCHEM ) THEN
+      !IF ( .not. Input_Opt%LCHEM ) THEN
          ! Create "diaginfo.dat" and "tracerinfo.dat" files for GAMAP
-         CALL DO_GAMAP( am_I_Root, Input_Opt, RC )
-      ENDIF
+      ! krt, this doesn't work for tagged O3.  Let's just call it twice
+      ! if we are in fullchem (3/24/15)
+      CALL DO_GAMAP( am_I_Root, Input_Opt, RC )
+      !ENDIF
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
       ! Echo output
@@ -1527,7 +1529,7 @@
       Input_Opt%ITS_A_CH3I_SIM         = ( SIM_TYPE == 2  )
       Input_Opt%ITS_A_FULLCHEM_SIM     = ( SIM_TYPE == 3  )
       Input_Opt%ITS_A_HCN_SIM          = ( SIM_TYPE == 4  )
-      Input_Opt%ITS_A_TAGOX_SIM        = ( SIM_TYPE == 6  )
+      Input_Opt%ITS_A_TAGO3_SIM        = ( SIM_TYPE == 6  )
       Input_Opt%ITS_A_TAGCO_SIM        = ( SIM_TYPE == 7  )
       Input_Opt%ITS_A_C2H6_SIM         = ( SIM_TYPE == 8  )
       Input_Opt%ITS_A_CH4_SIM          = ( SIM_TYPE == 9  )
@@ -1560,7 +1562,7 @@
       Input_Opt%ITS_A_SPECIALTY_SIM    =
      &     ( Input_Opt%ITS_A_CH3I_SIM      .or.
      &       Input_Opt%ITS_A_HCN_SIM       .or.
-     &       Input_Opt%ITS_A_TAGOX_SIM     .or.
+     &       Input_Opt%ITS_A_TAGO3_SIM     .or.
      &       Input_Opt%ITS_A_TAGCO_SIM     .or.
      &       Input_Opt%ITS_A_C2H6_SIM      .or.
      &       Input_Opt%ITS_A_CH4_SIM       .or.
@@ -2338,6 +2340,10 @@
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
       READ( SUBSTRS(1:N), * ) LNEI11CARB
 
+      ! Scale NEI2011 onroad emissions by 90%?
+      CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
+      READ( SUBSTRS(1:N), * ) LSCALEONROAD
+
       ! Scale NEI2008/11 ag NH3 to MASAGE?
       CALL SPLIT_ONE_LINE( SUBSTRS, N, 1, 'read_emissions_menu:10' )
       READ( SUBSTRS(1:N), * ) LSCALE2MASAGE
@@ -2578,6 +2584,7 @@
       LNEI08CARB        = ( LNEI08CARB     .and. LANTHRO   )
       LNEI11            = ( LNEI11         .and. LANTHRO   )
       LNEI11CARB        = ( LNEI11CARB     .and. LANTHRO   )
+      LSCALEONROAD      = ( LSCALEONROAD   .and. LANTHRO   )
       LSCALE2MASAGE     = ( LSCALE2MASAGE  .and. LANTHRO   )
       LRETRO            = ( LRETRO         .and. LANTHRO   )
       LNEI99            = ( LNEI99         .and. LANTHRO   )
@@ -2773,6 +2780,17 @@
          WRITE( 6, '(a)' ) REPEAT( '=', 79 )
          ENDIF
       ENDIF
+      ! Same story for LSCALEONROAD AND NEI11
+      IF ( LSCALEONROAD .and. ( .not. LNEI11 ) ) THEN
+         LSCALEONROAD = .FALSE.
+         IF ( am_I_Root ) THEN
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         WRITE( 6, '(a)' ) 'WARNING! NEI11 emissions are turned off, so'
+         WRITE( 6, '(a)' ) 'we also turn off scaling onroad emissions'
+         WRITE( 6, '(a)' ) 'in order to avoid crashing GEOS-Chem!'
+         WRITE( 6, '(a)' ) REPEAT( '=', 79 )
+         ENDIF
+      ENDIF
 
       !=================================================================
       ! Enforce emissions options for Nested China on native GEOS-5 grid
@@ -2792,6 +2810,7 @@
       LNEI11   = .FALSE.
       LNEI11CARB = .FALSE.
       LSCALE2MASAGE = .FALSE.
+      LSCALEONROAD  = .FALSE.
       LVISTAS  = .FALSE.
       LICARTT  = .FALSE.
 
@@ -2822,6 +2841,7 @@
       LNEI11   = .FALSE.
       LNEI11CARB = .FALSE.
       LSCALE2MASAGE = .FALSE.
+      LSCALEONROAD  = .FALSE.
       LVISTAS  = .FALSE.
       LICARTT  = .FALSE.
 
@@ -3046,6 +3066,7 @@
       Input_Opt%LNEI08         = LNEI08
       Input_Opt%LNEI08CARB     = LNEI08CARB
       Input_Opt%LSCALE2MASAGE  = LSCALE2MASAGE
+      Input_Opt%LSCALEONROAD   = LSCALEONROAD
       Input_Opt%LNEI11         = LNEI11
       Input_Opt%LNEI11CARB     = LNEI11CARB
       Input_Opt%LRETRO         = LRETRO
@@ -3127,6 +3148,7 @@
         WRITE( 6, 100 ) '  Scale NEI Ag NH3 to MASAGE: ', LSCALE2MASAGE
         WRITE( 6, 100 ) '  Use EPA/NEI 2011          : ', LNEI11
         WRITE( 6, 100 ) '  Use EPA/NEI 2011 OC/BC    : ', LNEI11CARB
+        WRITE( 6, 100 ) '  Scale NEI11 onroad emissions: ', LSCALEONROAD
         WRITE( 6, 100 ) '  Use RETRO emissions       : ', LRETRO
         WRITE( 6, 100 ) '  Use AEIC emissions        : ', LAEIC
         WRITE( 6, 100 ) '  Use RCP emissions         : ', LRCP
@@ -3865,7 +3887,7 @@
       USE LOGICAL_MOD,        ONLY : LFILL
       USE LOGICAL_MOD,        ONLY : LTRAN
       USE TRACER_MOD,         ONLY : ITS_A_FULLCHEM_SIM
-      USE TRACER_MOD,         ONLY : ITS_A_TAGOX_SIM
+      USE TRACER_MOD,         ONLY : ITS_A_TAGO3_SIM
 #if defined( EXTERNAL_GRID ) || defined( EXTERNAL_FORCING )
       USE TIME_MOD,           ONLY : Accept_External_Date_Time
 #endif
@@ -4242,7 +4264,7 @@
       USE TRACER_MOD,  ONLY : ITS_A_C2H6_SIM,    ITS_A_CH3I_SIM
       USE TRACER_MOD,  ONLY : ITS_A_CH4_SIM,     ITS_A_HCN_SIM
       USE TRACER_MOD,  ONLY : ITS_A_MERCURY_SIM, ITS_A_TAGCO_SIM
-      USE TRACER_MOD,  ONLY : ITS_A_TAGOX_SIM
+      USE TRACER_MOD,  ONLY : ITS_A_TAGO3_SIM
       USE WETSCAV_MOD, ONLY : WETDEPID
 #if   defined( APM )
       USE APM_WETS_MOD, ONLY : WETDEPBINID
@@ -4318,7 +4340,7 @@
       ! Turn off wetdep for simulations that don't need it
       IF ( ITS_A_CH3I_SIM()    ) LWETD = .FALSE.
       IF ( ITS_A_HCN_SIM()     ) LWETD = .FALSE.
-      IF ( ITS_A_TAGOX_SIM()   ) LWETD = .FALSE.
+      IF ( ITS_A_TAGO3_SIM()   ) LWETD = .FALSE.
       IF ( ITS_A_TAGCO_SIM()   ) LWETD = .FALSE.
       IF ( ITS_A_C2H6_SIM()    ) LWETD = .FALSE.
       IF ( ITS_A_CH4_SIM()     ) LWETD = .FALSE.
@@ -4624,7 +4646,7 @@
       USE TRACER_MOD,   ONLY : N_TRACERS
       USE TRACER_MOD,   ONLY : ITS_A_CO2_SIM,        ITS_A_FULLCHEM_SIM
       USE TRACER_MOD,   ONLY : ITS_A_MERCURY_SIM,    ITS_A_RnPbBe_SIM
-      USE TRACER_MOD,   ONLY : ITS_A_TAGOX_SIM,      ITS_A_CH3I_SIM
+      USE TRACER_MOD,   ONLY : ITS_A_TAGO3_SIM,      ITS_A_CH3I_SIM
       USE TRACER_MOD,   ONLY : SALA_REDGE_um,        ITS_A_CH4_SIM
       USE TRACER_MOD,   ONLY : ITS_A_POPS_SIM
       USE TRACERID_MOD, ONLY : NEMANTHRO
@@ -5045,7 +5067,7 @@
       ! Number of tracers depends on simulation type
 ! This causes trouble for tracers set in drydep_mod.F to use IDTXXX in
 ! NTRAIND when IDTXXX > NUMDEP. (jaf, 11/27/14)
-!      IF ( ITS_A_TAGOX_SIM() ) THEN
+!      IF ( ITS_A_TAGO3_SIM() ) THEN
          N_TMP = N_TRACERS 
 !      ELSE
 !         N_TMP = NUMDEP
@@ -6613,7 +6635,7 @@
       USE DIAG_PL_MOD, ONLY : INIT_DIAG_PL
       USE ERROR_MOD,   ONLY : ERROR_STOP
       USE TRACER_MOD,  ONLY : N_TRACERS,       ITS_A_TAGCO_SIM
-      USE TRACER_MOD,  ONLY : ITS_A_TAGOX_SIM, ITS_AN_AEROSOL_SIM
+      USE TRACER_MOD,  ONLY : ITS_A_TAGO3_SIM, ITS_AN_AEROSOL_SIM
       USE LOGICAL_MOD, ONLY : LKPP
 
       USE CMN_SIZE_MOD      ! MAXFAM
@@ -6764,7 +6786,7 @@
       !=================================================================
 
       ! Tagged Ox
-      IF ( DO_SAVE_PL .and. ITS_A_TAGOX_SIM() ) THEN
+      IF ( DO_SAVE_PL .and. ITS_A_TAGO3_SIM() ) THEN
          IF ( NFAM /= 2*N_TRACERS ) THEN
             MSG = 'Wrong number of P/L families for Tagged Ox!'
             CALL ERROR_STOP( MSG, LOCATION )
@@ -8784,6 +8806,7 @@
       LNEI08         = .FALSE.
       LNEI08CARB     = .FALSE.
       LSCALE2MASAGE  = .FALSE.
+      LSCALEONROAD   = .FALSE.
       LNEI11         = .FALSE.
       LNEI11CARB     = .FALSE.
       LOTDLOC        = .FALSE.

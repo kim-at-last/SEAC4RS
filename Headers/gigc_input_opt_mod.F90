@@ -84,7 +84,7 @@ MODULE GIGC_Input_Opt_Mod
      LOGICAL                     :: ITS_A_CH3I_SIM
      LOGICAL                     :: ITS_A_FULLCHEM_SIM
      LOGICAL                     :: ITS_A_HCN_SIM
-     LOGICAL                     :: ITS_A_TAGOX_SIM
+     LOGICAL                     :: ITS_A_TAGO3_SIM
      LOGICAL                     :: ITS_A_TAGCO_SIM
      LOGICAL                     :: ITS_A_C2H6_SIM
      LOGICAL                     :: ITS_A_CH4_SIM
@@ -131,6 +131,7 @@ MODULE GIGC_Input_Opt_Mod
      LOGICAL                     :: LSCALE2MASAGE
      LOGICAL                     :: LNEI11
      LOGICAL                     :: LNEI11CARB
+     LOGICAL                     :: LSCALEONROAD
      LOGICAL                     :: LRETRO
      LOGICAL                     :: LNEI99
      LOGICAL                     :: LICARTT
@@ -756,7 +757,7 @@ CONTAINS
     Input_Opt%ITS_A_CH3I_SIM         = .FALSE.
     Input_Opt%ITS_A_FULLCHEM_SIM     = .FALSE.
     Input_Opt%ITS_A_HCN_SIM          = .FALSE.
-    Input_Opt%ITS_A_TAGOX_SIM        = .FALSE.
+    Input_Opt%ITS_A_TAGO3_SIM        = .FALSE.
     Input_Opt%ITS_A_TAGCO_SIM        = .FALSE.
     Input_Opt%ITS_A_C2H6_SIM         = .FALSE.
     Input_Opt%ITS_A_CH4_SIM          = .FALSE.
@@ -806,6 +807,7 @@ CONTAINS
     Input_Opt%LSCALE2MASAGE          = .FALSE.
     Input_Opt%LNEI11                 = .FALSE.
     Input_Opt%LNEI11CARB             = .FALSE.
+    Input_Opt%LSCALEONROAD           = .FALSE.
     Input_Opt%LRETRO                 = .FALSE.
     Input_Opt%LNEI99                 = .FALSE.
     Input_Opt%LICARTT                = .FALSE.

@@ -81,7 +81,7 @@
 !  03 Oct 2013 - M. Sulprizio- Removed obsolete LMFCT for flux correction
 !  03 Oct 2013 - M. Sulprizio- Removed obsolete LAVHRRLAI and LMODISLAI
 !  17 Dec 2013 - J. Fisher   - Added LNEI08CARB, LSCALE2MASAGE
-!  26 Jan 2015 - K. Travis   - Added LNEI11, LNEI11CARB
+!  26 Jan 2015 - K. Travis   - Added LNEI11, LNEI11CARB, LSCALEONROAD
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -155,6 +155,7 @@
       LOGICAL :: LNEI08CARB      ! Use EPA 2008 regional OC/BC emissions?
       LOGICAL :: LNEI11          ! Use EPA 2011 regional emissions?
       LOGICAL :: LNEI11CARB      ! Use EPA 2011 regional OC/BC emissions?
+      LOGICAL :: LSCALEONROAD    ! Scale onroad emissions from NEI11?
       LOGICAL :: LSCALE2MASAGE   ! Scale NEI08 ag NH3 to MASAGE?
       LOGICAL :: LSHIPSO2        ! Use SO2 from ship emissions?
       LOGICAL :: LSOILNOX        ! Use soil NOx emissions

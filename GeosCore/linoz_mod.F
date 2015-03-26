@@ -328,7 +328,7 @@
       IF ( Input_Opt%ITS_A_FULLCHEM_SIM ) THEN
          NUM_TRACER = 1
       ELSE
-         IF ( Input_Opt%ITS_A_TAGOX_SIM ) THEN
+         IF ( Input_Opt%ITS_A_TAGO3_SIM ) THEN
             IF ( N_TRACERS > 1 ) THEN
                NUM_TRACER = 2
             ELSE
@@ -404,7 +404,7 @@
 
             ! dbj: for now, set tagged stratospheric tracer to total 
             ! O3 in the overworld to avoid issues with spin ups
-            IF ( Input_Opt%ITS_A_TAGOX_SIM ) THEN
+            IF ( Input_Opt%ITS_A_TAGO3_SIM ) THEN
               STT(I,J,(L_OVERWRLD+1):LLPAR,NTRACER) =
      &                STT(I,J,(L_OVERWRLD+1):LLPAR,1)
             ENDIF

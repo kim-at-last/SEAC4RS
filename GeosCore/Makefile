@@ -425,7 +425,7 @@ chemistry_mod.o             : chemistry_mod.F                                \
                               pops_mod.o              rpmares_mod.o          \
                               RnPbBe_mod.o            seasalt_mod.o          \
                               strat_chem_mod.o        sulfate_mod.o          \
-                              tagged_co_mod.o         tagged_ox_mod.o        \
+                              tagged_co_mod.o         tagged_o3_mod.o        \
                               tomas_mod.o             tracerid_mod.o
 
 cleanup.o                   : cleanup.F                                      \
@@ -1129,7 +1129,7 @@ tagged_co_mod.o             : tagged_co_mod.F                                \
                               pbl_mix_mod.o           tracerid_mod.o         \
                               tracer_mod.o            tropopause_mod.o 
 
-tagged_ox_mod.o             : tagged_ox_mod.F                                \
+tagged_o3_mod.o             : tagged_o3_mod.F                                \
                               diag_mod.o              diag_pl_mod.o          \
                               drydep_mod.o            pbl_mix_mod.o          \
                               tracerid_mod.o          tropopause_mod.o
