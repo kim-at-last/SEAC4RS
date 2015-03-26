@@ -3103,7 +3103,7 @@
                   ARRAY(:,:,1) = ( AD44(:,:,N+1,1) / SCALECHEM )
 
                   ! Index under which MONIT is stored
-                  T            = N_TRACERS + 1
+                  T            = N_TRACERS + 3
 
                   ! Write to file
                   ! It's number is NNPAR+1 (see gamap_mod.f)
@@ -3222,7 +3222,7 @@
                   ARRAY(:,:,1) = ( AD44(:,:,N+1,2) / SCALECHEM )
 
                   ! Index under which ISOPN is stored
-                  T            = N_TRACERS + 1
+                  T            = N_TRACERS + 3
 
                   ! Write to file
                   ! It's number is NNPAR+1 (see gamap_mod.f)
