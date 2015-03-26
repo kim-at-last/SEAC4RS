@@ -960,10 +960,12 @@
          ENDIF
       ENDDO
 
+! jaf 3/20/15 treat HONIT like HNO3 (XX)
       IF (IDOPHOT.EQ.0) THEN
          IF ((SPECL(1).EQ.'V'.AND.NCOF.NE.1).OR.
      1        (SPECL(1).EQ.'W'.AND.NCOF.NE.1).OR.
      2        (SPECL(1).EQ.'X'.AND.NCOF.NE.2).OR.  
+     2        (SPECL(1).EQ.'XX'.AND.NCOF.NE.2).OR.  
      3        (SPECL(1).EQ.'Y'.AND.NCOF.NE.0).OR.  
      4        (SPECL(1).EQ.'Z'.AND.NCOF.NE.1).OR.  
      5        (SPECL(1).EQ.'P'.AND.NCOF.NE.1).OR.  
@@ -1019,6 +1021,7 @@
 ! NKSPECX = SPECIAL REACTION OH      + HNO3             (SPECL = 'X')
 ! NKSPECY = SPECIAL REACTION OH      + CO               (SPECL = 'Y')
 ! NKSPECZ = SPECIAL REACTION HO2     + HO2              (SPECL = 'Z') 
+! NKSPECXX = SPECIAL REACTION OH      + HONIT             (SPECL = 'XX')
 !
                ! bdf smv2 'V' reaction has a special rate.  
                ! More than one reaction of this type
@@ -1156,6 +1159,9 @@
                ENDIF
                IF (SPECL(1).EQ.'X') THEN
                   NKSPECX(NCS) = NK
+               ENDIF
+               IF (SPECL(1).EQ.'XX') THEN
+                  NKSPECXX(NCS) = NK
                ENDIF
                IF (SPECL(1).EQ.'Y') THEN
                   NKSPECY(NCS) = NK

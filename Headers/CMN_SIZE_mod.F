@@ -471,7 +471,8 @@
       INTEGER, PARAMETER :: NEMPARA = 29
       !INTEGER, PARAMETER :: NEMPARA = 37
       ! +1 for SEAC4RS ISOP passive tracers (jaf, 6/14/13)
-      INTEGER, PARAMETER :: NEMPARB = 20
+      ! +2 for monoterpenes (jaf, 6/14/13)
+      INTEGER, PARAMETER :: NEMPARB = 22
       !INTEGER, PARAMETER :: NEMPARB = 21
 
       !=================================================================

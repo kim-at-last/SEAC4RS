@@ -3036,6 +3036,7 @@
                !IF ( MMB /= NN ) CYCLE
                IF ( MMB /= NN                .OR.
      &              DEPNAME( N ) == 'ISOPNB' .OR.
+     &              DEPNAME( N ) == 'MONITU' .OR.
      &              DEPNAME( N ) == 'MVKN'       ) CYCLE
             ENDIF
 
@@ -3096,6 +3097,22 @@
      &                        IIPAR,     JJPAR,     1,        IFIRST,     
      &                        JFIRST,    LFIRST,    ARRAY(:,:,1) )
 
+               CASE( 'MONITS' ) 
+                  !MONITU is the next deposition tracer
+                  ! Save into ARRAY
+                  ARRAY(:,:,1) = ( AD44(:,:,N+1,1) / SCALECHEM )
+
+                  ! Index under which MONIT is stored
+                  T            = N_TRACERS + 1
+
+                  ! Write to file
+                  ! It's number is NNPAR+1 (see gamap_mod.f)
+                  CALL BPCH2( IU_BPCH,   MODELNAME, LONRES,   LATRES,
+     &                        HALFPOLAR, CENTER180, CATEGORY, T,    
+     &                        UNIT,      DIAGb,     DIAGe,    RESERVED,   
+     &                        IIPAR,     JJPAR,     1,        IFIRST,     
+     &                        JFIRST,    LFIRST,    ARRAY(:,:,1) )
+
 
                 CASE DEFAULT
                    ! Do Nothing
@@ -3143,6 +3160,7 @@
                !IF ( MMB /= NN ) CYCLE
                IF ( MMB /= NN                .OR.
      &              DEPNAME( N ) == 'ISOPNB' .OR.
+     &              DEPNAME( N ) == 'MONITU' .OR.
      &              DEPNAME( N ) == 'MVKN'       ) CYCLE
             ENDIF
 
@@ -3192,6 +3210,22 @@
 
                   ! Write to file
                   ! It's number is NNPAR+2 (see gamap_mod.f)
+                  CALL BPCH2( IU_BPCH,   MODELNAME, LONRES,   LATRES,
+     &                        HALFPOLAR, CENTER180, CATEGORY, T,    
+     &                        UNIT,      DIAGb,     DIAGe,    RESERVED,   
+     &                        IIPAR,     JJPAR,     1,        IFIRST,     
+     &                        JFIRST,    LFIRST,    ARRAY(:,:,1) )
+
+               CASE( 'MONITS' ) 
+                  !MONITU is the next deposition tracer
+                  ! Save into ARRAY
+                  ARRAY(:,:,1) = ( AD44(:,:,N+1,2) / SCALECHEM )
+
+                  ! Index under which ISOPN is stored
+                  T            = N_TRACERS + 1
+
+                  ! Write to file
+                  ! It's number is NNPAR+1 (see gamap_mod.f)
                   CALL BPCH2( IU_BPCH,   MODELNAME, LONRES,   LATRES,
      &                        HALFPOLAR, CENTER180, CATEGORY, T,    
      &                        UNIT,      DIAGb,     DIAGe,    RESERVED,   

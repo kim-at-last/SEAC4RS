@@ -6012,6 +6012,43 @@
      &                                + ( SPACING             * 37 )
                         NTRAC(44)     = NTRAC(44) + 1
 
+                     CASE( 'MONITU' )
+
+                        !-----------------------------------------------
+                        ! Drydep flux: MONITU.  Use the same info as
+                        ! for MONITS but save as w/ index N_TRACERS+1.
+                        !-----------------------------------------------
+                        T             = IDTMONIT
+                        NAME (N,44)   = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                                  'df'
+                        FNAME(N,44)   = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                                  ' drydep flux'
+                        MWT  (N,44)   = Input_Opt%TRACER_MW_KG(T) 
+                        MOLC (N,44)   = INT(Input_Opt%TRACER_COEFF(T,1))
+                        SCALE(N,44)   = 1.0e0
+                        UNIT (N,44)   = 'molec/cm2/s'
+                        INDEX(N,44)   = ( Input_Opt%N_TRACERS + 3  )
+     &                                + ( SPACING             * 36 )
+                        NTRAC(44)     = NTRAC(44) + 1
+
+                        !-----------------------------------------------
+                        ! Drydep velocity: MONITU.  Use the same info as
+                        ! for MONITS but save as w/ index N_TRACERS+1.
+                        !-----------------------------------------------
+                        T             = IDTMONIT
+                        NN            = N + Input_Opt%NUMDEP
+                        NAME (NN,44)  = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                                 'dv'
+                        FNAME(NN,44)  = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                                  ' drydep velocity'
+                        MWT  (NN,44)  = Input_Opt%TRACER_MW_KG(T) 
+                        MOLC (NN,44)  = INT(Input_Opt%TRACER_COEFF(T,1))
+                        SCALE(NN,44)  = 1.0e0
+                        UNIT (NN,44)  = 'cm/s'
+                        INDEX(NN,44)  = ( Input_Opt%N_TRACERS + 3  )
+     &                                + ( SPACING             * 37 )
+                        NTRAC(44)     = NTRAC(44) + 1
+
                      CASE DEFAULT
 
                         !-----------------------------------------------
@@ -6153,6 +6190,43 @@
                      SCALE(NN,44)  = 1.0e0
                      UNIT (NN,44)  = 'cm/s'
                      INDEX(NN,44)  = ( Input_Opt%N_TRACERS + 2  )
+     &                             + ( SPACING             * 37 )
+                     NTRAC(44)     = NTRAC(44) + 1
+
+                  CASE( 'MONITU' )
+
+                     !-----------------------------------------------
+                     ! Drydep flux: MONITU.  Use the same info as
+                     ! for MONITS but save as w/ index N_TRACERS+3.
+                     !-----------------------------------------------
+                     T             = IDTMONIT
+                     NAME (N,44)   = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                               'df'
+                     FNAME(N,44)   = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                               ' drydep flux'
+                     MWT  (N,44)   = Input_Opt%TRACER_MW_KG(T) 
+                     MOLC (N,44)   = INT(Input_Opt%TRACER_COEFF(T,1))
+                     SCALE(N,44)   = 1.0e0
+                     UNIT (N,44)   = 'molec/cm2/s'
+                     INDEX(N,44)   = ( Input_Opt%N_TRACERS + 3  )
+     &                             + ( SPACING             * 36 )
+                     NTRAC(44)     = NTRAC(44) + 1
+
+                     !-----------------------------------------------
+                     ! Drydep velocity: MONITU.  Use the same info as
+                     ! for MONITS but save as w/ index N_TRACERS+1.
+                     !-----------------------------------------------
+                     T             = IDTMONIT
+                     NN            = N + Input_Opt%NUMDEP
+                     NAME (NN,44)  = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                              'dv'
+                     FNAME(NN,44)  = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                               ' drydep velocity'
+                     MWT  (NN,44)  = Input_Opt%TRACER_MW_KG(T) 
+                     MOLC (NN,44)  = INT(Input_Opt%TRACER_COEFF(T,1))
+                     SCALE(NN,44)  = 1.0e0
+                     UNIT (NN,44)  = 'cm/s'
+                     INDEX(NN,44)  = ( Input_Opt%N_TRACERS + 3  )
      &                             + ( SPACING             * 37 )
                      NTRAC(44)     = NTRAC(44) + 1
 

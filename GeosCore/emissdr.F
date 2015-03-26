@@ -142,6 +142,8 @@
       USE TRACERID_MOD,       ONLY : IDEMONX,       IDEC2H4,   IDEALD2
       USE TRACERID_MOD,       ONLY : IDTMONX,       IDTC2H4
       USE TRACERID_MOD,       ONLY : IDECHBr3,      IDECH2Br2
+      USE TRACERID_MOD,       ONLY : IDELIM,        IDEAPI
+      USE TRACERID_MOD,       ONLY : IDTLIM,        IDTAPI
 
       ! SEAC4RS passive tracer (jaf, 6/14/13)
       ! Remove SEAC4RS passive tracers (skim, 5/23/14)
@@ -717,6 +719,22 @@
      &                 ( EMIS_MONO / DTSRCE )
                ENDIF
 
+               ! Two lumped monoterpenes for SEAC4RS:
+               ! API = alpha-pinene, beta-pinene, sabinene, d3-carene
+               ! LIM = limonene, myrcene, ocimene
+               ! Based on RACM2 and Browne et al., 2014 (jaf, 3/16/15)
+               IF ( IDTAPI /= 0 ) THEN
+                  EMISRR(I,J,IDEAPI) = EMISRR(I,J,IDEAPI) + 
+     &                 ( (EMIS_APIN + EMIS_BPIN + EMIS_SABI + EMIS_CARE)
+     &                   / DTSRCE )
+               ENDIF
+               IF ( IDTLIM /= 0 ) THEN
+                  EMISRR(I,J,IDELIM) = EMISRR(I,J,IDELIM) + 
+     &                 ( (EMIS_LIMO + EMIS_MYRC + EMIS_OCIM)
+     &                   / DTSRCE )
+               ENDIF
+
+
 !------------------------------------------------------------------------------
 !
 !******************************************************************************
@@ -756,22 +774,24 @@
 !      "R(CO)=1.8+/-0.3" : 1.8/10 is about 20%.
 !******************************************************************************
 !
-               !=====================================================
-               ! CO from MONOTERPENE oxidation [molec CO/box/s] 
-               !====================================================
- 
-               ! NOTE: Don't save into EMISRR for the tagged CO simulation.  
-               ! Also for tagged CO we don't use monoterpenes  ??????
-               ! (jaf, mak, bmy, 2/14/08)
-               IF ( NO_TAGCO ) THEN
-                  TMPVAL            = ( EMIS_MONO / DTSRCE ) * 0.2d0
-                  EMISRR(I,J,IDECO) = EMISRR(I,J,IDECO) + TMPVAL
-
-                  ! ND29: CO-source from monoterpenes [molec/cm2/s]
-                  IF ( ND29 > 0 ) THEN
-                     AD29(I,J,1,5) = AD29(I,J,1,5) + ( TMPVAL/AREA_CM2 )
-                  ENDIF
-               ENDIF
+! SEAC4RS MTN simulation -- MTs are explicit so comment this out (jaf,
+! 3/25/15)
+!               !=====================================================
+!               ! CO from MONOTERPENE oxidation [molec CO/box/s] 
+!               !====================================================
+! 
+!               ! NOTE: Don't save into EMISRR for the tagged CO simulation.  
+!               ! Also for tagged CO we don't use monoterpenes  ??????
+!               ! (jaf, mak, bmy, 2/14/08)
+!               IF ( NO_TAGCO ) THEN
+!                  TMPVAL            = ( EMIS_MONO / DTSRCE ) * 0.2d0
+!                  EMISRR(I,J,IDECO) = EMISRR(I,J,IDECO) + TMPVAL
+!
+!                  ! ND29: CO-source from monoterpenes [molec/cm2/s]
+!                  IF ( ND29 > 0 ) THEN
+!                     AD29(I,J,1,5) = AD29(I,J,1,5) + ( TMPVAL/AREA_CM2 )
+!                  ENDIF
+!               ENDIF
 !
 !******************************************************************************
 !  Biogenic source of PRPE

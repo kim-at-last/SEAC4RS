@@ -168,7 +168,8 @@
       ! + 1 for ISN1 - krt, 7/15/14
       ! + 2 for HCOOH, RCHO - krt, 7/18/14
       ! + 1 for DHDN - jaf, 7/14
-      INTEGER, PARAMETER   :: NSOLMAX = 68      ! Max # of soluble tracers
+      ! + 4 for monoterpenes - jaf, 3/16/15
+      INTEGER, PARAMETER   :: NSOLMAX = 72      ! Max # of soluble tracers
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      ! SOAupdate: Increase NSOLMAX from 60 to 110 for SOA + semivol POA
@@ -879,6 +880,9 @@
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam
       USE TRACERID_MOD,       ONLY : IDTONITApm
+ 
+      ! SEAC4RS monoterpenes (jaf, 3/16/15)
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
  
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
@@ -1814,6 +1818,228 @@
       ELSE IF ( N == IDTSALA .or. N == IDTSALC ) THEN
          CALL F_AEROSOL( KC, N, F, State_Met ) 
          ISOL = GET_ISOL( N )
+
+! SEAC4RS monoterpenes (jaf, 3/16/15)
+      !-------------------------------
+      ! API - lumped MTP 1 double bond
+      !-------------------------------
+      ! Treat the same as MTPA in SOA simulation
+      ELSE IF ( N == IDTAPI ) THEN
+
+         ! No scavenging at the surface
+         F(:,:,1) = 0d0
+
+         ! Start scavenging at level 2
+         DO L = 2, LLPAR
+         DO J = 1, JJPAR
+         DO I = 1, IIPAR
+
+            ! Compute liquid to gas ratio for API, using
+            ! the appropriate parameters for Henry's law
+            ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+            ! Use H-law of 0.049 for all pinene (Sander, 1999)
+            CALL COMPUTE_L2G( 0.049d0, 0.d0, State_Met%T(I,J,L), 
+     &                        CLDLIQ(I,J,L), L2G )
+
+            ! Fraction of API in liquid phase
+            ! (Eq. 4, 5, 6, Jacob et al, 2000)
+            C_TOT = 1d0 + L2G
+            F_L   = L2G / C_TOT
+
+            ! Compute the rate constant K.  Assume retention factor  
+            ! for liquid API is 0.0 for T <= 248 K and 0.02 for 
+            ! 248 K < T < 268 K.  (Eq. 1, Jacob et al, 2000)
+            IF ( State_Met%T(I,J,L) >= 268d0 ) THEN
+               K = KC * F_L  
+
+            ELSE IF ( State_Met%T(I,J,L) > 248d0 .and.
+     &                State_Met%T(I,J,L) < 268d0 ) THEN
+               K = KC * ( 2d-2 * F_L ) 
+                  
+            ELSE
+               K = 0d0
+
+            ENDIF
+               
+            ! Distance between grid box centers [m]
+            TMP = 0.5d0 * ( State_Met%BXHEIGHT(I,J,L-1) +
+     &                      State_Met%BXHEIGHT(I,J,L) ) 
+
+            ! F is the fraction of API scavenged out of the updraft
+            ! (Eq. 2, Jacob et al, 2000)
+            F(I,J,L) = 1d0 - EXP( -K * TMP / Vud(I,J) )
+
+         ENDDO
+         ENDDO
+         ENDDO
+
+         ISOL = GET_ISOL( N )
+
+      !-------------------------------
+      ! LIM - lumped MTP 2 double bond
+      !-------------------------------
+      ! Treat the same as LIMO in SOA simulation
+      ELSE IF ( N == IDTLIM ) THEN
+
+         ! No scavenging at the surface
+         F(:,:,1) = 0d0
+
+         ! Start scavenging at level 2
+         DO L = 2, LLPAR
+         DO J = 1, JJPAR
+         DO I = 1, IIPAR
+
+            ! Compute liquid to gas ratio for LIM, using
+            ! the appropriate parameters for Henry's law
+            ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+            CALL COMPUTE_L2G( 0.07d0,  0.d0, State_Met%T(I,J,L),
+     &                        CLDLIQ(I,J,L), L2G )
+
+            ! Fraction of LIM in liquid phase
+            ! (Eq. 4, 5, 6, Jacob et al, 2000)
+            C_TOT = 1d0 + L2G
+            F_L   = L2G / C_TOT
+
+            ! Compute the rate constant K.  Assume retention factor  
+            ! for liquid LIM is 0.0 for T <= 248 K and 0.02 for 
+            ! 248 K < T < 268 K.  (Eq. 1, Jacob et al, 2000)
+            IF ( State_Met%T(I,J,L) >= 268d0 ) THEN
+               K = KC * F_L  
+
+            ELSE IF ( State_Met%T(I,J,L) > 248d0   .and.
+     &                State_Met%T(I,J,L) < 268d0 ) THEN
+               K = KC * ( 2d-2 * F_L ) 
+                  
+            ELSE
+               K = 0d0
+
+            ENDIF
+               
+            ! Distance between grid box centers [m]
+            TMP = 0.5d0 * ( State_Met%BXHEIGHT(I,J,L-1) +
+     &                      State_Met%BXHEIGHT(I,J,L) ) 
+
+            ! F is the fraction of LIM scavenged out of the updraft
+            ! (Eq. 2, Jacob et al, 2000)
+            F(I,J,L) = 1d0 - EXP( -K * TMP / Vud(I,J) )
+
+         ENDDO
+         ENDDO
+         ENDDO
+
+         ! ND38 index
+         ISOL = GET_ISOL( N )
+
+      !-------------------------------
+      ! MONIT - stable organic nitrate from MTPs
+      !-------------------------------
+      ELSE IF ( N == IDTMONIT ) THEN
+
+         ! No scavenging at the surface
+         F(:,:,1) = 0d0
+
+         ! Start scavenging at level 2
+         DO L = 2, LLPAR
+         DO J = 1, JJPAR
+         DO I = 1, IIPAR
+
+            ! Compute liquid to gas ratio for MONIT, using
+            ! the appropriate parameters for Henry's law
+            ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+            ! KSTAR, H298_R from Browne et al. 2014
+            CALL COMPUTE_L2G( 1.7d4,  9200d0, State_Met%T(I,J,L),
+     &                        CLDLIQ(I,J,L), L2G )
+
+            ! Fraction of MONIT in liquid phase
+            ! (Eq. 4, 5, 6, Jacob et al, 2000)
+            C_TOT = 1d0 + L2G
+            F_L   = L2G / C_TOT
+
+            ! Compute the rate constant K.  Assume retention factor  
+            ! for liquid MONIT is 0.0 for T <= 248 K and 0.02 for 
+            ! 248 K < T < 268 K.  (Eq. 1, Jacob et al, 2000)
+            IF ( State_Met%T(I,J,L) >= 268d0 ) THEN
+               K = KC * F_L  
+
+            ELSE IF ( State_Met%T(I,J,L) > 248d0   .and.
+     &                State_Met%T(I,J,L) < 268d0 ) THEN
+               K = KC * ( 2d-2 * F_L ) 
+                  
+            ELSE
+               K = 0d0
+
+            ENDIF
+               
+            ! Distance between grid box centers [m]
+            TMP = 0.5d0 * ( State_Met%BXHEIGHT(I,J,L-1) +
+     &                      State_Met%BXHEIGHT(I,J,L) ) 
+
+            ! F is the fraction of MONIT scavenged out of the updraft
+            ! (Eq. 2, Jacob et al, 2000)
+            F(I,J,L) = 1d0 - EXP( -K * TMP / Vud(I,J) )
+
+         ENDDO
+         ENDDO
+         ENDDO
+
+         ! ND38 index
+         ISOL = GET_ISOL( N )
+
+      !-------------------------------
+      ! HONIT - 2nd gen organic nitrate from MTPs
+      !-------------------------------
+      ELSE IF ( N == IDTHONIT ) THEN
+
+         ! No scavenging at the surface
+         F(:,:,1) = 0d0
+
+         ! Start scavenging at level 2
+         DO L = 2, LLPAR
+         DO J = 1, JJPAR
+         DO I = 1, IIPAR
+
+            ! Compute liquid to gas ratio for HONIT, using
+            ! the appropriate parameters for Henry's law
+            ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+            ! KSTAR, H298_R from Browne et al. 2014
+            CALL COMPUTE_L2G( 2.69d13,  5487d0, State_Met%T(I,J,L),
+     &                        CLDLIQ(I,J,L), L2G )
+
+            ! Fraction of HONIT in liquid phase
+            ! (Eq. 4, 5, 6, Jacob et al, 2000)
+            C_TOT = 1d0 + L2G
+            F_L   = L2G / C_TOT
+
+            ! Compute the rate constant K.  Assume retention factor  
+            ! for liquid HONIT is 0.0 for T <= 248 K and 0.02 for 
+            ! 248 K < T < 268 K.  (Eq. 1, Jacob et al, 2000)
+            IF ( State_Met%T(I,J,L) >= 268d0 ) THEN
+               K = KC * F_L  
+
+            ELSE IF ( State_Met%T(I,J,L) > 248d0   .and.
+     &                State_Met%T(I,J,L) < 268d0 ) THEN
+               K = KC * ( 2d-2 * F_L ) 
+                  
+            ELSE
+               K = 0d0
+
+            ENDIF
+               
+            ! Distance between grid box centers [m]
+            TMP = 0.5d0 * ( State_Met%BXHEIGHT(I,J,L-1) +
+     &                      State_Met%BXHEIGHT(I,J,L) ) 
+
+            ! F is the fraction of HONIT scavenged out of the updraft
+            ! (Eq. 2, Jacob et al, 2000)
+            F(I,J,L) = 1d0 - EXP( -K * TMP / Vud(I,J) )
+
+         ENDDO
+         ENDDO
+         ENDDO
+
+         ! ND38 index
+         ISOL = GET_ISOL( N )
+! End SEAC4RS monoterpenes (jaf, 3/16/15)
 
       !-------------------------------
       ! MTPA (liquid phase only)
@@ -3380,6 +3606,9 @@
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
  
+      ! SEAC4RS monoterpenes (jaf, 3/16/15)
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
+ 
 #if defined( TOMAS )
       USE TRACERID_MOD, ONLY : IDTH2SO4,IDTNK1,   IDTSF1,  IDTSS1
       USE TRACERID_MOD, ONLY : IDTECIL1,IDTOCIL1, IDTOCOB1,IDTDUST1
@@ -4249,6 +4478,145 @@
          ! (Eq. 10, Jacob et al, 2000)
          RAINFRAC = GET_RAINFRAC( K, F, DT )
 
+! SEAC4RS monoterpenes
+      !------------------------------
+      ! API
+      !------------------------------
+      ! Same as MTPA in SOA sim
+      ELSE IF ( N == IDTAPI ) THEN
+
+         ! Compute liquid to gas ratio for API, using
+         ! the appropriate parameters for Henry's law
+         ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+         ! use H-law of 0.049 (hotp 5/24/10), SOAupdate
+         CALL COMPUTE_L2G( 0.049d0, 0.d0, TK, CLDLIQ(I,J,L), L2G )
+
+         ! Fraction of API in liquid phase
+         ! (Eqs. 4, 5, Jacob et al, 2000)
+         C_TOT = 1d0 + L2G
+         F_L   = L2G / C_TOT
+
+         ! Compute the rate constant K.  Assume that the retention factor
+         ! for liquid API is 0.02 for 248 K < T < 268 K, and
+         ! 1.0 for T > 268 K. (Eq. 1, Jacob et al, 2000)
+         IF ( TK >= 268d0 ) THEN
+            K = K_RAIN * F_L
+
+         ELSE IF ( TK > 248d0 .and. TK < 268d0 ) THEN
+            K = K_RAIN * ( 2d-2 * F_L )
+
+         ELSE
+            K = 0d0
+
+         ENDIF
+ 
+         ! Compute RAINFRAC, the fraction of rained-out API
+         ! (Eq. 10, Jacob et al, 2000)
+         RAINFRAC = GET_RAINFRAC( K, F, DT )
+
+      !------------------------------
+      ! LIM
+      !------------------------------
+      ! Same as LIMO in SOA sim
+      ELSE IF ( N == IDTLIM ) THEN
+
+         ! Compute liquid to gas ratio for LIM, using
+         ! the appropriate parameters for Henry's law
+         ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+         CALL COMPUTE_L2G( 0.07d0, 0.d0, TK, CLDLIQ(I,J,L), L2G )
+
+         ! Fraction of LIM in liquid phase
+         ! (Eqs. 4, 5, Jacob et al, 2000)
+         C_TOT = 1d0 + L2G
+         F_L   = L2G / C_TOT
+
+         ! Compute the rate constant K.  Assume that the retention factor
+         ! for liquid LIM is 0.02 for 248 K < T < 268 K, and
+         ! 1.0 for T > 268 K. (Eq. 1, Jacob et al, 2000)
+         IF ( TK >= 268d0 ) THEN
+            K = K_RAIN * F_L
+
+         ELSE IF ( TK > 248d0 .and. TK < 268d0 ) THEN
+            K = K_RAIN * ( 2d-2 * F_L )
+
+         ELSE
+            K = 0d0
+
+         ENDIF
+
+         ! Compute RAINFRAC, the fraction of rained-out LIM
+         ! (Eq. 10, Jacob et al, 2000)
+         RAINFRAC = GET_RAINFRAC( K, F, DT )
+
+      !------------------------------
+      ! MONIT
+      !------------------------------
+      ELSE IF ( N == IDTMONIT ) THEN
+
+         ! Compute liquid to gas ratio for MONIT, using
+         ! the appropriate parameters for Henry's law
+         ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+         ! KSTAR, H298_K from Browne et al. 2014
+         CALL COMPUTE_L2G( 1.7d4, 9200d0, TK, CLDLIQ(I,J,L), L2G )
+
+         ! Fraction of MONIT in liquid phase
+         ! (Eqs. 4, 5, Jacob et al, 2000)
+         C_TOT = 1d0 + L2G
+         F_L   = L2G / C_TOT
+
+         ! Compute the rate constant K.  Assume that the retention factor
+         ! for liquid MONIT is 0.02 for 248 K < T < 268 K, and
+         ! 1.0 for T > 268 K. (Eq. 1, Jacob et al, 2000)
+         IF ( TK >= 268d0 ) THEN
+            K = K_RAIN * F_L
+
+         ELSE IF ( TK > 248d0 .and. TK < 268d0 ) THEN
+            K = K_RAIN * ( 2d-2 * F_L )
+
+         ELSE
+            K = 0d0
+
+         ENDIF
+
+         ! Compute RAINFRAC, the fraction of rained-out MONIT
+         ! (Eq. 10, Jacob et al, 2000)
+         RAINFRAC = GET_RAINFRAC( K, F, DT )
+
+      !------------------------------
+      ! HONIT
+      !------------------------------
+      ELSE IF ( N == IDTHONIT ) THEN
+
+         ! Compute liquid to gas ratio for HONIT, using
+         ! the appropriate parameters for Henry's law
+         ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
+         ! KSTAR, H298_K from Browne et al. 2014
+         CALL COMPUTE_L2G( 2.69d13, 5487d0, TK, CLDLIQ(I,J,L), L2G )
+
+         ! Fraction of HONIT in liquid phase
+         ! (Eqs. 4, 5, Jacob et al, 2000)
+         C_TOT = 1d0 + L2G
+         F_L   = L2G / C_TOT
+
+         ! Compute the rate constant K.  Assume that the retention factor
+         ! for liquid HONIT is 0.02 for 248 K < T < 268 K, and
+         ! 1.0 for T > 268 K. (Eq. 1, Jacob et al, 2000)
+         IF ( TK >= 268d0 ) THEN
+            K = K_RAIN * F_L
+
+         ELSE IF ( TK > 248d0 .and. TK < 268d0 ) THEN
+            K = K_RAIN * ( 2d-2 * F_L )
+
+         ELSE
+            K = 0d0
+
+         ENDIF
+
+         ! Compute RAINFRAC, the fraction of rained-out HONIT
+         ! (Eq. 10, Jacob et al, 2000)
+         RAINFRAC = GET_RAINFRAC( K, F, DT )
+! End SEAC4RS monoterpenes
+
       !------------------------------
       ! MTPA (liquid phase only)
       !------------------------------
@@ -4899,6 +5267,9 @@
       USE TRACERID_MOD, ONLY : IDTASOAN, IDTASOA1, IDTASOA2, IDTASOA3
       USE TRACERID_MOD, ONLY : IDTASOG1, IDTASOG2, IDTASOG3
       USE GET_POPSINFO_MOD, ONLY : GET_POP_HSTAR, GET_POP_DEL_Hw
+ 
+      ! SEAC4RS monoterpenes (jaf, 3/16/15)
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
 
 #if defined( TOMAS )
       USE TRACERID_MOD, ONLY : IDTH2SO4, IDTNK1,   IDTSF1,  IDTSS1
@@ -5358,6 +5729,44 @@
          KIN      = .FALSE.
          CALL WASHFRAC_LIQ_GAS( 0.07d0, 0.d0, PP,       DT,  F,  
      &                          DZ,     TK,   WASHFRAC, KIN  )
+
+! SEAC4RS monoterpenes
+      !------------------------------
+      ! API
+      !------------------------------
+      ! Same as MTPA
+      ELSE IF ( N == IDTAPI ) THEN
+         KIN      = .FALSE. 
+         CALL WASHFRAC_LIQ_GAS( 0.049d0, 0.d0, PP,       DT,  F,
+     &                          DZ,      TK,   WASHFRAC, KIN  )
+
+      !------------------------------
+      ! LIM
+      !------------------------------
+      ! Same as LIMO
+      ELSE IF ( N == IDTLIM ) THEN
+         KIN      = .FALSE.
+         CALL WASHFRAC_LIQ_GAS( 0.07d0, 0.d0, PP,       DT,  F,  
+     &                          DZ,     TK,   WASHFRAC, KIN  )
+
+      !------------------------------
+      ! MONIT
+      !------------------------------
+      ! From Browne et al. 2014 - use biogenic hydroxy nitrates
+      ELSE IF ( N == IDTMONIT ) THEN
+         KIN      = .FALSE.
+         CALL WASHFRAC_LIQ_GAS( 1.7d4, 9200d0, PP,       DT,  F,  
+     &                          DZ,     TK,   WASHFRAC, KIN  )
+
+      !------------------------------
+      ! HONIT
+      !------------------------------
+      ! From Browne et al. 2014 - use biogenic hydroxy nitrates
+      ELSE IF ( N == IDTHONIT ) THEN
+         KIN      = .FALSE.
+         CALL WASHFRAC_LIQ_GAS( 2.69d13, 5487d0, PP,       DT,  F,  
+     &                          DZ,     TK,   WASHFRAC, KIN  )
+! End SEAC4RS monoterpenes
 
       !-------------------------------
       ! MTPO (liquid & gas)
@@ -8493,6 +8902,8 @@
       USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
+      ! SEAC4RS monoterpenes (jaf, 3/16/15)
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
       ! SOAudpate: update biogenics (new mtp) (hotp 5/24/10)
       USE TRACERID_MOD, ONLY : IDTMTPA,  IDTLIMO,  IDTMTPO
       USE TRACERID_MOD, ONLY : IDTTSOA1, IDTTSOA2, IDTTSOA3
@@ -8774,6 +9185,24 @@
          ELSE IF ( N == IDTPOA2 ) THEN
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTPOA2
+
+! SEAC4RS monoterpenes
+         ELSE IF ( N == IDTAPI ) THEN
+            NSOL         = NSOL + 1
+            IDWETD(NSOL) = IDTAPI
+
+         ELSE IF ( N == IDTLIM ) THEN
+            NSOL         = NSOL + 1
+            IDWETD(NSOL) = IDTLIM
+
+         ELSE IF ( N == IDTMONIT ) THEN
+            NSOL         = NSOL + 1
+            IDWETD(NSOL) = IDTMONIT
+
+         ELSE IF ( N == IDTHONIT ) THEN
+            NSOL         = NSOL + 1
+            IDWETD(NSOL) = IDTHONIT
+! End SEAC4RS monoterpenes
 
          ! new mtp (hotp 5/24/10), SOAupdate
          ELSE IF ( N == IDTMTPA ) THEN
@@ -9142,6 +9571,8 @@
       USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
+      ! SEAC4RS monoterpenes (jaf, 3/16/15)
+      USE TRACERID_MOD,       ONLY : IDTAPI, IDTLIM, IDTMONIT, IDTHONIT
 #if defined( TOMAS )
       USE TRACERID_MOD,       ONLY : IDTNK1
       USE TOMAS_MOD,          ONLY : IBINS, IDIAG, ICOMP
@@ -9252,6 +9683,11 @@
             ! Add organic nitrate aerosols (jaf, 7/26/14)
             IF ( IDTONITAam /= 0 ) NMAX = NMAX + 1         ! SEAC4RS SOA tracers
             IF ( IDTONITApm /= 0 ) NMAX = NMAX + 1         ! SEAC4RS SOA tracers
+            ! SEAC4RS monoterpenes (jaf, 3/16/15)
+            IF ( IDTAPI   /= 0 ) NMAX = NMAX + 1           ! SEAC4RS MTP
+            IF ( IDTLIM   /= 0 ) NMAX = NMAX + 1           ! SEAC4RS MTP
+            IF ( IDTMONIT /= 0 ) NMAX = NMAX + 1           ! SEAC4RS MTP
+            IF ( IDTHONIT /= 0 ) NMAX = NMAX + 1           ! SEAC4RS MTP
 
          ENDIF
 
