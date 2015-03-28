@@ -855,7 +855,10 @@ c new OH+CO rate from JPL2006.
                kINFT = kINF300 * (T3K(KLOOP)/300)**(-mHI)
                k0T   = k0300   * (T3K(KLOOP)/300)**(-nHI)
 
-               RRATE(KLOOP,NKHO2H2ONO2)= 3.5 *
+               ! Rate coeff was set to 3.5 based on Li et al, 2014
+               ! Change to 0.5 based on SENEX and NOMADS observations
+               ! krt, 3/28/15
+               RRATE(KLOOP,NKHO2H2ONO2)= 0.5 *
      &              (( k0T * DENAIR(KLOOP) ) /
      &              ( 1 + ( k0T * DENAIR(KLOOP))/ kINFT )) *
      &              (0.6**(1+(LOG10((k0T*DENAIR(KLOOP))/
