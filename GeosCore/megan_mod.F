@@ -694,19 +694,61 @@
          CASE ( 'MBOX' )
             EMFAC = AEF_MBOX(I,J)
          CASE ( 'MYRC' )
+#if defined( GRID025x03125)
+            EMFAC = 0.90875 * AEF_MYRC(I,J)
+#elif defined ( GRID2x25)
+            EMFAC = 0.94044 * AEF_MYRC(I,J)
+#else
             EMFAC = AEF_MYRC(I,J)
+#endif
          CASE ( 'SABI' )
+#if defined( GRID025x03125)
+            EMFAC = 0.90875 * AEF_SABI(I,J)
+#elif defined ( GRID2x25)
+            EMFAC = 0.94044 * AEF_SABI(I,J)
+#else
             EMFAC = AEF_SABI(I,J)
+#endif
          CASE ( 'APIN' )
+#if defined( GRID025x03125)
+            EMFAC = 0.90875 * AEF_APIN(I,J)
+#elif defined ( GRID2x25)
+            EMFAC = 0.94044 * AEF_APIN(I,J)
+#else
             EMFAC = AEF_APIN(I,J)
+#endif
          CASE ( 'LIMO' )
+#if defined( GRID025x03125)
+            EMFAC = 0.90875 * AEF_LIMO(I,J)
+#elif defined ( GRID2x25)
+            EMFAC = 0.94044 * AEF_LIMO(I,J)
+#else
             EMFAC = AEF_LIMO(I,J)
+#endif
          CASE ( 'CARE' )
+#if defined( GRID025x03125)
+            EMFAC = 0.90875 * AEF_CARE(I,J)
+#elif defined ( GRID2x25)
+            EMFAC = 0.94044 * AEF_CARE(I,J)
+#else
             EMFAC = AEF_CARE(I,J)
+#endif
          CASE ( 'BPIN' )
+#if defined( GRID025x03125)
+            EMFAC = 0.90875 * AEF_BPIN(I,J)
+#elif defined ( GRID2x25)
+            EMFAC = 0.94044 *AEF_BPIN(I,J)
+#else
             EMFAC = AEF_BPIN(I,J)
+#endif
          CASE ( 'OCIM' )
+#if defined( GRID025x03125)
+            EMFAC = 0.90875 * AEF_OCIM(I,J)
+#elif defined ( GRID2x25)
+            EMFAC = 0.94044 * AEF_OCIM(I,J)
+#else
             EMFAC = AEF_OCIM(I,J)
+#endif
          CASE ( 'OMON' )
             EMFAC = AEF_OMON(I,J)
          CASE ( 'MOHX' )
