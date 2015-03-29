@@ -129,7 +129,7 @@
       INTEGER,           PARAMETER   :: MAXPOINTS = 10000
       INTEGER,           PARAMETER   :: MAXREAC   = 50
       INTEGER,           PARAMETER   :: MAXRO2    = 45
-      INTEGER,           PARAMETER   :: MAXAN     = 10 ! FP 04/01/2010 (AN) 
+      INTEGER,           PARAMETER   :: MAXAN     = 12 ! FP 04/01/2010 (AN) 
       INTEGER,           PARAMETER   :: MAXNOY    = 12 ! FP 04/01/2010 (NOy)
 
       ! For specifying flight track points
@@ -1001,7 +1001,8 @@
      &             'VOHRO2', 'RIO1', 'C59O2', 'MAPO2', 
      &             'BRO2', 'TRO2', 'XRO2', 'NRO2',
      &             'MOBAOO', 'ISOPNBO2', 'ISOPNDO2', 'IEPOXOO', 
-     &             'PYPO2', 'MACRNO2', 'PMNO2', 'HC5OO', 'RCO3') 
+     &             'PYPO2', 'MACRNO2', 'PMNO2', 'HC5OO', 'RCO3',
+     &             'APIO2', 'LIMO2' )
                NPRO2       = NPRO2 + 1
                PRO2(NPRO2) = M
 
@@ -1170,7 +1171,8 @@
          SELECT CASE( TRIM( NAMEGAS(M) ) )
 
            CASE ( 'ISOPNB', 'ISOPND', 'MVKN',  'MACRN', 'R4N2',
-     &            'ISN1',   'PROPNN', 'ETHLN', 'DHDN' ) 
+     &            'ISN1',   'PROPNN', 'ETHLN', 'DHDN',  'HONIT',
+     &            'MONITU', 'MONITS' )
 
                NPAN       = NPAN + 1
                P_AN(NPAN) = M

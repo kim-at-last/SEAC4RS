@@ -22,7 +22,7 @@
       USE COMODE_MOD                            ! Large arrays for SMVGEAR
       USE COMODE_LOOP_MOD                       ! Formerly "comode.h"
       USE DAO_MOD                               ! Met field subroutines
-      USE DIAG_MOD,       ONLY : AD44, AD44_WOLF! Diagnostic arrays
+      USE DIAG_MOD,       ONLY : AD44, AD44b, AD44_WOLF! Diagnostic arrays
       USE DIRECTORY_MOD                         ! Data directory paths
       USE ERROR_MOD                             ! Error handling routines
       USE GET_POPSINFO_MOD                      ! For POPs simulation
@@ -188,6 +188,8 @@
 !  13 Aug 2013 - M. Sulprizio- Add modifications for updated SOA and SOA + 
 !                              semivolatile POA simulations (H. Pye)
 !  20 Aug 2013 - R. Yantosca - Removed "define.h", this is now obsolete
+!  23 Jan 2015 - K. Travis   - Updated OVOCs based on Nguyen et al, 2014 (PNAS)
+!  - http://www.pnas.org/content/suppl/2015/01/16/1418702112.DCSupplemental/pnas.1418702112.sapp.pdf
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -199,8 +201,9 @@
 #else
       ! +3 for SEAC4RS SOA tracers (jaf, 6/24/13)
       ! +2 for organic nitrate aerosols (jaf, 10/5/14)
+      ! +3 for monoterpenes (jaf, 3/16/15)
       !INTEGER, PARAMETER :: MAXDEP    = 55      ! Max # of depositing species
-      INTEGER, PARAMETER :: MAXDEP    = 93      ! Max # of depositing species
+      INTEGER, PARAMETER :: MAXDEP    = 96      ! Max # of depositing species
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      ! SOAupdate: 55 to 105 jje (8/19/2010)
@@ -256,6 +259,7 @@
       ! Scalars
       INTEGER              :: NUMDEP,   NWATER
       INTEGER              :: DRYDHNO3, DRYDNO2, DRYDPAN, DRYDH2O2
+      INTEGER              :: DRYDISOPN
       INTEGER              :: DRYHg0,   DRYHg2,  DryHgP
       ! Additional variables for POPs sim (eck, 9/20/10)
       INTEGER              :: DRYPOPP_OC
@@ -285,6 +289,7 @@
       ! Arrays that hold information about the dry-depositing species
       LOGICAL              :: AIROSOL (MAXDEP   )
       INTEGER              :: NDVZIND (MAXDEP   )
+      INTEGER              :: FLAG    (MAXDEP   ) ! krt, 3/1/15
       INTEGER              :: NTRAIND (MAXDEP   )
       REAL*8               :: HSTAR   (MAXDEP   )
       REAL*8               :: KOA     (MAXDEP   )
@@ -329,6 +334,7 @@
       USE GIGC_Input_Opt_Mod, ONLY : OptInput
       USE GIGC_State_Chm_Mod, ONLY : ChmState
       USE GIGC_State_Met_Mod, ONLY : MetState
+      USE TRACERID_MOD,       ONLY : IDTISOPN
 !
 ! !INPUT PARAMETERS:
 !
@@ -412,6 +418,7 @@
 !
       ! Scalars
       INTEGER       :: I,   J,   L,  N, IJLOOP, NN, NDVZ
+      INTEGER       :: NDVZ_ISOPN
       REAL*8        :: DVZ, THIK
 
       ! Arrays
@@ -458,6 +465,8 @@
       ! to the NDVZIND local array.  This will prevent an OOB error.
       DO N = 1, Input_Opt%NUMDEP
          NDVZIND(N) = Input_Opt%NDVZIND(N)
+         ! Kludge for ISOPN species
+         IF ( NTRAIND(N) == IDTISOPN ) NDVZ_ISOPN = NDVZIND(N)
       ENDDO
 
       ! Call METERO to obtain meterological fields (all 1-D arrays)
@@ -470,7 +479,7 @@
       ! Call DEPVEL to compute dry deposition velocities [m/s]
       CALL DEPVEL( Input_Opt, State_Met, State_Chm,   MAXIJ,  
      &             RADIAT,    TC0,       SUNCOS_MID,  F0,        
-     &             HSTAR,     XMW,       AIROSOL,     USTAR,      
+     &             HSTAR,     FLAG,      XMW,   AIROSOL,     USTAR,      
      &             CZ1,       OBK,       CFRAC,       ZH,        
      &             LSNOW,     DVEL,      AZO,         RHB,     
      &             PRESSU,    W10                                     )
@@ -510,6 +519,23 @@
             ! Dry deposition velocity [cm/s]
             DVZ  = DVEL(IJLOOP,NDVZ) * 100.d0
 
+            ! Check flags (krt, 3/1/15)
+            IF ( FLAG(N) .eq. 1 )  THEN
+               ! Scale species to HNO3 
+               DVZ = DVZ *sqrt(63d-3)/sqrt(XMW(N))
+            ELSE IF ( FLAG(N) .eq. 2 ) THEN
+               ! Scale species to PAN
+               DVZ = DVZ *sqrt(121d-3)/sqrt(XMW(N))
+            ELSE IF ( FLAG(N) .eq. 3 ) THEN
+               ! Scale species to H2O2
+               DVZ = DVZ *sqrt(34d-3)/sqrt(XMW(N))            
+            ELSE IF ( FLAG(N) .eq. 4 ) THEN
+               ! Scale species to ISOPN
+               ! Kludge since some species appear before ISOPN in list
+               DVZ = DVEL(IJLOOP,NDVZ_ISOPN) * 100.d0
+               DVZ = DVZ *sqrt(147d-3)/sqrt(XMW(N))            
+            ENDIF
+
             ! Set minimum velocity for sulfate tracers
             DVZ  = DVZ_MINVAL( NN, LSNOW(IJLOOP), DVZ )
             
@@ -518,16 +544,11 @@
             IF ( NN == IDTACET ) THEN
 
                IF ( IS_LAND( I, J, State_Met ) ) THEN
-                  DVZ = 0.1d0
+                  DVZ = DVZ!0.1d0
                ELSE
                   DVZ = 0d0
                ENDIF
 
-            ENDIF
-
-            ! KLUDGE FOR NIGHTTIME DEPOSITION (krt, 7/12/14)
-            IF ( State_Met%PARDR(I,J) .LE. 1 ) THEN
-               DVZ = DVZ * 2
             ENDIF
 
             ! Set Vd for aerosol tracers over snow/ice (J. Fisher, 8/1/11)
@@ -550,6 +571,7 @@
             IF ( ND44 > 0 ) THEN 
 
                AD44(I,J,N,2) = AD44(I,J,N,2) + DVZ
+               AD44b(I,J,N) = DVZ
 
                ! Instantaneous deposition frequency (skim, 8/16/14)
                AD44_WOLF(I,J,N,2) = DVZ
@@ -1462,8 +1484,8 @@
 !
       SUBROUTINE DEPVEL( Input_Opt, State_Met, State_Chm, NPTS,   
      &                   RADIAT,    TEMP,      SUNCOS,    F0,        
-     &                   HSTAR,     XMW,       AIROSOL,   USTAR,  
-     &                   CZ1,       OBK,       CFRAC,     ZH,      
+     &                   HSTAR,     FLAG,      XMW,       AIROSOL,   
+     &                   USTAR,     CZ1,       OBK,       CFRAC,     ZH,      
      &                   LSNOW,     DVEL,      ZO,        RHB,    
      &                   PRESSU,    W10                          )
 !
@@ -1486,6 +1508,7 @@
       REAL*8,  INTENT(IN) :: F0     (MAXDEP)  ! Reactivity factor for oxidation
                                               !  of biological substances
       REAL*8,  INTENT(IN) :: HSTAR  (MAXDEP)  ! Henry's law constant
+      INTEGER, INTENT(IN) :: FLAG   (MAXDEP)  ! FLAG for unknown species scaling 1-3
       REAL*8,  INTENT(IN) :: XMW    (MAXDEP)  ! Molecular weight [kg/mol]
       REAL*8,  INTENT(IN) :: USTAR  (MAXIJ )  ! Friction velocity [m/s]
       REAL*8,  INTENT(IN) :: CZ1    (MAXIJ )  ! Alt @ which Vd is computed [m]
@@ -4410,6 +4433,7 @@
       DRYDHNO3   = 0 
       !(fp, 06/09)
       DRYDH2O2   = 0 
+      DRYDISOPN  = 0 
  
       NUMDEP     = 0
       NTRAIND(:) = 0
@@ -4417,6 +4441,7 @@
       HSTAR(:)   = 0d0
       F0(:)      = 0d0
       XMW(:)     = 0d0
+      FLAG(:)    = 0
       A_RADI(:)  = 0d0
       A_DEN(:)   = 0d0
       AIROSOL(:) = .FALSE.
@@ -4441,6 +4466,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 210d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! 7Be (aerosol)
          ELSE IF ( N == IDTBE7 ) THEN
@@ -4452,6 +4478,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 7d-3
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NO2
          ! Replaced NOx with NO2  (mpayer, 3/14/13)
@@ -4465,7 +4492,8 @@
             F0(NUMDEP)      = 0.1d0
             XMW(NUMDEP)     = 46d-3
             AIROSOL(NUMDEP) = .FALSE.
-            
+            FLAG(NUMDEP)    = 0
+
          ! O3
          ! Replaced Ox with O3  (mpayer, 3/14/13)
          ELSE IF ( N == IDTO3 ) THEN
@@ -4477,6 +4505,7 @@
             F0(NUMDEP)      = 1.0d0
             XMW(NUMDEP)     = 48d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0d0
 
          ! PAN 
          ELSE IF ( N == IDTPAN ) THEN
@@ -4489,6 +4518,7 @@
             F0(NUMDEP)      = 1.0d0
             XMW(NUMDEP)     = 121d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! HNO3
          ELSE IF ( N == IDTHNO3 ) THEN
@@ -4501,6 +4531,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 63d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! HNO2
          ELSE IF ( N == IDTHNO2 ) THEN
@@ -4510,30 +4541,24 @@
             DEPNAME(NUMDEP) = 'HNO2'
             HSTAR(NUMDEP)   = 1.0d+5
             F0(NUMDEP)      = 0.1d0
-            XMW(NUMDEP)     = 63d-3
+            XMW(NUMDEP)     = 47d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! H2O2
-            !krt, 9/25/14 - deposit H2O2 like HNO3
-            ! on the basis of Wolfe et al, in prep
+            !krt, 1/22/15 - Nguyen et al, 2014
+            ! Table S4
          ELSE IF ( N == IDTH2O2 ) THEN
             NUMDEP          = NUMDEP + 1
+            DRYDH2O2        = NUMDEP
+            NDVZIND(NUMDEP) = NUMDEP
             NTRAIND(NUMDEP) = IDTH2O2
-            NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'H2O2'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 1.0d+7 !1.0d+5 !
+            F0(NUMDEP)      = 1.0d0
+            XMW(NUMDEP)     = 34d-3
             AIROSOL(NUMDEP) = .FALSE.
-
-            !DRYDH2O2        = NUMDEP
-            !NDVZIND(NUMDEP) = NUMDEP
-            !NTRAIND(NUMDEP) = IDTH2O2
-            !DEPNAME(NUMDEP) = 'H2O2'
-            !HSTAR(NUMDEP)   = 1.0d+5
-            !F0(NUMDEP)      = 1.0d0
-            !XMW(NUMDEP)     = 34d-3
-            !AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! ACET
          ELSE IF ( N == IDTACET ) THEN
@@ -4545,6 +4570,7 @@
             F0(NUMDEP)      = 1.0d0
             XMW(NUMDEP)     = 58d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! PMN (uses same dep vel as PAN)
          ELSE IF ( N == IDTPMN ) THEN
@@ -4554,10 +4580,11 @@
             DEPNAME(NUMDEP) = 'PMN'           
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            XMW(NUMDEP)     = 147d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 2
 
-         ! PPN (uses same dep vel as PAN)
+         ! PPN (uses same dep vel as PAN) - NEED TO SCALE BASED ON MOLECULAR WEIGHT!
          ELSE IF ( N == IDTPPN ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTPPN
@@ -4565,10 +4592,11 @@
             DEPNAME(NUMDEP) = 'PPN'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            XMW(NUMDEP)     = 135d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 2 ! Flag 2 is for PAN
 
-         ! PMNN
+         ! PMNN - NEED TO SCALE BASED ON MOLECULAR WEIGHT!
          ELSE IF ( N == IDTPMNN ) THEN
             NUMDEP          = NUMDEP + 1
             NDVZIND(NUMDEP) = DRYDPAN
@@ -4576,42 +4604,46 @@
             DEPNAME(NUMDEP) = 'PMNN'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0!149d-3
+            XMW(NUMDEP)     = 149d-3
             AIROSOL(NUMDEP) = .FALSE.
- 
-         ! PYPAN (uses same dep vel as PAN)
-         !FP_ISOP
-         ELSE IF ( N == IDTPYPAN ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTPYPAN
-            NDVZIND(NUMDEP) = DRYDPAN
-            DEPNAME(NUMDEP) = 'PYPAN'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
-            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 2
+
+c$$$         ! PYPAN (uses same dep vel as PAN)
+c$$$         !FP_ISOP
+c$$$         ELSE IF ( N == IDTPYPAN ) THEN
+c$$$            NUMDEP          = NUMDEP + 1
+c$$$            NTRAIND(NUMDEP) = IDTPYPAN
+c$$$            NDVZIND(NUMDEP) = DRYDPAN
+c$$$            DEPNAME(NUMDEP) = 'PYPAN'
+c$$$            HSTAR(NUMDEP)   = 0d0
+c$$$            F0(NUMDEP)      = 0d0
+c$$$            XMW(NUMDEP)     = 0d0
+c$$$            AIROSOL(NUMDEP) = .FALSE.
+c$$$            FLAG(NUMDEP)    = 2
 
          ! ISN1
          ELSE IF ( N == IDTISN1 ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTISN1
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'ISN1'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 2.3d+4 !Rollins et al, 2009
+            F0(NUMDEP)      = 1.00d0
+            XMW(NUMDEP)     = 147d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 4
 
          ! R4N2 (uses same dep vel as PAN)
          ELSE IF ( N == IDTR4N2 ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTR4N2
-            NDVZIND(NUMDEP) = DRYDPAN
+            NDVZIND(NUMDEP) = DRYDHNO3!DRYDPAN
             DEPNAME(NUMDEP) = 'R4N2'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            XMW(NUMDEP)     = 119d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 4
 
          ! CH2O 
          ELSE IF ( N == IDTCH2O ) THEN
@@ -4623,109 +4655,107 @@
             F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
             XMW(NUMDEP)     = 30d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! Add GLYX and MGLY dry deposition, 
          ! using same algorithm as CH2O. (tmf, 5/25/06) 
          ! GLYX 
-         ELSE IF ( N == IDTGLYX ) THEN!deposit like HNO3, krt (6/19/14)
+         ELSE IF ( N == IDTGLYX ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTGLYX
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'GLYX'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 3.6d+5
+            F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
+            XMW(NUMDEP)     = 58d-3
             AIROSOL(NUMDEP) = .FALSE.
-
-            !HSTAR(NUMDEP)   = 3.6d+5
-            !F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
-            !XMW(NUMDEP)     = 58d-3
-            !AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! MGLY 
-         ELSE IF ( N == IDTMGLY ) THEN!deposit like HNO3, krt (6/19/14)
+         ELSE IF ( N == IDTMGLY ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMGLY
             DEPNAME(NUMDEP) = 'MGLY'
-            NDVZIND(NUMDEP) = DRYDHNO3
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            NDVZIND(NUMDEP) = NUMDEP
+            HSTAR(NUMDEP)   = 3.7d+3
+            F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
+            XMW(NUMDEP)     = 72d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
-            !HSTAR(NUMDEP)   = 3.7d+3
-            !F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
-            !XMW(NUMDEP)     = 72d-3
-            
          ! GLYC
-         ELSE IF ( N == IDTGLYC ) THEN!deposit like HNO3, krt (6/19/14)
+         ELSE IF ( N == IDTGLYC ) THEN
+            ! Hstar from Table S4 from Nguyen et al, 2014
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTGLYC
             DEPNAME(NUMDEP) = 'GLYC'
-            NDVZIND(NUMDEP) = DRYDHNO3
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            NDVZIND(NUMDEP) = NUMDEP
+            HSTAR(NUMDEP)   = 2.0d+7
+            F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
+            XMW(NUMDEP)     = 60d-3
             AIROSOL(NUMDEP) = .FALSE.
-
-            !HSTAR(NUMDEP)   = 4.1d+4
-            !F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
-            !XMW(NUMDEP)     = 60d-3
+            FLAG(NUMDEP)    = 0
 
         ! HC187
-         ELSE IF ( N == IDTHC187 ) THEN!deposit like HNO3, krt (6/19/14)
+         ELSE IF ( N == IDTHC187 ) THEN
+            ! Scale based on molecular weight per Nguyen et al, 2014
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTHC187
-            DEPNAME(NUMDEP) = 'HC187'
             NDVZIND(NUMDEP) = DRYDHNO3
+            DEPNAME(NUMDEP) = 'HC187'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            XMW(NUMDEP)     = 187d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 1d0
 
-         ! APAN (uses same dep vel as PAN)
-         ELSE IF ( N == IDTAPAN ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTAPAN
-            NDVZIND(NUMDEP) = DRYDPAN
-            DEPNAME(NUMDEP) = 'APAN'           
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
-            AIROSOL(NUMDEP) = .FALSE.
-
-         ! ENPAN (uses same dep vel as PAN)
-         ELSE IF ( N == IDTENPAN ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTENPAN
-            NDVZIND(NUMDEP) = DRYDPAN
-            DEPNAME(NUMDEP) = 'ENPAN'           
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
-            AIROSOL(NUMDEP) = .FALSE.
-
-         ! GLPAN (uses same dep vel as PAN)
-         ELSE IF ( N == IDTGLPAN ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTGLPAN
-            NDVZIND(NUMDEP) = DRYDPAN
-            DEPNAME(NUMDEP) = 'GLPAN'           
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
-            AIROSOL(NUMDEP) = .FALSE.
-
-         ! GPAN (uses same dep vel as PAN)
-         ELSE IF ( N == IDTGPAN ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTGPAN
-            NDVZIND(NUMDEP) = DRYDPAN
-            DEPNAME(NUMDEP) = 'GPAN'           
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
-            AIROSOL(NUMDEP) = .FALSE.
+c$$$         ! APAN (uses same dep vel as PAN)
+c$$$         ELSE IF ( N == IDTAPAN ) THEN
+c$$$            NUMDEP          = NUMDEP + 1
+c$$$            NTRAIND(NUMDEP) = IDTAPAN
+c$$$            NDVZIND(NUMDEP) = DRYDPAN
+c$$$            DEPNAME(NUMDEP) = 'APAN'           
+c$$$            HSTAR(NUMDEP)   = 0d0
+c$$$            F0(NUMDEP)      = 0d0
+c$$$            XMW(NUMDEP)     = 0d0
+c$$$            AIROSOL(NUMDEP) = .FALSE.
+c$$$            FLAG(NUMDEP)    = 2
+c$$$
+c$$$         ! ENPAN (uses same dep vel as PAN)
+c$$$         ELSE IF ( N == IDTENPAN ) THEN
+c$$$            NUMDEP          = NUMDEP + 1
+c$$$            NTRAIND(NUMDEP) = IDTENPAN
+c$$$            NDVZIND(NUMDEP) = DRYDPAN
+c$$$            DEPNAME(NUMDEP) = 'ENPAN'           
+c$$$            HSTAR(NUMDEP)   = 0d0
+c$$$            F0(NUMDEP)      = 0d0
+c$$$            XMW(NUMDEP)     = 182d-3
+c$$$            AIROSOL(NUMDEP) = .FALSE.
+c$$$            FLAG(NUMDEP)    = 2
+c$$$
+c$$$         ! GLPAN (uses same dep vel as PAN)
+c$$$         ELSE IF ( N == IDTGLPAN ) THEN
+c$$$            NUMDEP          = NUMDEP + 1
+c$$$            NTRAIND(NUMDEP) = IDTGLPAN
+c$$$            NDVZIND(NUMDEP) = DRYDPAN
+c$$$            DEPNAME(NUMDEP) = 'GLPAN'           
+c$$$            HSTAR(NUMDEP)   = 0d0
+c$$$            F0(NUMDEP)      = 0d0
+c$$$            XMW(NUMDEP)     = 0d0
+c$$$            AIROSOL(NUMDEP) = .FALSE.
+c$$$            FLAG(NUMDEP)    = 2
+c$$$
+c$$$         ! GPAN (uses same dep vel as PAN)
+c$$$         ELSE IF ( N == IDTGPAN ) THEN
+c$$$            NUMDEP          = NUMDEP + 1
+c$$$            NTRAIND(NUMDEP) = IDTGPAN
+c$$$            NDVZIND(NUMDEP) = DRYDPAN
+c$$$            DEPNAME(NUMDEP) = 'GPAN' 
+c$$$            HSTAR(NUMDEP)   = 0d0
+c$$$            F0(NUMDEP)      = 0d0
+c$$$            XMW(NUMDEP)     = 135d-3
+c$$$            AIROSOL(NUMDEP) = .FALSE.
+c$$$            FLAG(NUMDEP)    = 2
 
          ! MPAN (uses same dep vel as PAN)
          ELSE IF ( N == IDTMPAN ) THEN
@@ -4735,8 +4765,9 @@
             DEPNAME(NUMDEP) = 'MPAN'           
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            XMW(NUMDEP)     = 132d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 2
 
          ! NIPAN (uses same dep vel as PAN)
          ELSE IF ( N == IDTNIPAN ) THEN
@@ -4746,204 +4777,219 @@
             DEPNAME(NUMDEP) = 'NIPAN'           
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            XMW(NUMDEP)     = 224d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 2
 
-         ! N2O5  (uses same dep vel as HNO3) 
+         ! N2O5 
          ELSE IF ( N == IDTN2O5 ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTN2O5
             NDVZIND(NUMDEP) = DRYDHNO3
             DEPNAME(NUMDEP) = 'N2O5'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 2.1d0 ! Sander, 2014 - not effective value, stick with scaling based on HNO3
+            F0(NUMDEP)      = 1.0d0
+            XMW(NUMDEP)     = 105d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 1 !Flag 1 for HNO3
 
             ! krt, 4/21/14, adding ...
         ! ACTA
          ELSE IF ( N == IDTACTA ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTACTA
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'ACTA'
-            HSTAR(NUMDEP)   = 0d0
-!            HSTAR(NUMDEP)   = 4.1d3
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0!60d-3
+            HSTAR(NUMDEP)   = 4.1d3
+            F0(NUMDEP)      = 1.0d0
+            XMW(NUMDEP)     = 60d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! HCOOH
          ELSE IF ( N == IDTHCOOH ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTHCOOH
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'HCOOH'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
-!           HSTAR(NUMDEP)   = 8.9d3
-            !F0(NUMDEP)      = 1.0d0
-            !XMW(NUMDEP)     = 46d-3
+            HSTAR(NUMDEP)   = 8.9d3
+            F0(NUMDEP)      = 1.0d0
+            XMW(NUMDEP)     = 46d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! krt, 4/21/14, adding organic peroxides
-         !
+         ! scale based on H2O2 (Nguyen et al, 2014)
          ELSE IF ( N == IDTMAOP ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMAOP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2
             DEPNAME(NUMDEP) = 'MAOP'
             HSTAR(NUMDEP)   = 0d0
 !            HSTAR(NUMDEP)   = 3.4d2
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!102d-3
+            XMW(NUMDEP)     = 102d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3 !Flag 3 for H2O2
 
          ELSE IF ( N == IDTVRP ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTVRP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2
             DEPNAME(NUMDEP) = 'VRP'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!120d-3
+            XMW(NUMDEP)     = 120d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTETP ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTETP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
             DEPNAME(NUMDEP) = 'ETP'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!62d-3
+            XMW(NUMDEP)     = 62d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTATOOH ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTATOOH
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) =  DRYDH2O2 
             DEPNAME(NUMDEP) = 'ATOOH'
-            HSTAR(NUMDEP)   = 0d0!1.0d+14 !same as HNO3
+            HSTAR(NUMDEP)   = 0d0
 !            HSTAR(NUMDEP)   = 3.4d2
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!90d-3
+            XMW(NUMDEP)     = 90d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTISNP ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTISNP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
             DEPNAME(NUMDEP) = 'ISNP'
-            HSTAR(NUMDEP)   = 0d0!1.0d+14 !same as HNO3
+            HSTAR(NUMDEP)   = 0d0
 !            HSTAR(NUMDEP)   = 3.4d2
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!197d-3
+            XMW(NUMDEP)     = 197d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTIAP ) THEN !peroxide from IAO2
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTIAP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
 !            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'IAP'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!150d-3
+            XMW(NUMDEP)     = 150d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTINPN ) THEN !peroxide from INO2
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTINPN
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
 !            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'INPN'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!163d-3
+            XMW(NUMDEP)     = 163d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTMP ) THEN !methylhydroperoxide
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) =  DRYDH2O2 
 !            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'MP'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!48d-3
+            XMW(NUMDEP)     = 48d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTMRP ) THEN !peroxide from MRO2
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMRP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
             DEPNAME(NUMDEP) = 'MRP'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!121d-3
+            XMW(NUMDEP)     = 121d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTPRPN ) THEN !peroxide from PRN1
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTPRPN
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
             DEPNAME(NUMDEP) = 'PRPN'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!137d-3
+            XMW(NUMDEP)     = 137d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTPP ) THEN !peroxide from PO2
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTPP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
             DEPNAME(NUMDEP) = 'PP'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!92d-3
+            XMW(NUMDEP)     = 92d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTR4P ) THEN !peroxide from R4O2
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTR4P
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
             DEPNAME(NUMDEP) = 'R4P'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!90d-3
+            XMW(NUMDEP)     = 90d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTRA3P ) THEN !peroxide from A3O2
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTRA3P
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
             DEPNAME(NUMDEP) = 'RA3P'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!76d-3
+            XMW(NUMDEP)     = 76d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTRB3P ) THEN !peroxide from B3O2
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTRB3P
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
             DEPNAME(NUMDEP) = 'RB3P'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!76d-3
+            XMW(NUMDEP)     = 76d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          ELSE IF ( N == IDTRP ) THEN !peroxide from RCO3
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTRP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDH2O2 
             DEPNAME(NUMDEP) = 'RP'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0!1.0d0
-            XMW(NUMDEP)     = 0d0!90d-3
+            XMW(NUMDEP)     = 90d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 3
 
          !--------------------------------------------
          ! jpp, 2/27/08, adding HOBr and HBr dry dep
@@ -4968,6 +5014,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 97d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! HBr
          ELSE IF ( N == IDTHBR ) THEN
@@ -4998,6 +5045,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 81d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! BrNO3
          ELSE IF ( N == IDTBRNO3 ) THEN
@@ -5011,6 +5059,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 142.d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ELSE IF ( N == IDTBR2 ) THEN
             NUMDEP          = NUMDEP + 1
@@ -5023,176 +5072,192 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 160.d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! NOTE: ISOPN is composed of 2 species (ISOPND + ISOPNB)
+         ! krt, 1/22/14, Nguyen et al, 2014
+            ! Table S4
          ELSE IF ( N == IDTISOPN ) THEN
 
             ! First species; ISOPND
             NUMDEP          = NUMDEP + 1
+            DRYDISOPN       = NUMDEP
             NTRAIND(NUMDEP) = IDTISOPN
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'ISOPND'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 2.00d+6
+            F0(NUMDEP)      = 1.0d0
+            XMW(NUMDEP)     = 147d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
             ! Second species: ISOPNB
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTISOPN
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'ISOPNB'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 2.00d+6
+            F0(NUMDEP)      = 1.0d0
+            XMW(NUMDEP)     = 147d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ! NOTE: MMN is composed of 2 species (MACRN + MVKN)
+         ! krt, 1/22/14, Nguyen et al, 2014
+            ! Table S4
          ELSE IF ( N == IDTMMN ) THEN
 
             ! First species; MACRN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMMN
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'MACRN'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 2.00d+6
+            F0(NUMDEP)      = 1.0d0
+            XMW(NUMDEP)     = 149d-3
             AIROSOL(NUMDEP) = .FALSE.
-       
+            FLAG(NUMDEP)    = 0
+
             ! Second species: MVKN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMMN
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'MVKN'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 2.00d+6
+            F0(NUMDEP)      = 1d0
+            XMW(NUMDEP)     = 149d-3
             AIROSOL(NUMDEP) = .FALSE.   
+            FLAG(NUMDEP)    = 0
 
          !ETHLN (jaf, 2/26/14)
          ELSE IF ( N == IDTETHLN ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTETHLN
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDISOPN
             DEPNAME(NUMDEP) = 'ETHLN'
-            HSTAR(NUMDEP)   = 0d0
+            HSTAR(NUMDEP)   = 0d0  !????
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            XMW(NUMDEP)     = 105d-3
             AIROSOL(NUMDEP) = .FALSE.   
+            FLAG(NUMDEP)    = 4
 
          !DHDN (jaf, 5/21/14)
          ELSE IF ( N == IDTDHDN ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTDHDN
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = DRYDISOPN
             DEPNAME(NUMDEP) = 'DHDN'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            XMW(NUMDEP)     = 226d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 4
 
          !PROPNN
+         ! Nguyen et al, 2014
          ELSE IF ( N == IDTPROPNN ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTPROPNN
-            NDVZIND(NUMDEP) = DRYDHNO3
-            DEPNAME(NUMDEP) = 'PROPNN'  !NITROOXYACETONE IN SANDER TABLE
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'PROPNN'  
+            HSTAR(NUMDEP)   = 5.00d+5
+            F0(NUMDEP)      = 1d0
+            XMW(NUMDEP)     = 119d-3
             AIROSOL(NUMDEP) = .FALSE.   
+            FLAG(NUMDEP)    = 0
 
          !RIP
-         ELSE IF ( N == IDTRIP ) THEN !deposit like HNO3, krt (6/19/14)
+         ! Deposit according to Nguyen et al, 2014 (Table S4)
+         ELSE IF ( N == IDTRIP ) THEN 
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTRIP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'RIP'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 1.70d+6    ! US EPA 2011
+            F0(NUMDEP)      = 1.0d0 ! Karl et al. 2010(science)
+            XMW(NUMDEP)     = 118d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
-            !HSTAR(NUMDEP)   = 1.70d6    ! US EPA 2011
-            !F0(NUMDEP)      = 1.0d0     ! Karl et al. 2010(science)
-            !XMW(NUMDEP)     = 118d-3
-            
          !IEPOX
-         ELSE IF ( N == IDTIEPOX ) THEN !deposit like HNO3, krt (6/19/14)
+         ! krt, 1/22/14 Nguyen et al, 2014
+            ! Table S4
+         ELSE IF ( N == IDTIEPOX ) THEN 
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTIEPOX
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) =  NUMDEP
             DEPNAME(NUMDEP) = 'IEPOX'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 8.00d+7
+            F0(NUMDEP)      = 1d0 ! Karl et al. 2010(science)
+            XMW(NUMDEP)     = 118d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
             !HSTAR(NUMDEP)   = 1.30d8
-            !F0(NUMDEP)      = 1.0d0     ! Karl et al. 2010(science)
-            !XMW(NUMDEP)     = 118d-3    ! (Eddingsaas et al., 2010)
-            !AIROSOL(NUMDEP) = .FALSE.
 
          !MAP
-         ELSE IF ( N == IDTMAP ) THEN!deposit like HNO3, krt (6/19/14)
+         ! krt, 1/22/14, Nguyen et al, 2014
+            ! Table S2
+         ELSE IF ( N == IDTMAP ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMAP
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'MAP'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 8.4d+2 !FROM R. Sander
+            F0(NUMDEP)      = 1.0d0  !Assume reactive
+            XMW(NUMDEP)     = 76d-3
             AIROSOL(NUMDEP) = .FALSE.
-            !HSTAR(NUMDEP)   = 8.4d+2 !FROM R. Sander
-            !F0(NUMDEP)      = 1.0d0  !Assume reactive
-            !XMW(NUMDEP)     = 76d-3
-                        
+            FLAG(NUMDEP)    = 0
+         
          !MVK
-         ELSE IF ( N == IDTMVK ) THEN!deposit like HNO3, krt (6/19/14)
+         ELSE IF ( N == IDTMVK ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMVK
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'MVK'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 4.4d1 !from R. Sander
+            F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
+            XMW(NUMDEP)     = 70d-3
             AIROSOL(NUMDEP) = .FALSE.
- 
-            !HSTAR(NUMDEP)   = 4.4d1 !from R. Sander
-            !F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
-            !XMW(NUMDEP)     = 70d-3
- 
+            FLAG(NUMDEP)    = 0
+
          !MACR
-         ELSE IF ( N == IDTMACR ) THEN!deposit like HNO3, krt (6/19/14)
+         ELSE IF ( N == IDTMACR ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTMACR
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'MACR'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 6.5d0 !from R. Sander
+            F0(NUMDEP)      = 1.0d0 !Assume reactive
+            XMW(NUMDEP)     = 70d-3
             AIROSOL(NUMDEP) = .FALSE.
-
-            !HSTAR(NUMDEP)   = 6.5d0 !from R. Sander
-            !F0(NUMDEP)      = 1.0d0 !Assume reactive
-            !XMW(NUMDEP)     = 70d-3
             
-         ELSE IF ( N == IDTHAC ) THEN!deposit like HNO3, krt (6/19/14)
+          ! HAC
+          ! krt, 1/22/15, Nguyen et al, 2014
+            ! Table S4
+         ELSE IF ( N == IDTHAC ) THEN
             NUMDEP          = NUMDEP + 1
             NTRAIND(NUMDEP) = IDTHAC
-            NDVZIND(NUMDEP) = DRYDHNO3
+            NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'HAC'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 0d0
+            HSTAR(NUMDEP)   = 1.40d+6
+            F0(NUMDEP)      = 1.0d0!Karl et al. 2010(science)
+            XMW(NUMDEP)     = 74d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            
+          ! HPALD
+          ! krt, 1/22/15, Nguyen et al, 2014
+             ! Table S2
+         ELSE IF ( N == IDTHPALD ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTHPALD
+            NDVZIND(NUMDEP) =  NUMDEP
+            DEPNAME(NUMDEP) = 'HPALD'
+            HSTAR(NUMDEP)   = 4.0d4 
+            F0(NUMDEP)      = 0.0d0 
+            XMW(NUMDEP)     = 116d-3
             AIROSOL(NUMDEP) = .FALSE.
 
-            !DEPNAME(NUMDEP) = 'HAC'
-            !HSTAR(NUMDEP)   = 2.9d3 !from Ito et al. (2007, JGR)
-            !F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
-            !XMW(NUMDEP)     = 74d-3
-            
          !ALD2
          ELSE IF ( N == IDTALD2 ) THEN
             NUMDEP          = NUMDEP + 1
@@ -5203,6 +5268,7 @@
             F0(NUMDEP)      = 1.0d0 !Assume reactive
             XMW(NUMDEP)     = 44d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
 
          !----------------------------------
@@ -5219,6 +5285,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 64d-3
             AIROSOL(NUMDEP) = .FALSE. 
+            FLAG(NUMDEP)    = 0
 
          ! SO4 (aerosol)
          ELSE IF ( N == IDTSO4 ) THEN
@@ -5230,6 +5297,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 96d-3
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! SO4 in seasalt aerosol (bec, bmy, 4/13/05)
          ELSE IF ( N == IDTSO4s ) THEN
@@ -5244,6 +5312,7 @@
      &                          Input_Opt%SALC_REDGE_um(2) ) * 0.5d-6
             A_DEN(NUMDEP)   = 2200.d0 
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! MSA (aerosol)
          ELSE IF ( N == IDTMSA ) THEN
@@ -5255,6 +5324,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 96d-3
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NH3 
          ELSE IF ( N == IDTNH3 ) THEN
@@ -5266,6 +5336,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 17d-3
             AIROSOL(NUMDEP) = .FALSE. 
+            FLAG(NUMDEP)    = 0
 
          ! NH4 (aerosol)
          ELSE IF ( N == IDTNH4 ) THEN
@@ -5277,6 +5348,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 18d-3
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NIT (aerosol)
          ELSE IF ( N == IDTNIT ) THEN
@@ -5288,6 +5360,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 62d-3
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NIT in seasalt aerosol (bec, bmy, 4/13/05)
          ELSE IF ( N == IDTNITs ) THEN
@@ -5302,6 +5375,7 @@
      &                          Input_Opt%SALC_REDGE_um(2) ) * 0.5d-6
             A_DEN(NUMDEP)   = 2200.d0 
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          !----------------------------------
          ! Crystalline & aqueous aerosols
@@ -5317,6 +5391,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 132d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! AHS (crystaline ammonium bisulfite) 
          ELSE IF ( N == IDTAHS ) THEN
@@ -5328,7 +5403,8 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 115d-3
             AIROSOL(NUMDEP) = .TRUE. 
-        
+            FLAG(NUMDEP)    = 0
+
          ! LET (crystaline LETOVOCITE)
          ELSE IF ( N == IDTLET  ) THEN
             NUMDEP          = NUMDEP + 1
@@ -5339,6 +5415,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 248.0d-3 
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! SO4aq (aqueous sulfate aerosol) 
          ELSE IF ( N == IDTSO4aq ) THEN
@@ -5350,6 +5427,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 96.0d-3
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NH4aq (aqueous NH4 aerosol)
          ELSE IF ( N == IDTNH4aq ) THEN
@@ -5361,6 +5439,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 18d-3
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          !----------------------------------
          ! Carbon & SOA aerosol tracers
@@ -5376,6 +5455,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! Hydrophilic OC (aerosol)
          ELSE IF ( N == IDTOCPI ) THEN
@@ -5387,6 +5467,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! Hydrophilic BB OC (aerosol)
          ELSE IF ( N == IDTBBOCPI ) THEN
@@ -5398,6 +5479,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! Hydrophobic BC (aerosol)
          ELSE IF ( N == IDTBCPO ) THEN
@@ -5409,6 +5491,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! Hydrophobic OC (aerosol)
          ELSE IF ( N == IDTOCPO ) THEN
@@ -5420,6 +5503,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! Hydrophobic BB OC (aerosol)
          ELSE IF ( N == IDTBBOCPO ) THEN
@@ -5431,6 +5515,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
 !--------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
@@ -5477,6 +5562,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 136.23d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
 !--------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
@@ -5764,6 +5850,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 58d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! SOAM
          ELSE IF ( N == IDTSOAM ) THEN
@@ -5775,6 +5862,69 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 72d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
+
+         ! SEAC4RS monoterpene tracers (jaf, 3/16/15)
+         ! Use HOTP values from SOA sim for full chem here.
+         ! Lumped MTP with one double bond
+         ELSE IF ( N == IDTAPI ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTAPI
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'API'
+            HSTAR(NUMDEP)   = 0.049d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 136d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
+
+         ! Lumped MTP with two double bonds
+         ELSE IF ( N == IDTLIM ) THEN
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTLIM
+            NDVZIND(NUMDEP) = NUMDEP
+            DEPNAME(NUMDEP) = 'LIM'
+            HSTAR(NUMDEP)   = 0.07d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 136d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
+
+         ! Lumped organic nitrate from MTP (MONITU + MONITS)
+         ! Treat like HNO3
+         ELSE IF ( N == IDTMONIT ) THEN
+            ! Scale based on molecular weight per Nguyen et al, 2014
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTMONIT
+            NDVZIND(NUMDEP) = DRYDISOPN
+            DEPNAME(NUMDEP) = 'MONITS'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 119d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 4
+            ! Scale based on molecular weight per Nguyen et al, 2014
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTMONIT
+            NDVZIND(NUMDEP) = DRYDISOPN
+            DEPNAME(NUMDEP) = 'MONITU'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 119d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 4
+
+         ELSE IF ( N == IDTHONIT ) THEN
+            ! Scale based on molecular weight per Nguyen et al, 2014
+            NUMDEP          = NUMDEP + 1
+            NTRAIND(NUMDEP) = IDTHONIT
+            NDVZIND(NUMDEP) = DRYDISOPN
+            DEPNAME(NUMDEP) = 'HONIT'
+            HSTAR(NUMDEP)   = 0d0
+            F0(NUMDEP)      = 0d0
+            XMW(NUMDEP)     = 119d-3
+            AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 4
 
          !----------------------------------
          ! SEAC4RS SOA tracers (jaf, 6/24/13)
@@ -5790,6 +5940,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! BBSOA
          ELSE IF ( N == IDTBBSOA ) THEN
@@ -5801,6 +5952,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! BGSOA
          ! Separate into component parts (skim, 6/13/14)
@@ -5813,6 +5965,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ELSE IF ( N == IDTBGSOA_IHNOX ) THEN
             NUMDEP          = NUMDEP + 1
@@ -5823,6 +5976,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ELSE IF ( N == IDTBGSOA_MLNOX ) THEN
             NUMDEP          = NUMDEP + 1
@@ -5833,6 +5987,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ELSE IF ( N == IDTBGSOA_MHNOX ) THEN
             NUMDEP          = NUMDEP + 1
@@ -5843,6 +5998,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! Organic nitrate aerosols (jaf, 7/26/14)
          ELSE IF ( N == IDTONITAam ) THEN
@@ -5854,6 +6010,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 14d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ELSE IF ( N == IDTONITApm ) THEN
             NUMDEP          = NUMDEP + 1
@@ -5864,6 +6021,7 @@
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 14d-3
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          !----------------------------------
          ! Dust aerosol tracers
@@ -5881,6 +6039,7 @@
             A_RADI(NUMDEP)  = 0.73d-6
             A_DEN(NUMDEP)   = 2500.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! DUST2 (aerosol)
          ELSE IF ( N == IDTDST2 ) THEN
@@ -5894,6 +6053,7 @@
             A_RADI(NUMDEP)  = 1.4d-6
             A_DEN(NUMDEP)   = 2650.d0   
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! DUST3 (aerosol)
          ELSE IF ( N == IDTDST3 ) THEN
@@ -5907,6 +6067,7 @@
             A_RADI(NUMDEP)  = 2.4d-6
             A_DEN(NUMDEP)   = 2650.d0  
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! DUST4 (aerosol)
          ELSE IF ( N == IDTDST4 ) THEN
@@ -5920,6 +6081,7 @@
             A_RADI(NUMDEP)  = 4.5d-6
             A_DEN(NUMDEP)   = 2650.d0   
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          !----------------------------------
          ! Sea salt aerosol tracers
@@ -5938,6 +6100,7 @@
      &                          Input_Opt%SALA_REDGE_um(2) ) * 0.5d-6
             A_DEN(NUMDEP)   = 2200.d0         
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! Coarse mode seasalt (aerosol) 
          ELSE IF ( N == IDTSALC ) THEN
@@ -5952,6 +6115,7 @@
      &                          Input_Opt%SALC_REDGE_um(2) ) * 0.5d-6
             A_DEN(NUMDEP)   = 2200.d0         
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
 #if   defined( TOMAS )
          !----------------------------------
@@ -5967,7 +6131,8 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 98d-3
             AIROSOL(NUMDEP) = .FALSE. 
-                     
+            FLAG(NUMDEP)    = 0
+      
          !----------------------------------
          ! Aerosol number tracers     !(win, 7/14/09)
          !----------------------------------
@@ -5982,6 +6147,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NK2 (aerosol)
          ELSE IF  ( N == IDTNK2) THEN
@@ -5993,6 +6159,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NK3 (aerosol)
          ELSE IF  ( N == IDTNK3) THEN
@@ -6004,6 +6171,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK4 (aerosol)
          ELSE IF  ( N == IDTNK4) THEN
@@ -6015,6 +6183,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK5 (aerosol)
          ELSE IF  ( N == IDTNK5) THEN
@@ -6026,6 +6195,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK6 (aerosol)
          ELSE IF  ( N == IDTNK6) THEN
@@ -6037,6 +6207,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK7 (aerosol)
          ELSE IF  ( N == IDTNK7) THEN
@@ -6048,6 +6219,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK8 (aerosol)
          ELSE IF  ( N == IDTNK8) THEN
@@ -6059,6 +6231,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK9 (aerosol)
          ELSE IF  ( N == IDTNK9) THEN
@@ -6070,6 +6243,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK10 (aerosol)
          ELSE IF  ( N == IDTNK10) THEN
@@ -6081,6 +6255,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK11 (aerosol)
          ELSE IF  ( N == IDTNK11) THEN
@@ -6092,6 +6267,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NK12 (aerosol)
          ELSE IF  ( N == IDTNK12) THEN
@@ -6103,6 +6279,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
 # if  !defined( TOMAS12 )
          ! NK13 (aerosol)
@@ -6115,6 +6292,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK14 (aerosol)
          ELSE IF  ( N == IDTNK14) THEN
@@ -6126,6 +6304,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK15 (aerosol)
          ELSE IF  ( N == IDTNK15) THEN
@@ -6137,7 +6316,8 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
- 
+            FLAG(NUMDEP)    = 0
+
 #  if !defined( TOMAS15 )
          ! NK16 (aerosol)
          ELSE IF  ( N == IDTNK16) THEN
@@ -6149,6 +6329,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK17 (aerosol)
          ELSE IF  ( N == IDTNK17) THEN
@@ -6160,6 +6341,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK18 (aerosol)
          ELSE IF  ( N == IDTNK18) THEN
@@ -6171,6 +6353,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK19 (aerosol)
          ELSE IF  ( N == IDTNK19) THEN
@@ -6182,6 +6365,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK20 (aerosol)
          ELSE IF  ( N == IDTNK20) THEN
@@ -6193,6 +6377,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK21 (aerosol)
          ELSE IF  ( N == IDTNK21) THEN
@@ -6204,6 +6389,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NK22 (aerosol)
          ELSE IF  ( N == IDTNK22) THEN
@@ -6215,6 +6401,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE. 
+            FLAG(NUMDEP)    = 0
 
          ! NK23 (aerosol)
          ELSE IF  ( N == IDTNK23) THEN
@@ -6226,6 +6413,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK24 (aerosol)
          ELSE IF  ( N == IDTNK24) THEN
@@ -6237,6 +6425,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK25 (aerosol)
          ELSE IF  ( N == IDTNK25) THEN
@@ -6248,6 +6437,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK26 (aerosol)
          ELSE IF  ( N == IDTNK26) THEN
@@ -6259,6 +6449,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK27 (aerosol)
          ELSE IF  ( N == IDTNK27) THEN
@@ -6270,6 +6461,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK28 (aerosol)
          ELSE IF  ( N == IDTNK28) THEN
@@ -6281,6 +6473,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK29 (aerosol)
          ELSE IF  ( N == IDTNK29) THEN
@@ -6292,6 +6485,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK30 (aerosol)
          ELSE IF  ( N == IDTNK30) THEN
@@ -6303,6 +6497,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 #  endif
 !  endif not 15
 # endif
@@ -6319,6 +6514,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK32 (aerosol)
          ELSE IF  ( N == IDTNK32) THEN
@@ -6330,6 +6526,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK33 (aerosol)
          ELSE IF  ( N == IDTNK33) THEN
@@ -6341,6 +6538,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK34 (aerosol)
          ELSE IF  ( N == IDTNK34) THEN
@@ -6352,6 +6550,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK35 (aerosol)
          ELSE IF  ( N == IDTNK35) THEN
@@ -6363,6 +6562,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK36 (aerosol)
          ELSE IF  ( N == IDTNK36) THEN
@@ -6374,6 +6574,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK37 (aerosol)
          ELSE IF  ( N == IDTNK37) THEN
@@ -6385,6 +6586,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK38 (aerosol)
          ELSE IF  ( N == IDTNK38) THEN
@@ -6396,6 +6598,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK39 (aerosol)
          ELSE IF  ( N == IDTNK39) THEN
@@ -6407,6 +6610,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 
          ! NK40 (aerosol)
          ELSE IF  ( N == IDTNK40) THEN
@@ -6418,6 +6622,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 1.d0
             AIROSOL(NUMDEP) = .TRUE.
+            FLAG(NUMDEP)    = 0
 # endif
 #endif
 
@@ -6434,6 +6639,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 0d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          ELSE IF ( N == IDTHD ) THEN
             NUMDEP          = NUMDEP + 1
@@ -6444,6 +6650,7 @@
             F0(NUMDEP)      = 0.0d0
             XMW(NUMDEP)     = 0d-3
             AIROSOL(NUMDEP) = .FALSE.
+            FLAG(NUMDEP)    = 0
 
          !----------------------------------
          ! Mercury tracers
@@ -6462,6 +6669,7 @@
                F0(NUMDEP)      = 1.0d-5
                XMW(NUMDEP)     = 201d-3
                AIROSOL(NUMDEP) = .FALSE. 
+               FLAG(NUMDEP)    = 0
             ENDIF
 
             ! Hg2 -- Divalent Mercury
@@ -6476,6 +6684,7 @@
                F0(NUMDEP)      = 0.0d0
                XMW(NUMDEP)     = 201d-3
                AIROSOL(NUMDEP) = .FALSE. 
+               FLAG(NUMDEP)    = 0
             ENDIF
 
             ! HgP -- Particulate Mercury
@@ -6488,6 +6697,7 @@
                F0(NUMDEP)      = 0.0d0
                XMW(NUMDEP)     = 201d-3
                AIROSOL(NUMDEP) = .TRUE. 
+               FLAG(NUMDEP)    = 0
             ENDIF
          
          
@@ -6532,6 +6742,7 @@
                ! for BENZO[a]PYRENE, MW = 252d-3 (kg/mol)
                XMW(NUMDEP)     = GET_POP_XMW(DUM)
                AIROSOL(NUMDEP) = .FALSE. 
+               FLAG(NUMDEP)    = 0
             ENDIF
 
             ! POPs PARTICLES - OC 
@@ -6551,6 +6762,7 @@
                ! for BENZO[a]PYRENE, MW = 252d-3 (kg/mol)
                XMW(NUMDEP)     = GET_POP_XMW(DUM)
                AIROSOL(NUMDEP) = .TRUE. 
+               FLAG(NUMDEP)    = 0
             ENDIF
 
             ! POPs PARTICLES - BC 
@@ -6570,6 +6782,7 @@
                ! for BENZO[a]PYRENE, MW = 252d-3 (kg/mol)
                XMW(NUMDEP)     = GET_POP_XMW(DUM)
                AIROSOL(NUMDEP) = .TRUE. 
+               FLAG(NUMDEP)    = 0
             ENDIF
          ENDIF
 

@@ -184,6 +184,7 @@
          !    (skim, 8/16/14)
          IF ( ND44 > 0 ) THEN
             AD44      = 0e0
+            AD44b      = 0e0
             AD44_WOLF = 0e0
          ENDIF
 

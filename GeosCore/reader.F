@@ -670,6 +670,7 @@
        NABC(     NCS) = 0 
        NKSPECW(  NCS) = 0
        NKSPECX(  NCS) = 0
+       NKSPECXX( NCS) = 0
        NKSPECY(  NCS) = 0
        NKSPECZ(  NCS) = 0
  705  CONTINUE

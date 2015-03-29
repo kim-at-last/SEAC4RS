@@ -5884,7 +5884,7 @@
       IF ( ND44 > 0 ) THEN
 
          ! Special handling for tagged simulations
-         IF ( Input_Opt%ITS_A_TAGOX_SIM   .or. 
+         IF ( Input_Opt%ITS_A_TAGO3_SIM   .or. 
      &        Input_Opt%ITS_A_MERCURY_SIM .or. 
      &        Input_Opt%ITS_A_H2HD_SIM  ) THEN
 
@@ -6009,6 +6009,43 @@
                         SCALE(NN,44)  = 1.0e0
                         UNIT (NN,44)  = 'cm/s'
                         INDEX(NN,44)  = ( Input_Opt%N_TRACERS + 2  )
+     &                                + ( SPACING             * 37 )
+                        NTRAC(44)     = NTRAC(44) + 1
+
+                     CASE( 'MONITU' )
+
+                        !-----------------------------------------------
+                        ! Drydep flux: MONITU.  Use the same info as
+                        ! for MONITS but save as w/ index N_TRACERS+1.
+                        !-----------------------------------------------
+                        T             = IDTMONIT
+                        NAME (N,44)   = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                                  'df'
+                        FNAME(N,44)   = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                                  ' drydep flux'
+                        MWT  (N,44)   = Input_Opt%TRACER_MW_KG(T) 
+                        MOLC (N,44)   = INT(Input_Opt%TRACER_COEFF(T,1))
+                        SCALE(N,44)   = 1.0e0
+                        UNIT (N,44)   = 'molec/cm2/s'
+                        INDEX(N,44)   = ( Input_Opt%N_TRACERS + 3  )
+     &                                + ( SPACING             * 36 )
+                        NTRAC(44)     = NTRAC(44) + 1
+
+                        !-----------------------------------------------
+                        ! Drydep velocity: MONITU.  Use the same info as
+                        ! for MONITS but save as w/ index N_TRACERS+1.
+                        !-----------------------------------------------
+                        T             = IDTMONIT
+                        NN            = N + Input_Opt%NUMDEP
+                        NAME (NN,44)  = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                                 'dv'
+                        FNAME(NN,44)  = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                                  ' drydep velocity'
+                        MWT  (NN,44)  = Input_Opt%TRACER_MW_KG(T) 
+                        MOLC (NN,44)  = INT(Input_Opt%TRACER_COEFF(T,1))
+                        SCALE(NN,44)  = 1.0e0
+                        UNIT (NN,44)  = 'cm/s'
+                        INDEX(NN,44)  = ( Input_Opt%N_TRACERS + 3  )
      &                                + ( SPACING             * 37 )
                         NTRAC(44)     = NTRAC(44) + 1
 
@@ -6153,6 +6190,43 @@
                      SCALE(NN,44)  = 1.0e0
                      UNIT (NN,44)  = 'cm/s'
                      INDEX(NN,44)  = ( Input_Opt%N_TRACERS + 2  )
+     &                             + ( SPACING             * 37 )
+                     NTRAC(44)     = NTRAC(44) + 1
+
+                  CASE( 'MONITU' )
+
+                     !-----------------------------------------------
+                     ! Drydep flux: MONITU.  Use the same info as
+                     ! for MONITS but save as w/ index N_TRACERS+3.
+                     !-----------------------------------------------
+                     T             = IDTMONIT
+                     NAME (N,44)   = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                               'df'
+                     FNAME(N,44)   = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                               ' drydep flux'
+                     MWT  (N,44)   = Input_Opt%TRACER_MW_KG(T) 
+                     MOLC (N,44)   = INT(Input_Opt%TRACER_COEFF(T,1))
+                     SCALE(N,44)   = 1.0e0
+                     UNIT (N,44)   = 'molec/cm2/s'
+                     INDEX(N,44)   = ( Input_Opt%N_TRACERS + 3  )
+     &                             + ( SPACING             * 36 )
+                     NTRAC(44)     = NTRAC(44) + 1
+
+                     !-----------------------------------------------
+                     ! Drydep velocity: MONITU.  Use the same info as
+                     ! for MONITS but save as w/ index N_TRACERS+1.
+                     !-----------------------------------------------
+                     T             = IDTMONIT
+                     NN            = N + Input_Opt%NUMDEP
+                     NAME (NN,44)  = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                              'dv'
+                     FNAME(NN,44)  = TRIM( Input_Opt%DEPNAME(N) ) // 
+     &                               ' drydep velocity'
+                     MWT  (NN,44)  = Input_Opt%TRACER_MW_KG(T) 
+                     MOLC (NN,44)  = INT(Input_Opt%TRACER_COEFF(T,1))
+                     SCALE(NN,44)  = 1.0e0
+                     UNIT (NN,44)  = 'cm/s'
+                     INDEX(NN,44)  = ( Input_Opt%N_TRACERS + 3  )
      &                             + ( SPACING             * 37 )
                      NTRAC(44)     = NTRAC(44) + 1
 
@@ -6909,7 +6983,7 @@
             SCALE(T,65) = 1e0
             
             ! Unit for Tag Ox is kg/s, otherwise molec/cm3/s 
-            IF ( Input_Opt%ITS_A_TAGOX_SIM ) THEN
+            IF ( Input_Opt%ITS_A_TAGO3_SIM ) THEN
                UNIT(T,65) = 'kg/s'
             ELSE
                UNIT(T,65) = 'molec/cm3/s'

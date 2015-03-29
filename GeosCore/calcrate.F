@@ -749,6 +749,16 @@
             ENDDO
          ENDIF
 !
+! ---  OH + HONIT: same as OH+HNO3 (jaf, 3/20/15)
+         IF (NKSPECXX(NCS).GT.0) THEN
+            NK               = NKSPECXX(NCS)
+            DO KLOOP     = 1, KTLOOP
+            RRATE2=RRATE(KLOOP,NK+2)*DENAIR(KLOOP)
+            RRATE(KLOOP,NK) = RRATE(KLOOP,NK) + RRATE2 /
+     1           (1.D0 + RRATE2 / RRATE(KLOOP,NK+1))    
+            ENDDO
+         ENDIF
+!
 ! ---    OH + CO: K = K0(1+0.6 Patm)  ------------ 
 !    CONSTC includes a factor to convert PRESS3 from (dyn cm-2) to (atm)
          IF (NKSPECY(NCS).GT.0) THEN
@@ -845,7 +855,10 @@ c new OH+CO rate from JPL2006.
                kINFT = kINF300 * (T3K(KLOOP)/300)**(-mHI)
                k0T   = k0300   * (T3K(KLOOP)/300)**(-nHI)
 
-               RRATE(KLOOP,NKHO2H2ONO2)= 3.5 *
+               ! Rate coeff was set to 3.5 based on Li et al, 2014
+               ! Change to 0.5 based on SENEX and NOMADS observations
+               ! krt, 3/28/15
+               RRATE(KLOOP,NKHO2H2ONO2)= 0.5 *
      &              (( k0T * DENAIR(KLOOP) ) /
      &              ( 1 + ( k0T * DENAIR(KLOOP))/ kINFT )) *
      &              (0.6**(1+(LOG10((k0T*DENAIR(KLOOP))/
