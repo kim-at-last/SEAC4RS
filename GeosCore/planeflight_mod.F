@@ -1234,6 +1234,7 @@
       USE MEGAN_MOD,          ONLY : GET_MEGAN_EMISSIONS    !skim, 08/17/14
       USE PRESSURE_MOD,       ONLY : GET_PEDGE, GET_PCENTER !skim, 12/06/13
       USE TIME_MOD,           ONLY : GET_TAU, GET_TS_DIAG, GET_TS_EMIS
+      USE TIME_MOD,           ONLY : GET_ELAPSED_MIN     !kyu, 3/5/2015
       USE OCEAN_MERCURY_MOD,  ONLY : Fp, Fg !eds 10/27/11
       USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK !krt, 10/8/14
 
@@ -1302,6 +1303,7 @@
       INTEGER             :: DUST_TYPE !lei, 12/03/13
       REAL*8              :: TK, PTAUS, PTAUE, CONSEXP, VPRESH2O, SAODnm
       REAL*8              :: VARI(NPVAR)
+      LOGICAL             :: CHEMSTEP
 
       ! Aerosol types: SULF, BLKC, ORGC, SALA, SALC 
       INTEGER             :: IND(5) = (/ 22, 29, 36, 43, 50 /)
@@ -1328,12 +1330,29 @@
       ! Return if there is no flighttrack data for today
       IF ( .not. DO_PF ) RETURN
 
+        ! kyu Mar 28 2014: planeflight now samples after chemistry
+        ! (except for last timestep)
+      CHEMSTEP = ( MOD(GET_ELAPSED_MIN(), GET_TS_DIAG() ) == 
+     &           ( GET_TS_DIAG() / 2) )
       ! Loop over all the locations that have not yet been found
       DO M = PPOINT, NPOINTS
 
          ! Starting & end times of chemistry interval
          PTAUE = GET_TAU()
-         PTAUS = PTAUE - ( GET_TS_DIAG() / 60d0 )
+         ! If we just finished a chemistry timestep, write out one full
+         ! diagnostic timestep's worth of data
+         IF ( CHEMSTEP ) THEN
+           PTAUS = PTAUE - ( GET_TS_DIAG() / 60d0 )
+         ! Otherwise write out only half a timestep's worth of data
+         ELSE
+           ! Write half hour only if we are on last time step, otherwise
+           ! exit the subroutine
+           IF (MOD(GET_ELAPSED_MIN(), (GET_TS_DIAG()*24)) == 0) THEN 
+               PTAUS = PTAUE - ( GET_TS_DIAG() / (2.0 * 60d0) )
+           ELSE
+               EXIT
+           ENDIF
+         ENDIF
 
          ! Add extra modification specific to the SEAC4RS grid
          ! (skim, 11/12/13)
@@ -3019,6 +3038,7 @@
       !=================================================================
       IF ( .not. IS_INIT ) THEN 
 
+        print*, 'Allocating for planeflight'
          !-------------------------
          ! Arrays of size NPREAC
          !-------------------------

@@ -1083,10 +1083,12 @@
             ENDIF
          ENDIF
 
+
          !-------------------------------
          ! Test for convection timestep
          !-------------------------------
          IF ( ITS_TIME_FOR_CONV() ) THEN
+
 
             ! Increment the convection timestep
             CALL SET_CT_CONV( INCREMENT=.TRUE. )
@@ -1107,6 +1109,7 @@
             ELSE
                CALL DO_PBL_MIX_2( am_I_Root, LTURB,     Input_Opt,
      &                            State_Met, State_Chm, RC         )
+                print*, 'PBL mixing'
                IF ( prtDebug ) CALL DEBUG_MSG( '### MAIN: a NLPBL 2' )
             ENDIF
 
@@ -1242,6 +1245,7 @@
          IF ( ITS_TIME_FOR_CHEM() ) THEN
             CALL RECOMPUTE_OD
      &         ( am_I_Root, Input_Opt, State_Met, State_Chm, RC )
+  
          ENDIF
 
          !==============================================================
@@ -1253,7 +1257,8 @@
  
          ! Plane following diagnostic
          IF ( ND40 > 0 .and. DO_DIAG_WRITE ) THEN 
-         
+
+                print*, 'Set up planeflight'         
             ! Call SETUP_PLANEFLIGHT routine if necessary
             IF ( ITS_A_NEW_DAY() ) THEN
                
@@ -1276,11 +1281,27 @@
             CALL DEBUG_MSG( '### MAIN: after SET_ELAPSED_MIN' )
          ENDIF
 
+            ! Plane following diagnostic, moved here to be consistent
+            ! with species array and not be biased by emissions, kyu 30
+            ! jan 2015
+            IF ( ND40 > 0 ) THEN 
+               
+               print*, 'Call planeflight'
+               ! Archive data along the flight track
+               CALL PLANEFLIGHT
+     &            ( am_I_Root, Input_Opt, State_Met, State_Chm, RC )
+            ENDIF
+
+            IF ( prtDebug ) CALL DEBUG_MSG( '### MAIN: after DIAG40' )
+
+
+
          !==============================================================
          !       ***** A R C H I V E   D I A G N O S T I C S *****
          !==============================================================
          IF ( ITS_TIME_FOR_DIAG() ) THEN
 
+            print*, 'ITS_TIME_FOR_DIAG'
             !### Debug
             IF ( prtDebug ) CALL DEBUG_MSG( '### MAIN: b DIAGNOSTICS' )
 
@@ -1309,16 +1330,7 @@
             ! Increment diagnostic timestep counter. (ccc, 5/13/09)
             CALL SET_CT_DIAG( INCREMENT=.TRUE. )
 
-            ! Plane following diagnostic
-            IF ( ND40 > 0 ) THEN 
-               
-               print*, 'Call planeflight'
-               ! Archive data along the flight track
-               CALL PLANEFLIGHT
-     &            ( am_I_Root, Input_Opt, State_Met, State_Chm, RC )
-            ENDIF
-            IF ( prtDebug ) CALL DEBUG_MSG( '### MAIN: after DIAG40' )
-
+            ! Planeflight diagnostic moved to be after chemistry, kyu
             !### Debug
             IF ( prtDebug ) CALL DEBUG_MSG( '### MAIN: a DIAGNOSTICS' )
          ENDIF
