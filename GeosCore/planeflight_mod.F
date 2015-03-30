@@ -124,7 +124,7 @@
 #if   defined( TOMAS )
       INTEGER,           PARAMETER   :: MAXVARS   = 250  !(win, 7/28/09)
 #else
-      INTEGER,           PARAMETER   :: MAXVARS   = 200  !(sfarina, 1/28/13)
+      INTEGER,           PARAMETER   :: MAXVARS   = 215  !(sfarina, 1/28/13)
 #endif
       INTEGER,           PARAMETER   :: MAXPOINTS = 10000
       INTEGER,           PARAMETER   :: MAXREAC   = 50
