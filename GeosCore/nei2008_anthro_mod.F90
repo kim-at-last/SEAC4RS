@@ -19,27 +19,17 @@
 #     include "netcdf.inc"
       PRIVATE
 !
-! !PUBLIC DATA MEMBERS:
-!
-      REAL*8, PUBLIC, ALLOCATABLE :: USA_MASK(:,:)
-!
 ! !PUBLIC MEMBER FUNCTIONS:
 !
       PUBLIC  :: CLEANUP_NEI2008_ANTHRO
       PUBLIC  :: EMISS_NEI2008_ANTHRO
       PUBLIC  :: GET_NEI2008_ANTHRO
-      PUBLIC  :: GET_MASK_FORFIRE
-      !--------------------------------------
-      ! Leave for future use (bmy, 12/3/09)
-      !PUBLIC  :: GET_NEI2005_MASK
-      !--------------------------------------
 !
 ! !PRIVATE MEMBER FUNCTIONS:
 ! No longer need scaling except for future emissions
       PRIVATE :: NEI2008_SCALE_FUTURE
       PRIVATE :: INIT_NEI2008_ANTHRO
       PRIVATE :: TOTAL_ANTHRO_TG
-      PRIVATE :: READ_NEI2008_MASK
 !
 ! !REMARKS:
 !  Note that NEI2008 does not have MEK, ACET, or C3H8
@@ -465,36 +455,6 @@
       ! Return to calling program
       END FUNCTION GET_NEI2008_ANTHRO
 !EOC
-!BOP
-!------------------------------------------------------------------------------
-! !IROUTINE: GET_MASK_FORFIRE
-! !DESCRIPTION: Subroutine GET_MASK_FORFIRE initializes the mask for the fire injection routine
-
-      SUBROUTINE GET_MASK_FORFIRE(  RC )
-! !INPUT PARAMETERS:
-!
-        USE GIGC_ErrCode_Mod
-        USE CMN_SIZE_MOD    ! Size parameters
-        USE ERROR_MOD,   ONLY : ALLOC_ERR
-
-        INTEGER,        INTENT(OUT)   :: RC          ! Success or failure?!
-        LOGICAL,        SAVE          :: FIRST = .TRUE.
-
-       ! First-time initialization
-        IF ( FIRST ) THEN
-         ! Assume success
-           RC        =  GIGC_SUCCESS
-           ! allocate and read USA Mask
-           ALLOCATE( USA_MASK( IIPAR, JJPAR ), STAT=RC )
-           IF ( RC /= 0 ) CALL ALLOC_ERR( 'USA_MASK' )
-           USA_MASK = 0d0
-
-           CALL READ_NEI2008_MASK
-           FIRST = .FALSE.
-        ENDIF
-    ! Return to calling program
-      END SUBROUTINE GET_MASK_FORFIRE
-!EOC
 !------------------------------------------------------------------------------
 !          Harvard University Atmospheric Chemistry Modeling Group            !
 !------------------------------------------------------------------------------
@@ -525,6 +485,7 @@
       USE GRID_MOD,          ONLY : GET_XOFFSET
       USE GRID_MOD,          ONLY : GET_YOFFSET
       USE REGRID_A2A_MOD,    ONLY : DO_REGRID_A2A
+      USE USA_MASK_MOD,      ONLY : USA_MASK
       USE TIME_MOD,          ONLY : GET_YEAR, GET_MONTH, GET_DAY
       USE TIME_MOD,          ONLY : GET_DAY_OF_WEEK, GET_HOUR
       USE TRACERID_MOD,      ONLY : IDTCO, IDTNO, IDTNO2, IDTHNO2
@@ -558,9 +519,9 @@
 !
       INTEGER,        INTENT(OUT)   :: RC          ! Success or failure?!
 !
-! !REVISION HISTORY:
-!  16 Feb 2013 - K. Travis   - initial version
-!  28 Jun 2013 - R. Yantosca - Now reads data from global data path
+! !REVISION HISTORY: 
+!  11 Feb 2013 - K. Travis   - initial version
+!  28 Jun 2013 - R. Yantosca - Now reads files from global 1x1 data path  
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -1063,156 +1024,6 @@
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: read_nei2008_mask
-!
-! !DESCRIPTION: Subroutine READ\_NEI2008\_MASK reads the mask for NEI data  
-!\\
-!\\
-! !INTERFACE:
-      
-      SUBROUTINE READ_NEI2008_MASK
-!
-! !USES:
-!     
-      ! Reference to F90 modules
-      USE BPCH2_MOD,      ONLY : GET_NAME_EXT_2D, GET_RES_EXT
-      USE LOGICAL_MOD,    ONLY : LCAC,            LBRAVO
-      USE DIRECTORY_MOD,  ONLY : DATA_DIR_1x1
-      USE REGRID_A2A_MOD, ONLY : DO_REGRID_A2A
-      USE TRANSFER_MOD,   ONLY : TRANSFER_2D
-
-      USE CMN_SIZE_MOD         ! Size parameters
-
-      USE m_netcdf_io_open     
-      USE m_netcdf_io_read
-      USE m_netcdf_io_readattr
-      USE m_netcdf_io_close
-      USE m_netcdf_io_get_dimlen
-!
-! !REMARKS:
-!     
-! !REVISION HISTORY: 
-!  20 Oct 2009 - P. Le Sager - init
-!  26 Oct 2009 - P. Le Sager - new masks
-!  13 Mar 2012 - M. Cooper   - Changed regrid algorithm to map_a2a
-!  24 May 2012 - R. Yantosca - Fixed minor bugs in map_a2a implementation
-!  15 Aug 2012 - M. Payer    - Fixed minor bugs in regridding of mask; Also
-!                              set mask to 1 if greater than 0 (L. Murray)
-!  24 Aug 2012 - R. Yantosca - DO_REGRID_A2A now reads netCDF input file
-!EOP
-!------------------------------------------------------------------------------
-!BOC
-!
-! !LOCAL VARIABLES:
-!
-      REAL*4             :: ARRAY2(I1x1,J1x1)
-      REAL*8, TARGET     :: GEOS_1x1(I1x1,J1x1)
-      CHARACTER(LEN=255) :: FILENAME
-      CHARACTER(LEN=255) :: LLFILENAME
-      REAL*8, POINTER    :: INGRID(:,:) => NULL()
-      INTEGER            :: st2d(2), ct2d(2)
-      INTEGER            :: fId1
-      !=================================================================
-      ! Mask specific to NEI2008 data
-      !=================================================================
-      
-      !SNAME = 'usa.'
-
-      ! NEI2008 covers CANADA if we do not use CAC     
-      !IF ( .NOT. LCAC ) SNAME = TRIM( SNAME ) // 'can.'
-
-      ! NEI2008 covers Mexico if we do not use BRAVO      
-      !IF ( .NOT. LBRAVO ) SNAME = TRIM( SNAME ) // 'mex.'
-
-      
-!%%%      FILENAME  = '/as/home/ktravis/' // &     
-      !FILENAME  = TRIM( DATA_DIR_1x1) // &
-           !'NEI2008_201307/usa.mask.nei2005.geos.1x1.nc' !kyu, 7Feb2014
-      FILENAME = '/as/home/kyu/' // &
-            'regrid/nei2005masktest.nc'
-
-      ! Echo info
-      WRITE( 6, 200 ) TRIM( FILENAME )
-200   FORMAT( '     - READ_NEI2008_MASK: Reading ', a )
-     
-      ! Allocate start and count arrays
-      st2d = (/1, 1/)
-      ct2d = (/I1x1, J1x1/)
-      ! Open and read model_ready data from netCDF file - wkday
-      CALL Ncop_Rd(fId1, TRIM(FILENAME))
-      Call NcRd(ARRAY2, fId1, 'MASK',   &
-           st2d,  ct2d )        !Start andCount lat/lon
-      ! Close netCDF file
-      CALL NcCl( fId1 )
-     
-      ! Cast to REAL*8 before regridding
-      GEOS_1x1(:,:) = ARRAY2(:,:)
-     
-      ! File with lat/lon edges for regridding
-      LLFILENAME = TRIM( DATA_DIR_1x1) // &
-           'MAP_A2A_Regrid_201203/MAP_A2A_latlon_geos1x1.nc'
-      ! Regrid from GEOS 1x1 --> current model resolution [unitless]
-      INGRID => GEOS_1x1(:,:)
-      CALL DO_REGRID_A2A( LLFILENAME, I1x1,     J1x1, &
-           INGRID,     USA_MASK, IS_MASS=0, &
-           netCDF=.TRUE.                   )
-
-      ! Free pointer
-      NULLIFY( INGRID )
-
-      WHERE ( USA_MASK > 0D0 ) USA_MASK = 1D0
-      WRITE(*,*) 'READ NEI2008 MASK!'
-      ! Return to calling program
-      END SUBROUTINE READ_NEI2008_MASK
-!------------------------------------------------------------------------------
-! Prior to 12/3/09:
-! Leave for future use (bmy, 12/3/09)
-!!EOC
-!!------------------------------------------------------------------------------
-!!          Harvard University Atmospheric Chemistry Modeling Group            !
-!!------------------------------------------------------------------------------
-!!BOP
-!!
-!! !IROUTINE: get_nei2005_mask
-!!
-!! !DESCRIPTION: Subroutine GET\_NEI2005\_MASK returns the value of the 
-!!  NEI 2005 mask to the calling program.  Values of 1 denote grid boxes 
-!!  within the EPA/NEI2005 emission region.!  
-!!\\
-!!\\
-!! !INTERFACE:
-!      
-!      FUNCTION GET_NEI2005_MASK( I, J ) RESULT ( USA )
-!!
-!! !INPUT PARAMETERS:
-!!     
-!      INTEGER, INTENT(IN) :: I, J   ! GEOS-Chem lon & lat indices
-!!
-!! !RETURN VALUE:
-!!
-!      REAL*8              :: USA    ! Value of the mask  
-!!
-!! !REMARKS:
-!!  This is entended to encapsulate the USA_MASK variable.
-!!     
-!! !REVISION HISTORY: 
-!!  02 Dec 2009 - R. Yantosca - Initial version
-!!EOP
-!!------------------------------------------------------------------------------
-!!BOC
-!!
-!! !LOCAL VARIABLES:
-!!
-!      USA = USA_MASK(I,J)
-!
-!      END FUNCTION GET_NEI2005_MASK
-!------------------------------------------------------------------------------
-!EOC
-!------------------------------------------------------------------------------
-!          Harvard University Atmospheric Chemistry Modeling Group            !
-!------------------------------------------------------------------------------
-!BOP
-!
 ! !IROUTINE: nei2008_scale_future
 !
 ! !DESCRIPTION: Subroutine NEI2008\_SCALE\_FUTURE applies the IPCC future 
@@ -1612,15 +1423,6 @@
       !--------------------------------------------------
       ! Allocate and zero arrays for emissions
       !--------------------------------------------------
-      
-      IF ( .not. Input_Opt%LBIOMASS ) THEN
-      ! allocate and read USA Mask
-         ALLOCATE( USA_MASK( IIPAR, JJPAR ), STAT=RC )
-         IF ( RC /= 0 ) CALL ALLOC_ERR( 'USA_MASK' )
-         USA_MASK = 0d0
-         
-         CALL READ_NEI2008_MASK
-      ENDIF
 
       ALLOCATE( TMP_WD( IIPAR, JJPAR ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMP_WD' )
@@ -1874,13 +1676,10 @@
       !=================================================================
       ! CLEANUP_NEIO2008_ANTHRO begins here!
       !=================================================================
-      ! USA mask
-      IF ( ALLOCATED( USA_MASK) ) DEALLOCATE( USA_MASK )
       IF ( ALLOCATED( TMP_WD ) ) DEALLOCATE( TMP_WD )
       IF ( ALLOCATED( TMP_WE ) ) DEALLOCATE( TMP_WE )
       IF ( ALLOCATED( TMPARR_WD ) ) DEALLOCATE( TMPARR_WD )
       IF ( ALLOCATED( TMPARR_WE ) ) DEALLOCATE( TMPARR_WE )
-      !IF ( ALLOCATED( NOX    ) ) DEALLOCATE( NOX   )
       IF ( ALLOCATED( CO     ) ) DEALLOCATE( CO    )
       IF ( ALLOCATED( NO     ) ) DEALLOCATE( NO    )
       IF ( ALLOCATED( NO2    ) ) DEALLOCATE( NO2   )

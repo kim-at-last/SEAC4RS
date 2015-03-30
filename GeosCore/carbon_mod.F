@@ -5572,8 +5572,7 @@ c
       USE GFED3_BIOMASS_MOD,  ONLY : GFED3_IS_NEW
       USE FINN_BIOMASS_MOD,   ONLY : FINN_IS_NEW
       USE QFED_BIOMASS_MOD,   ONLY : QFED_IS_NEW
-      USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
-      USE NEI2011_ANTHRO_MOD, ONLY : NEI11_MASK => USA_MASK
+      USE USA_MASK_MOD,       ONLY : USA_MASK
       USE GRID_MOD,           ONLY : GET_XMID, GET_YMID
 
       USE GIGC_ErrCode_Mod
@@ -5670,7 +5669,6 @@ c
       REAL*8               :: OCSRC(IIPAR,JJPAR,LLTROP,2)
       ! Add source term for biomass burning POA (skim, 6/19/14)
       REAL*8               :: BBSRC(IIPAR,JJPAR,LLTROP,2)
-      REAL*8               :: USMASK(IIPAR,JJPAR)       !evf, krt, 2/7/14
 
 #if   defined( TOMAS )
       ! more variables (win, 9/4/07)
@@ -5740,9 +5738,6 @@ c
       LNEI08CARB= Input_Opt%LNEI08CARB
       LNEI11CARB= Input_Opt%LNEI11CARB
       LNLPBL    = Input_Opt%LNLPBL
-
-      IF ( LNEI08CARB ) USMASK = NEI08_MASK
-      IF ( LNEI11CARB ) USMASK = NEI11_MASK
 
       ! Initialize GEOS-Chem tracer array [kg] from Chemistry State object
       ! (mpayer, 12/6/12)
@@ -7884,7 +7879,7 @@ ccc
 !
       ! References to F90 modules
       USE GRID_MOD,             ONLY : GET_AREA_CM2
-      USE NEI2008_ANTHRO_MOD,   ONLY : NEI08_MASK => USA_MASK
+      USE USA_MASK_MOD,         ONLY : USA_MASK
       USE NEI2008_ANTHRO_MOD,   ONLY : GET_NEI2008_ANTHRO
       USE TIME_MOD,             ONLY : GET_HOUR, GET_TS_EMIS
       USE TIME_MOD,             ONLY : GET_DAY_OF_WEEK_LT
@@ -7929,7 +7924,7 @@ ccc
          BCNEI08  = 0d0
          AREA_CM2 = 0d0
 
-         IF ( NEI08_MASK(I,J) > 0d0 ) THEN
+         IF ( USA_MASK(I,J) > 0d0 ) THEN
 
             ! Choose weekday or weekend NEI emissions at grid box
             ! (I,J,L). Since NEI is over the US, weekend is Sat/Sun.
@@ -7998,7 +7993,7 @@ ccc
 !
       ! References to F90 modules
       USE GRID_MOD,             ONLY : GET_AREA_CM2
-      USE NEI2011_ANTHRO_MOD,   ONLY : NEI11_MASK => USA_MASK
+      USE USA_MASK_MOD,         ONLY : USA_MASK
       USE NEI2011_ANTHRO_MOD,   ONLY : GET_NEI2011_ANTHRO
       USE TIME_MOD,             ONLY : GET_HOUR, GET_TS_EMIS
       USE TIME_MOD,             ONLY : GET_DAY_OF_WEEK_LT
@@ -8041,7 +8036,7 @@ ccc
          BCNEI11  = 0d0
          AREA_CM2 = 0d0
 
-         IF ( NEI11_MASK(I,J) > 0d0 ) THEN
+         IF ( USA_MASK(I,J) > 0d0 ) THEN
 
             ! Loop over levels to capture all emissions, but for now add
             ! all emissions to surface box for consistency with previous
@@ -8411,8 +8406,6 @@ ccc
       USE PRESSURE_MOD,         ONLY : GET_PEDGE
       USE PBL_MIX_MOD,          ONLY : GET_PBL_TOP_L
       USE GRID_MOD,             ONLY : GET_XMID, GET_YMID
-      USE NEI2008_ANTHRO_MOD,   ONLY : NEI08_MASK => USA_MASK
-      USE NEI2011_ANTHRO_MOD,   ONLY : NEI11_MASK => USA_MASK
 
 !
 ! !INPUT PARAMETERS:

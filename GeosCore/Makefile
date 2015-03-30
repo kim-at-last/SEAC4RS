@@ -353,7 +353,7 @@ biomass_mod.o               : biomass_mod.F                                  \
                               logical_mod.o           tracerid_mod.o         \
                               tracer_mod.o            finn_biomass_mod.o     \
                               flambe_biomass_mod.o    qfed_biomass_mod.o     \
-                              nei2008_anthro_mod.o    nei2011_anthro_mod.o
+                              usa_mask_mod.o
 
 BLKSLV.o                    : BLKSLV.F
 
@@ -612,7 +612,8 @@ emfossil.o                  : emfossil.F                                     \
                               tracerid_mod.o          vistas_anthro_mod.o    \
 			      retro_mod.o             c2h6_mod.o             \
                               nei2008_anthro_mod.o    rcp_mod.o              \
-			      nei2011_anthro_mod.o    diag49_mod.o
+			      nei2011_anthro_mod.o    diag49_mod.o           \
+			      usa_mask_mod.o
 
 emissdr.o                   : emissdr.F                                      \
                               acetone_mod.o           aeic_mod.o             \
@@ -816,7 +817,7 @@ input_mod.o                 : input_mod.F                                    \
                               tpcore_bc_mod.o         tracerid_mod.o         \
                               tracer_mod.o            transport_mod.o        \
                               tropopause_mod.o        wetscav_mod.o          \
-                              linoz_mod.o
+                              linoz_mod.o             usa_mask_mod.o
 
 isoropiaII_mod.o            : isoropiaII_mod.F                               \
                               global_hno3_mod.o       tracerid_mod.o         \
@@ -937,12 +938,12 @@ nei2005_anthro_mod.o        : nei2005_anthro_mod.F                           \
 nei2008_anthro_mod.o        : nei2008_anthro_mod.F90                         \
                               future_emissions_mod.o  logical_mod.o          \
                               scale_anthro_mod.o      tracerid_mod.o         \
-                              tracer_mod.o    
+                              tracer_mod.o            usa_mask_mod.o  
 
 nei2011_anthro_mod.o        : nei2011_anthro_mod.F90                         \
                               future_emissions_mod.o  logical_mod.o          \
                               scale_anthro_mod.o      tracerid_mod.o         \
-                              tracer_mod.o          
+                              tracer_mod.o            usa_mask_mod.o    
 
 NOABS.o                     : NOABS.F
 
@@ -1119,7 +1120,8 @@ sulfate_mod.o               : sulfate_mod.F                                  \
                               wetscav_mod.o           get_ndep_mod.o         \
                               tomas_mod.o             nei2008_anthro_mod.o   \
 			      finn_biomass_mod.o      rcp_mod.o              \
-			      qfed_biomass_mod.o      nei2011_anthro_mod.o
+			      qfed_biomass_mod.o      nei2011_anthro_mod.o   \
+			      usa_mask_mod.o
 
 tagged_co_mod.o             : tagged_co_mod.F                                \
                               biofuel_mod.o           biomass_mod.o          \
@@ -1166,6 +1168,8 @@ tropopause_mod.o            : tropopause_mod.F                               \
                               logical_mod.o
 
 update.o                    : update.F
+
+usa_mask_mod.o              : usa_mask_mod.F90
 
 vdiff_pre_mod.o             : vdiff_pre_mod.F         tracer_mod.o
 ifeq ($(COMPILER),sun)

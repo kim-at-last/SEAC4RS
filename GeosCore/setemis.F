@@ -62,8 +62,6 @@
       USE CMN_DIAG_MOD             ! Diagnostic flags
       USE CMN_NOX_MOD              ! GEMISNOX2
 
-      USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
-
       IMPLICIT NONE
 
 !

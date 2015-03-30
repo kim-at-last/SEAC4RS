@@ -6528,9 +6528,8 @@
       USE NEI2005_ANTHRO_MOD, ONLY : GET_NEI2005_ANTHRO
       USE NEI2005_ANTHRO_MOD, ONLY : NEI05_MASK => USA_MASK
       USE NEI2008_ANTHRO_MOD, ONLY : GET_NEI2008_ANTHRO
-      USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
       USE NEI2011_ANTHRO_MOD, ONLY : GET_NEI2011_ANTHRO
-      USE NEI2011_ANTHRO_MOD, ONLY : NEI11_MASK => USA_MASK
+      USE USA_MASK_MOD,       ONLY : USA_MASK
       USE PBL_MIX_MOD,    ONLY     : GET_FRAC_OF_PBL,  GET_PBL_TOP_L
       USE PRESSURE_MOD,   ONLY     : GET_PEDGE
       USE TIME_MOD,       ONLY     : GET_TS_EMIS,      GET_DAY_OF_YEAR 
@@ -6597,8 +6596,6 @@
 !  14 Jun 2013 - R. Yantosca - Now determine weekday/weekend with respect to
 !                              the local time at each grid box.  (Formerly,
 !                              this had been done w/r/t the GMT time.
-!  26 Jun 2013 - K. Travis   - Added NEI08 emissions
-!  20 Jan 2015 - K. Travis   - Added NEI11 emissions
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -6846,9 +6843,7 @@
 
            ! updated to NEI08
             IF ( LNEI08 .and. .not. LHIST ) THEN
-!eml]
-            IF ( NEI08_MASK( I, J ) > 0d0  ) THEN
-
+               IF ( USA_MASK( I, J ) > 0d0  ) THEN
                ! Determine if we should use weekday or weekend NEI
                ! emissions at grid box (I,J,L).  Since NEI is over
                ! the US, then weekend is Sat/Sun.
@@ -6868,7 +6863,7 @@
            
             ! updated to NEI11
             IF ( LNEI11 .and. .not. LHIST ) THEN
-               IF (NEI11_MASK(I,J) > 0d0 ) THEN
+               IF (USA_MASK(I,J) > 0d0 ) THEN
                   ! READ SO2 in [molec/cm2/s]
                   DO L=1,NOXLEVELS
                      IF ( L .gt. 6 ) CYCLE
@@ -7010,9 +7005,8 @@
       USE NEI2005_ANTHRO_MOD, ONLY : GET_NEI2005_ANTHRO
       USE NEI2005_ANTHRO_MOD, ONLY : NEI05_MASK => USA_MASK
       USE NEI2008_ANTHRO_MOD, ONLY : GET_NEI2008_ANTHRO
-      USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
       USE NEI2011_ANTHRO_MOD, ONLY : GET_NEI2011_ANTHRO
-      USE NEI2011_ANTHRO_MOD, ONLY : NEI11_MASK => USA_MASK
+      USE USA_MASK_MOD,       ONLY : USA_MASK
       USE DIAG_MOD,           ONLY : AD13_SO4_an,     AD13_SO4_bf
       USE EPA_NEI_MOD,        ONLY : GET_EPA_ANTHRO,  GET_EPA_BIOFUEL
       USE EPA_NEI_MOD,        ONLY : GET_USA_MASK
@@ -7309,8 +7303,7 @@
             ENDIF
 
              IF ( LNEI08 .and. .not. LHIST ) THEN
-!eml]          
-               IF ( NEI08_MASK( I, J) > 0d0 ) THEN
+                IF ( USA_MASK( I, J) > 0d0 ) THEN
 
                   ! Determine if we should use weekday or weekend NEI
                   ! emissions at grid box (I,J,L).  Since NEI is over
@@ -7332,7 +7325,7 @@
              ENDIF
 
              IF ( LNEI11 .and. .not. LHIST ) THEN
-                IF ( NEI11_MASK( I, J) > 0d0 ) THEN
+                IF ( USA_MASK( I, J) > 0d0 ) THEN
                 
                   ! Read SO4 emissions in [g/cm2/s]
                    DO L = 1, NOXLEVELS
@@ -7960,9 +7953,8 @@
       USE NEI2005_ANTHRO_MOD, ONLY : GET_NEI2005_ANTHRO
       USE NEI2005_ANTHRO_MOD, ONLY : NEI05_MASK => USA_MASK
       USE NEI2008_ANTHRO_MOD, ONLY : GET_NEI2008_ANTHRO
-      USE NEI2008_ANTHRO_MOD, ONLY : NEI08_MASK => USA_MASK
       USE NEI2011_ANTHRO_MOD, ONLY : GET_NEI2011_ANTHRO
-      USE NEI2011_ANTHRO_MOD, ONLY : NEI11_MASK => USA_MASK
+      USE USA_MASK_MOD,       ONLY : USA_MASK
       USE DIAG_MOD,           ONLY : AD13_NH3_an, AD13_NH3_bb
       USE DIAG_MOD,           ONLY : AD13_NH3_bf, AD13_NH3_na
       USE GIGC_ErrCode_Mod
@@ -8223,7 +8215,7 @@
 
             ! If we are using NEI 2008 over North America
             IF ( LNEI08 ) THEN
-               IF ( NEI08_MASK( I, J ) > 0d0 ) THEN
+               IF ( USA_MASK( I, J ) > 0d0 ) THEN
                ! Determine if we should use weekday or weekend NEI
                ! emissions at grid box (I,J,L).  Since NEI is over
                ! the US, then weekend is Sat/Sun.
@@ -8246,7 +8238,7 @@
 
             ! If we are using NEI 2011 over North America
             IF ( LNEI11 ) THEN
-               IF ( NEI11_MASK( I, J ) > 0d0 ) THEN
+               IF ( USA_MASK( I, J ) > 0d0 ) THEN
                   DO L = 1, NOXLEVELS 
                      IF ( L .le. 6 ) THEN
                   ! Read NH3 anthro emissions in [molec NH3/cm2/s]              
