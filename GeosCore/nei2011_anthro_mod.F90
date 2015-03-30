@@ -376,7 +376,7 @@
       LOGICAL, SAVE              :: FIRST = .TRUE.
       INTEGER                    :: I, J, A, B, IH, I0, J0, THISYEAR, THISMONTH, SNo
       INTEGER                    :: THISDAY, DOY
-      INTEGER                    :: L, HH, KLM, SPECIES_ID(23)
+      INTEGER                    :: L, HH, KLM, SPECIES_ID(18)
       INTEGER                    :: st3d(3), ct3d(3)
       INTEGER                    :: st4d(4), ct4d3(4), ct4d4(4), ct4d6(4)
       INTEGER                    :: fId1, fId1b, fId1c, fId1d, fId1e
@@ -399,7 +399,7 @@
       CHARACTER(LEN=255)         :: FILENAME, FILENAMEOTH, FILENAMEOIL
       CHARACTER(LEN=255)         :: FILENAMEPTN, FILENAMEC3, FILENAMEEGU
       CHARACTER(LEN=255)         :: FILENAMEEGUPK, LLFILENAME
-      CHARACTER(LEN=24)          :: SPCLIST(23)
+      CHARACTER(LEN=24)          :: SPCLIST(18)
       CHARACTER(LEN=8)           :: SId
       CHARACTER(LEN=5)           :: SNAME
       CHARACTER(LEN=3)           :: TTMON
@@ -471,7 +471,10 @@
          ScCO   = 0.962
          ScNOx  = 0.887
          ScPM25 = 0.991
-         ScSO2  = 0.738
+         ! Scale down on the basis of surface station & wet deposition data
+         ! skim, 9/18/14 (krt, adjust the NEI08 number to NEI11)
+         ScSO2       = 0.613
+         !ScSO2  = 0.738
          ScVOC  = 0.971
          ScNH3  = 0.998
          ScNH3_NonAg = 0.998
@@ -481,13 +484,21 @@
       I0    = GET_XOFFSET( GLOBAL=.TRUE. )
       J0    = GET_YOFFSET( GLOBAL=.TRUE. )
 
+      !SPECIES_ID = (/ IDTCO,   IDTNO,   IDTNO2,  IDTHNO2, IDTSO2, IDTSO2, IDTNH3, &
+      !     IDTMACR, IDTALD2, IDTRCHO, IDTC2H6, IDTCH2O, IDTPRPE,  IDTPRPE, &
+      !     IDTALK4, IDTTOLU, IDTXYLE, IDTOCPO, IDTBCPO, IDTSO4, IDTBENZ, IDTEOH, IDTMOH /)
       SPECIES_ID = (/ IDTCO,   IDTNO,   IDTNO2,  IDTHNO2, IDTSO2, IDTSO2, IDTNH3, &
            IDTMACR, IDTALD2, IDTRCHO, IDTC2H6, IDTCH2O, IDTPRPE,  IDTPRPE, &
-           IDTALK4, IDTTOLU, IDTXYLE, IDTOCPO, IDTBCPO, IDTSO4, IDTBENZ, IDTEOH, IDTMOH /)
+           IDTALK4, IDTOCPO, IDTBCPO, IDTSO4 /)
+
+      ! All species, remove a few we aren't using for SEAC4RS to speed things up
+      !SPCLIST =    (/ 'CO','NO','NO2','HONO','SO2','SULF', 'NH3', &
+      !     'ACROLEIN','ALD2', 'ALDX', 'ETHA', 'FORM','IOLE', 'OLE', &
+      !     'PAR', 'TOL', 'XYL', 'POC', 'PEC','PSO4','BENZENE','ETOH','MEOH'/)
 
       SPCLIST =    (/ 'CO','NO','NO2','HONO','SO2','SULF', 'NH3', &
            'ACROLEIN','ALD2', 'ALDX', 'ETHA', 'FORM','IOLE', 'OLE', &
-           'PAR', 'TOL', 'XYL', 'POC', 'PEC','PSO4','BENZENE','ETOH','MEOH'/)
+           'PAR', 'POC', 'PEC','PSO4'/)
 
       ! File with lat/lon edges for regridding
       LLFILENAME = TRIM( DATA_DIR_1x1) // &
@@ -692,14 +703,14 @@
          GEOS_NATIVE(402:1301,1101:1500,6,:) =  ARRAYOTH(:,:,6,:) 
          
          IF ( LSCALEONROAD ) THEN
-            ScON = 0.7
+            ScON = 0.5
             IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2' &
                  .or. TRIM(SId) .eq. 'HONO' .or. TRIM(SId) .eq. 'CO' ) THEN
                Call NcRd(ARRAYON,   fId1o,  TRIM(SId), st3d, ct3d )
                Call NcRd(ARRAYCATX, fId1t,  TRIM(SId), st3d, ct3d )
                Call NcRd(ARRAYNON,  fId1p,  TRIM(SId), st3d, ct3d )
                IF ( TRIM(SId) .eq. 'CO' ) ScON = 0.4 
-               WRITE(*,*) 'REMOVING 70% OF ONROAD and NONROAD NOx and 40% of CO EMISSIONS'
+               WRITE(*,*) 'REMOVING 50% OF ONROAD and NONROAD NOx and 40% of CO EMISSIONS'
 !$OMP PARALLEL DO        &
 !$OMP DEFAULT( SHARED )  &
 !$OMP PRIVATE( I, J, A, B, HH )
@@ -779,7 +790,7 @@
 !$OMP PRIVATE( I, J )
                DO J=1,JJPAR
                   DO I=1,IIPAR
-                     TMP(I,J,L,HH)=TMPARR(I+I0,J+J0)
+                     TMP(I,J,L,HH)=TMPARR(I+I0,J+J0)*USA_MASK(I,J)
                   END DO
                END DO
 !$OMP END PARALLEL DO
@@ -789,7 +800,7 @@
          ! Begin loopthrough tracers
          ![kg/m2/s] to [molec/cm2/s]
          IF ( TRIM(SId) == 'CO') THEN !CO
-            CO = ( TMP * XNUMOL(IDTCO) / 1E4 )  * ScCO
+            CO = ( TMP * XNUMOL(IDTCO) / 1E4 )  * ScCO 
          ELSEIF ( TRIM(SId) == 'NO') THEN !NO  !convert from kg/m2/s of NO
             NO  = ( TMP * XNUMOL(IDTNO) / 1.0E4  )  * ScNOx
          ELSEIF ( TRIM(SId) == 'NO2') THEN !NO2
@@ -840,14 +851,16 @@
          ELSEIF ( TRIM(SId) == 'POC') THEN !OCPO
             OCPO =  ( TMP * 1E3/ 1.0E4 ) * ScPM25
          ELSEIF ( TRIM(SId) == 'PEC') THEN !BCPO
-            BCPO  =  ( TMP * 1E3 / 1.0E4 ) * ScPM25
+            ! Scale down by 30% on the basis of comparisons to
+            ! SEAC4RS (skim, 5/23/14)
+            BCPO  =  ( TMP * 1E3 / 1.0E4 ) * ScPM25 * 0.7
             ! Species not currently used
 !         ELSEIF ( TRIM(SId) == 'C2H4') THEN !C2H4 - no scaling
 !            C2H4       = TMP
          ELSEIF ( TRIM(SId) == 'MEOH') THEN !MOH - no scaling
             MOH   =  ( TMP * XNUMOL(IDTALD2)*0.5/ 1.0E4 ) * ScVOC
          ELSEIF ( TRIM(SId) == 'ETOH') THEN !EOH - no scaling
-            EOH   = ( TMP * XNUMOL(IDTALD2)/ 1.0E4 ) * ScVOC
+            EOH   = ( TMP * XNUMOL(IDTALD2)/ 1.0E4 ) * ScVOC 
          ENDIF
       ENDDO
 
