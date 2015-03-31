@@ -667,14 +667,14 @@
             DO I = 1, IIPAR
 
                ! Latitude in the extratropics
-               IF ( ABS( GET_YMID(I,J,1) ) .ge. 30 ) THEN
+               !IF ( ABS( GET_YMID(I,J,1) ) .ge. 30 ) THEN
 
-                  TEMP                 = BIOMASS(I,J,IDBNO)
-                  BIOMASS(I,J,IDBNO)   = TEMP * NOFRAC
-                  BIOMASS(I,J,IDBPAN)  = TEMP * PANFRAC
-                  BIOMASS(I,J,IDBHNO3) = TEMP * HNO3FRAC
+               TEMP                 = BIOMASS(I,J,IDBNO)
+               BIOMASS(I,J,IDBNO)   = TEMP * NOFRAC
+               BIOMASS(I,J,IDBPAN)  = TEMP * PANFRAC
+               BIOMASS(I,J,IDBHNO3) = TEMP * HNO3FRAC
 
-               ENDIF
+               !ENDIF
 
                 ! REMOVE THE PASSIVE CO TRACERS (skim, 6/24/14)
                 ! These came back in with the latest code merge
