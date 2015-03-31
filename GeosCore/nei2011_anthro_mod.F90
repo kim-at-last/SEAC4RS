@@ -18,29 +18,19 @@
       IMPLICIT NONE
 #     include "netcdf.inc"
       PRIVATE
-!
-! !PUBLIC DATA MEMBERS:
-!
-      REAL*8, PUBLIC, ALLOCATABLE :: USA_MASK(:,:)
-      REAL*8, PUBLIC, ALLOCATABLE, TARGET :: USA_MASK_TMP(:,:)
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
 !
       PUBLIC  :: CLEANUP_NEI2011_ANTHRO
       PUBLIC  :: EMISS_NEI2011_ANTHRO
       PUBLIC  :: GET_NEI2011_ANTHRO
-      PUBLIC  :: GET_MASK_FORFIRE2
-      !--------------------------------------
-      ! Leave for future use (bmy, 12/3/09)
-      !PUBLIC  :: GET_NEI2005_MASK
-      !--------------------------------------
 !
 ! !PRIVATE MEMBER FUNCTIONS:
 ! No longer need scaling except for future emissions
       PRIVATE :: NEI2011_SCALE_FUTURE
       PRIVATE :: INIT_NEI2011_ANTHRO
       PRIVATE :: TOTAL_ANTHRO_TG
-      PRIVATE :: READ_NEI2011_MASK
 !
 ! !REMARKS:
 !     
@@ -265,39 +255,6 @@
       ! Return to calling program
       END FUNCTION GET_NEI2011_ANTHRO
 !EOC
-!BOP
-!------------------------------------------------------------------------------
-! !IROUTINE: GET_MASK_FORFIRE2
-! !DESCRIPTION: Subroutine GET_MASK_FORFIRE initializes the mask for the fire injection routine
-
-      SUBROUTINE GET_MASK_FORFIRE2(  RC )
-! !INPUT PARAMETERS:
-!
-        USE GIGC_ErrCode_Mod
-        USE CMN_SIZE_MOD    ! Size parameters
-        USE ERROR_MOD,   ONLY : ALLOC_ERR
-
-        INTEGER,        INTENT(OUT)   :: RC          ! Success or failure?!
-        LOGICAL,        SAVE          :: FIRST = .TRUE.
-
-       ! First-time initialization
-        IF ( FIRST ) THEN
-         ! Assume success
-           RC        =  GIGC_SUCCESS
-           ! allocate and read USA Mask
-           ALLOCATE( USA_MASK( IIPAR, JJPAR ), STAT=RC )
-           IF ( RC /= 0 ) CALL ALLOC_ERR( 'USA_MASK' )
-           USA_MASK = 0d0
-           ALLOCATE( USA_MASK_TMP( IIPAR, JJPAR ), STAT=RC )
-           IF ( RC /= 0 ) CALL ALLOC_ERR( 'USA_MASK' )
-           USA_MASK_TMP = 0d0
-
-           CALL READ_NEI2011_MASK
-           FIRST = .FALSE.
-        ENDIF
-    ! Return to calling program
-      END SUBROUTINE GET_MASK_FORFIRE2
-!EOC
 !------------------------------------------------------------------------------
 !       Adopted from NEI05 from
 !       Dalhousie University Atmospheric Compositional Analysis Group         !
@@ -328,6 +285,7 @@
       USE TIME_MOD,          ONLY : GET_YEAR, GET_MONTH, GET_DAY
       USE TIME_MOD,          ONLY : GET_HOUR, GET_DAY_OF_WEEK
       USE TRACER_MOD,        ONLY : XNUMOL
+      USE USA_MASK_MOD,      ONLY : USA_MASK
 
       USE GIGC_ErrCode_Mod
       USE GIGC_Input_Opt_Mod, ONLY : OptInput
@@ -895,129 +853,6 @@
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: read_nei2011_mask
-!
-! !DESCRIPTION: Subroutine READ\_NEI2011\_MASK reads the mask for NEI data  
-!\\
-!\\
-! !INTERFACE:
-      
-      SUBROUTINE READ_NEI2011_MASK
-!
-! !USES:
-!     
-      ! Reference to F90 modules
-      USE BPCH2_MOD,      ONLY : GET_NAME_EXT_2D, GET_RES_EXT
-      USE LOGICAL_MOD,    ONLY : LCAC,            LBRAVO
-      USE DIRECTORY_MOD,  ONLY : DATA_DIR_1x1
-      USE REGRID_A2A_MOD, ONLY : DO_REGRID_A2A
-      USE TRANSFER_MOD,   ONLY : TRANSFER_2D
-      USE GRID_MOD,       ONLY : GET_XOFFSET
-      USE GRID_MOD,       ONLY : GET_YOFFSET
-
-      USE CMN_SIZE_MOD         ! Size parameters
-
-      USE m_netcdf_io_open     
-      USE m_netcdf_io_read
-      USE m_netcdf_io_readattr
-      USE m_netcdf_io_close
-      USE m_netcdf_io_get_dimlen
-!
-! !REMARKS:
-!     
-! !REVISION HISTORY: 
-!  20 Oct 2009 - P. Le Sager - init
-!  26 Oct 2009 - P. Le Sager - new masks
-!  13 Mar 2012 - M. Cooper   - Changed regrid algorithm to map_a2a
-!  24 May 2012 - R. Yantosca - Fixed minor bugs in map_a2a implementation
-!  15 Aug 2012 - M. Payer    - Fixed minor bugs in regridding of mask; Also
-!                              set mask to 1 if greater than 0 (L. Murray)
-!  24 Aug 2012 - R. Yantosca - DO_REGRID_A2A now reads netCDF input file
-!EOP
-!------------------------------------------------------------------------------
-!BOC
-!
-! !LOCAL VARIABLES:
-!
-      REAL*4             :: ARRAY2(900,400)
-      REAL*8, TARGET     :: GEOS_MASK(I01x01,J01x01)
-      CHARACTER(LEN=255) :: FILENAME1, FILENAME2
-      CHARACTER(LEN=255) :: LLFILENAME
-      REAL*8, POINTER    :: INGRID(:,:) => NULL()
-      INTEGER            :: st2d(2), ct2d(2)
-      INTEGER            :: fId1, I0, J0, I, J
-      !=================================================================
-      ! Mask specific to NEI2011 data
-      !=================================================================
-      
-      !SNAME = 'usa.'
-
-      ! NEI2008 covers CANADA if we do not use CAC     
-      !IF ( .NOT. LCAC ) SNAME = TRIM( SNAME ) // 'can.'
-
-      ! NEI2008 covers Mexico if we do not use BRAVO      
-      !IF ( .NOT. LBRAVO ) SNAME = TRIM( SNAME ) // 'mex.'
-
-      
-      !FILENAME1 = '/as/home/NCL/NEI08/USA_mask.geos.025x03125.nc'
-      FILENAME2 = '/as/scratch/krt/NEI11/VERYNESTED/USA_LANDMASK_NEI2011_0.1x0.1.nc'
-
-
-      ! Echo info
-      WRITE( 6, 200 ) TRIM( FILENAME2 )
-200   FORMAT( '     - READ_NEI2011_MASK: Reading ', a )
-      WRITE(*,*) 'WARNING - NEI11 CONTAINS EMISSIONS IN CANADA, MEXICO, and OVER WATER'
-      WRITE(*,*) 'TO GET JUST U.S. TOTALS, USE A MASK JUST FOR THE U.S.'
-
-      I0    = GET_XOFFSET( GLOBAL=.TRUE. )
-      J0    = GET_YOFFSET( GLOBAL=.TRUE. )
-
-      ! Allocate start and count arrays
-      st2d = (/1, 1/)
-      ct2d = (/900, 400/)
-      ! Open and read model_ready data from netCDF file - wkday
-      CALL Ncop_Rd(fId1, TRIM(FILENAME2))
-      Call NcRd(ARRAY2, fId1, 'LANDMASK', st2d,  ct2d )        !Start andCount lat/lon
-      ! Close netCDF file
-      CALL NcCl( fId1 )
-
-      GEOS_MASK = 0.0
-      ! Cast to REAL*8 before regridding
-      GEOS_MASK(402:1301,1101:1500) = ARRAY2(:,:)
-      ! File with lat/lon edges for regridding
-      LLFILENAME = TRIM( DATA_DIR_1x1) // &
-           'MAP_A2A_Regrid_201203/MAP_A2A_latlon_generic01x01.nc'
-      ! Regrid from GEOS 0.1x0.1 --> current model resolution [unitless]
-      INGRID => GEOS_MASK(:,:)
-
-      CALL DO_REGRID_A2A( LLFILENAME, I01x01, J01x01, &
-           INGRID,     USA_MASK_TMP, IS_MASS=0, &
-           netCDF=.TRUE.                   )
-      ! Free pointer
-      NULLIFY( INGRID )
-       
-      ! Add offset
-!$OMP PARALLEL DO        &
-!$OMP DEFAULT( SHARED )  &
-!$OMP PRIVATE( I, J )
-      DO J=1,JJPAR
-         DO I=1,IIPAR
-            USA_MASK(I,J)=USA_MASK_TMP(I+I0,J+J0)
-         END DO
-      END DO
-!$OMP END PARALLEL DO
-
-      WRITE(*,*) 'READ NEI2011 MASK!'
-      WHERE ( USA_MASK > 0D0 ) USA_MASK = 1D0
-      ! Return to calling program
-      END SUBROUTINE READ_NEI2011_MASK
-!------------------------------------------------------------------------------
-!EOC
-!------------------------------------------------------------------------------
-!          Harvard University Atmospheric Chemistry Modeling Group            !
-!------------------------------------------------------------------------------
-!BOP
-!
 ! !IROUTINE: nei2011_scale_future
 !
 ! !DESCRIPTION: Subroutine NEI2011\_SCALE\_FUTURE applies the IPCC future 
@@ -1449,15 +1284,6 @@
       !--------------------------------------------------
       ! Allocate and zero arrays for emissions
       !--------------------------------------------------
-      IF ( .not. Input_Opt%LBIOMASS ) THEN
-      ! allocate and read USA Mask
-         ALLOCATE( USA_MASK( IIPAR, JJPAR ), STAT=RC )
-         IF ( RC /= 0 ) CALL ALLOC_ERR( 'USA_MASK' )
-         USA_MASK = 0d0
-         
-         CALL READ_NEI2011_MASK
-      ENDIF
-
       ALLOCATE( TMP( IIPAR, JJPAR, 6, 24 ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMP' )
       TMP = 0d0
@@ -1702,9 +1528,6 @@
       !=================================================================
       ! CLEANUP_NEIO2011_ANTHRO begins here!
       !=================================================================
-      ! USA mask
-      IF ( ALLOCATED( USA_MASK_TMP) ) DEALLOCATE( USA_MASK_TMP )
-      IF ( ALLOCATED( USA_MASK) ) DEALLOCATE( USA_MASK )
       IF ( ALLOCATED( CO     ) ) DEALLOCATE( CO    )
       IF ( ALLOCATED( T_CO_MON ) ) DEALLOCATE( T_CO_MON    )
       IF ( ALLOCATED( T_NO_MON ) ) DEALLOCATE( T_NO_MON    )
