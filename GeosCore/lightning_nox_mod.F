@@ -125,7 +125,7 @@
       REAL*8,  PARAMETER   :: RFLASH_MIDLAT = 3.011d26   ! 500 mol/flash
       REAL*8,  PARAMETER   :: RFLASH_TROPIC = 1.566d26   ! 260 mol/flash
       REAL*8,  PARAMETER   :: EAST_WEST_DIV = -30d0
-      REAL*8,  PARAMETER   :: WEST_NS_DIV   =  23d0
+      REAL*8,  PARAMETER   :: WEST_NS_DIV   =  32d0 !23d0
       REAL*8,  PARAMETER   :: EAST_NS_DIV   =  35d0
       REAL*8,  PARAMETER   :: T_NEG_BOT     = 273.0d0    !   0 C 
       REAL*8,  PARAMETER   :: T_NEG_CTR     = 258.0d0    ! -15 C
