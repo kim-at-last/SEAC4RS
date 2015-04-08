@@ -107,6 +107,9 @@
       LOGICAL                      :: LCAC
       LOGICAL                      :: LFUTURE
       LOGICAL                      :: LNEI11
+
+      INTEGER                       :: IIIPAR0
+      INTEGER                       :: JJJPAR0
 !
 !
 ! !DEFINED PARAMETERS:
@@ -663,12 +666,12 @@
          IF ( LSCALEONROAD ) THEN
             ScON = 0.5
             IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2' &
-                 .or. TRIM(SId) .eq. 'HONO' .or. TRIM(SId) .eq. 'CO' ) THEN
+                 .or. TRIM(SId) .eq. 'HONO'  ) THEN
                Call NcRd(ARRAYON,   fId1o,  TRIM(SId), st3d, ct3d )
                Call NcRd(ARRAYCATX, fId1t,  TRIM(SId), st3d, ct3d )
                Call NcRd(ARRAYNON,  fId1p,  TRIM(SId), st3d, ct3d )
-               IF ( TRIM(SId) .eq. 'CO' ) ScON = 0.4 
-               WRITE(*,*) 'REMOVING 50% OF ONROAD and NONROAD NOx and 40% of CO EMISSIONS'
+               !IF ( TRIM(SId) .eq. 'CO' ) ScON = 0.4 
+               WRITE(*,*) 'REMOVING 50% OF ONROAD and NONROAD NOx  EMISSIONS'
 !$OMP PARALLEL DO        &
 !$OMP DEFAULT( SHARED )  &
 !$OMP PRIVATE( I, J, A, B, HH )
@@ -1253,6 +1256,9 @@
       USE ERROR_MOD,   ONLY : ALLOC_ERR
       USE TIME_MOD,    ONLY : ITS_A_NEW_MONTH
       USE CMN_SIZE_MOD    ! Size parameters
+
+      USE GLOBAL_GRID_MOD, ONLY : GET_IIIPAR
+      USE GLOBAL_GRID_MOD, ONLY : GET_JJJPAR
 !
 ! !INPUT PARAMETERS:
 !
@@ -1280,6 +1286,23 @@
       
       ! Return if LNEI11 is false
       IF ( .not. Input_Opt%LNEI11 ) RETURN
+
+      ! Get global longitude/latitude extent [# of boxes]
+#if   defined( GRID05x0666 ) || defined( GRID025x03125 )
+
+      ! Nested grids utilize global longitude and latidude extent
+      ! parameters IIIPAR and JJJPAR (from global_grid_mod)
+      IIIPAR0 = GET_IIIPAR()
+      JJJPAR0 = GET_JJJPAR()
+
+#else
+
+      ! Global grids utilize window longitude and latidude extent
+      ! parameters IIPAR and JJPAR (from CMN_SIZE_mod)
+      IIIPAR0 = IIPAR
+      JJJPAR0 = JJPAR
+
+#endif
       
       !--------------------------------------------------
       ! Allocate and zero arrays for emissions
@@ -1288,7 +1311,7 @@
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMP' )
       TMP = 0d0
 
-      ALLOCATE( TMPARR( IIPAR, JJPAR ), STAT=RC )
+      ALLOCATE( TMPARR( IIIPAR0, JJJPAR0 ), STAT=RC )
       IF ( RC /= 0 ) CALL ALLOC_ERR( 'TMPARR' )
       TMPARR = 0d0
 
