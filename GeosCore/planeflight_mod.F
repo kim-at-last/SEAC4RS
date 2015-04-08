@@ -383,11 +383,12 @@
       ! FORMAT string
       ! Replace 95 by 250 (win)
       ! use 200 for non-Tomas sims (sfarina)
+      ! use 230 for non-Tomas sims (ktravis)
 
 #if   defined( TOMAS )
  110  FORMAT( A5,X,A5,X,A8,X,A4,X,A7,X,A7,X,A7,X,250(a10,x) )
 #else
- 110  FORMAT( A5,X,A5,X,A8,X,A4,X,A7,X,A7,X,A7,X,200(a10,x) )
+ 110  FORMAT( A5,X,A5,X,A8,X,A4,X,A7,X,A7,X,A7,X,230(a10,x) )
 #endif
 
       END SUBROUTINE SETUP_PLANEFLIGHT
@@ -2143,6 +2144,7 @@
       
       ! Format string
       ! FP replace 95 by 200
+      ! KRT, replace 200 with 230
 ! 110  FORMAT( I5,   X, A5,   X, I8.8, X, I4.4, X, 
 !     &        F7.2, X, F7.2, X, F7.2, X, 95(es11.3e3,x) )
 #if   defined( TOMAS )
@@ -2150,7 +2152,7 @@
      &       250(es11.3e3,x))
 #else
  110  FORMAT(I5,X,A5,X,I8.8,X,I4.4,X,F7.2,X,F7.2,X,F7.2,X,
-     &       200(es11.3e3,x))
+     &       230(es11.3e3,x))
 #endif
 
       ! Error check
