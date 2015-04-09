@@ -252,13 +252,12 @@
          FIRST = .FALSE.
       ENDIF            
 
-      FILENAME2 = '/as/scratch/krt/NEI11/VERYNESTED/USA_LANDMASK_NEI2011_0.1x0.1.nc'
+      FILENAME2 = '/as/home/ktravis/USA_mask.geos.NEI11.01x01.nc'
 
       ! Echo info
       WRITE( 6, 200 ) TRIM( FILENAME2 )
 200   FORMAT( '     - READ_USA_MASK: Reading ', a )
-      WRITE(*,*) 'WARNING - NEI11/NEI08 CONTAINS EMISSIONS IN CANADA, MEXICO, and OVER WATER'
-      WRITE(*,*) 'TO GET JUST U.S. TOTALS, USE A MASK JUST FOR THE U.S.'
+      WRITE(*,*) 'WARNING - NEI11 MASK JUST FOR THE U.S.'
 
       I0    = GET_XOFFSET( GLOBAL=.TRUE. )
       J0    = GET_YOFFSET( GLOBAL=.TRUE. )
@@ -268,7 +267,8 @@
       ct2d = (/900, 400/)
       ! Open and read model_ready data from netCDF file - wkday
       CALL Ncop_Rd(fId1, TRIM(FILENAME2))
-      Call NcRd(ARRAY2, fId1, 'LANDMASK', st2d,  ct2d )        !Start andCount lat/lon
+      !Start andCount lat/lon
+      Call NcRd(ARRAY2, fId1, 'mask', st2d,  ct2d ) 
       ! Close netCDF file
       CALL NcCl( fId1 )
 

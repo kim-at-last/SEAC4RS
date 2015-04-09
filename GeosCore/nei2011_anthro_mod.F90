@@ -727,29 +727,17 @@
                Call NcRd(ARRAYCATX, fId1t,  TRIM(SId), st3d, ct3d )
                Call NcRd(ARRAYNON,  fId1p,  TRIM(SId), st3d, ct3d )
                !IF ( TRIM(SId) .eq. 'CO' ) ScON = 0.4 
-               WRITE(*,*) 'REMOVING 50% OF ONROAD and NONROAD NOx  EMISSIONS'
-!$OMP PARALLEL DO        &
-!$OMP DEFAULT( SHARED )  &
-!$OMP PRIVATE( I, J, A, B, HH )
-               DO HH=1,24
-                  DO J=1101,1500
-                     B = J - 1100
-                     DO I=402,1301
-                        A = I - 401
-                        GEOS_NATIVE(I,J,1,HH) = GEOS_NATIVE(I,J,1,HH) - ScON * &
-                             (ARRAYON(A,B,HH) + ARRAYCATX(A,B,HH) + ARRAYNON(A,B,HH))
-                     END DO
-                  END DO
-               END DO
-!$OMP END PARALLEL DO
+               WRITE(*,*) 'REMOVING 50% OF ONROAD/NONROAD NOx  EMISSIONS', sum(GEOS_NATIVE)
+               GEOS_NATIVE(402:1301,1101:1500,1,:) = GEOS_NATIVE(402:1301,1101:1500,1,:) -  &
+                    (ARRAYON(:,:,:) + ARRAYCATX(:,:,:) + ARRAYNON(:,:,:) )*ScON
+               WRITE(*,*) 'AFTER', sum(GEOS_NATIVE)
             ENDIF
          ENDIF
-
          ! Special case for NH3 emissions -- scale agricultural
          ! component based on MASAGE monthly gridded values from Paulot
          ! et al., 2013 (jaf, 12/10/13)
          IF ( LSCALE2MASAGE .and. TRIM(SId) == 'NH3') THEN
-
+            
             ! Read/close ag files
             CALL NcRd(ARRAY_NH3ag, fId1h, TRIM(SId), st3d, ct3d )
             CALL NcCl( fId1h )
