@@ -721,16 +721,14 @@
          
          IF ( LSCALEONROAD ) THEN
             ScON = 0.5
-            IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2' &
-                 .or. TRIM(SId) .eq. 'HONO'  ) THEN
+            IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2') THEN
                Call NcRd(ARRAYON,   fId1o,  TRIM(SId), st3d, ct3d )
                Call NcRd(ARRAYCATX, fId1t,  TRIM(SId), st3d, ct3d )
                Call NcRd(ARRAYNON,  fId1p,  TRIM(SId), st3d, ct3d )
                !IF ( TRIM(SId) .eq. 'CO' ) ScON = 0.4 
-               WRITE(*,*) 'REMOVING 50% OF ONROAD/NONROAD NOx  EMISSIONS', sum(GEOS_NATIVE)
+               WRITE(*,*) 'REMOVING 50% OF ONROAD/NONROAD NOx  EMISSIONS'
                GEOS_NATIVE(402:1301,1101:1500,1,:) = GEOS_NATIVE(402:1301,1101:1500,1,:) -  &
                     (ARRAYON(:,:,:) + ARRAYCATX(:,:,:) + ARRAYNON(:,:,:) )*ScON
-               WRITE(*,*) 'AFTER', sum(GEOS_NATIVE)
             ENDIF
          ENDIF
          ! Special case for NH3 emissions -- scale agricultural
