@@ -110,6 +110,11 @@
 
       INTEGER                       :: IIIPAR0
       INTEGER                       :: JJJPAR0
+
+      REAL*8,  ALLOCATABLE :: XEDGE_NEI11(:)
+      REAL*8,  ALLOCATABLE :: YEDGE_NEI11(:)
+      REAL*8,  ALLOCATABLE :: XEDGE_MODELG(:)
+      REAL*8,  ALLOCATABLE :: YEDGE_MODELG(:)
 !
 !
 ! !DEFINED PARAMETERS:
@@ -283,7 +288,9 @@
       USE DIRECTORY_MOD,     ONLY : DATA_DIR_1x1
       USE GRID_MOD,          ONLY : GET_XOFFSET
       USE GRID_MOD,          ONLY : GET_YOFFSET
-      USE REGRID_A2A_MOD,    ONLY : DO_REGRID_A2A
+      USE GLOBAL_GRID_MOD,   ONLY : GET_XEDGE_G, GET_YEDGE_G
+      USE GRID_MOD,          ONLY : GET_XEDGE, GET_YEDGE
+      USE REGRID_A2A_MOD,    ONLY : DO_REGRID_A2A, MAP_A2A
       USE LOGICAL_MOD,       ONLY : LFUTURE
       USE TIME_MOD,          ONLY : GET_YEAR, GET_MONTH, GET_DAY
       USE TIME_MOD,          ONLY : GET_HOUR, GET_DAY_OF_WEEK
@@ -389,7 +396,8 @@
       INTEGER                    :: fId1p
       REAL*8                     :: ARRAYNON(900,400,24)
       CHARACTER(LEN=255)         :: FILENAMENON
-
+      ! For grid
+      REAL*4                     :: DEG2RAD
       !=================================================================
       ! EMISS_NEI2011_ANTHRO begins here!
       !=================================================================
@@ -397,6 +405,54 @@
       ! First-time initialization
       IF ( FIRST ) THEN
          CALL INIT_NEI2011_ANTHRO( am_I_Root, Input_Opt, RC )
+
+         DEG2RAD = (4. * ATAN(1.) ) /180.
+
+         ! Define NEI11 grid box lat and lon edges
+         XEDGE_NEI11( 1 ) = -180.d0
+         DO I = 2,I01x01 +1
+            XEDGE_NEI11( I ) = XEDGE_NEI11( I-1 ) + 1.d-1
+         END DO
+
+         YEDGE_NEI11( 1 ) = -89.975d0
+         DO J = 2, J01x01+1
+            YEDGE_NEI11( J ) = YEDGE_NEI11( J-1 ) + 1.d-1
+         END DO
+
+         DO J = 1,J01x01+1
+            YEDGE_NEI11( J ) = SIN( YEDGE_NEI11( J ) * DEG2RAD)
+         END DO
+
+         ! Define global grid box lat and lon edges at model resolution
+#if   defined( GRID05x0666 ) || defined( GRID025x03125 )
+
+         DO I = 1,IIIPAR0+1
+            XEDGE_MODELG( I ) = GET_XEDGE_G ( I )
+         END DO
+
+         DO J = 1,JJJPAR0+1
+            YEDGE_MODELG( J ) = GET_YEDGE_G ( J )
+         END DO
+
+         DO J = 1,JJJPAR0+1
+            YEDGE_MODELG( J ) = SIN( YEDGE_MODELG( J ) * DEG2RAD)
+         END DO
+
+#else
+
+         DO I = 1,IIIPAR0+1
+            XEDGE_MODELG( I ) = GET_XEDGE( I, 1, 1 )
+         END DO
+
+         DO J = 1,JJJPAR0+1
+            YEDGE_MODELG( J ) = GET_YEDGE( 1, J, 1 )
+         END DO
+
+         DO J = 1,JJJPAR0+1
+            YEDGE_MODELG( J ) = SIN( YEDGE_MODELG( J ) * DEG2RAD)
+         END DO
+
+#endif
          FIRST = .FALSE.
       ENDIF
 
@@ -740,11 +796,13 @@
                INGRID  => GEOS_NATIVE(:,:,L,HH)
                OUTGRID => TMPARR(:,:)
                ! Regrid
-               CALL DO_REGRID_A2A( LLFILENAME, I01x01, J01x01, &
-                    INGRID,     OUTGRID, IS_MASS=0, &
-                    netCDF=.TRUE.                   )
+               CALL MAP_A2A( I01x01, J01x01, XEDGE_NEI11, &
+                    YEDGE_NEI11, INGRID, IIIPAR0,  &
+                    JJJPAR0,     XEDGE_MODELG, YEDGE_MODELG, &
+                    OUTGRID,         0,            0 )
                ! Free pointers
                NULLIFY( INGRID, OUTGRID )
+
                   ! Add offset
 !$OMP PARALLEL DO        &
 !$OMP DEFAULT( SHARED )  &
@@ -1304,6 +1362,26 @@
 
 #endif
       
+     ! Allocate array to hold NEI11 grid box lon edges
+      ALLOCATE( XEDGE_NEI11( I01x01+1 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'XEDGE_NEI11' )
+      XEDGE_NEI11 = 0.d0
+
+      ! Allocate array to hold NEI11 grid box lat edges
+      ALLOCATE( YEDGE_NEI11( J01x01+1 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'YEDGE_NEI11' )
+      YEDGE_NEI11 = 0.d0
+
+      ! Allocate array to hold GEOS-Chem grid box lon edges
+      ALLOCATE( XEDGE_MODELG( IIIPAR0+1 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'XEDGE_MODELG' )
+      XEDGE_MODELG = 0.d0
+
+      ! Allocate array to hold GEOS-Chem grid box lat edges
+      ALLOCATE( YEDGE_MODELG( JJJPAR0+1 ), STAT=RC )
+      IF ( RC /= 0 ) CALL ALLOC_ERR( 'YEDGE_MODELG' )
+      YEDGE_MODELG = 0.d0
+
       !--------------------------------------------------
       ! Allocate and zero arrays for emissions
       !--------------------------------------------------
