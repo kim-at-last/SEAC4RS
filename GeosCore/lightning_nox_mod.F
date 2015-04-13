@@ -1572,8 +1572,8 @@
       ! April 2012 - May 2014. Will need to be updated as more
       ! met fields become available (ltm, 07/23/14).
       IF ( ( GET_YEAR() .eq. 2012 .and. GET_MONTH() .ge. 4 ) .or.
-    &     ( GET_YEAR() .eq. 2013 ) .or.    
-    &     ( GET_YEAR() .eq. 2014 .and. GET_MONTH() .le. 5 ) ) THEN
+     &     ( GET_YEAR() .eq. 2013 ) .or.    
+     &     ( GET_YEAR() .eq. 2014 .and. GET_MONTH() .le. 5 ) ) THEN
          BETA = ANN_AVG_FLASHRATE / 258.88566d0/ 2 !divide by 2- krt, 3/17/14
       ENDIF
 
