@@ -8301,8 +8301,9 @@
             ! WETLOSS is the amount of tracer mass in 
             ! grid box (I,J,L) that is lost to washout.
             ! (Eq. 16, Jacob et al, 2000)
-            WETLOSS = MASS_WASH * WASHFRAC -DSTT(NN,L+1,I,J)
-
+            !WETLOSS = MASS_WASH * WASHFRAC -DSTT(NN,L+1,I,J)
+            ! Bug fix
+            WETLOSS = (MASS_WASH - DSTT(NN, L+1, I, J)) * WASHFRAC
             ! The tracer left in grid box (I,J,L) is what was
             ! in originally in the non-precipitating fraction 
             ! of the box, plus MASS_WASH, less WETLOSS. 

@@ -156,6 +156,8 @@
 !  31 May 2013 - R. Yantosca - Now pass objects to NFCLDMX
 !  03 Jun 2013 - R. Yantosca - Bug fix: pass State_Chm to DO_MERRA_CONVECTION
 !  26 Sep 2013 - R. Yantosca - Renamed GEOS_57 Cpp switch to GEOS_FP
+!  04 Feb 2015 - M. Sulprizio- Fix calculation of WETLOSS for non-aerosol 
+!                              tracers below the cloud base (C. Friedman)
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -239,7 +241,7 @@
 #elif defined( MERRA ) || defined( GEOS_FP )
 
       !=================================================================
-      ! MERRA met fields
+      ! MERRA or GEOS-FP met fields
       !=================================================================
       
       ! Objects
@@ -2593,8 +2595,10 @@
                      ! WETLOSS is the amount of tracer mass in 
                      ! grid box (I,J,L) that is lost to washout.
                      ! (Eq. 16, Jacob et al, 2000)
-                     WETLOSS     = MASS_WASH * WASHFRAC - T0_SUM 
-                     
+                     !WETLOSS     = MASS_WASH * WASHFRAC - T0_SUM
+                     !Bug fix: make sure mass of scavenged tracer passed to depo_mercury_mod.F 
+                     ! is the same as in ND38 (clf, mps, 2/4/15)
+                     WETLOSS = ( MASS_WASH - T0_SUM ) * WASHFRAC 
                      ! The tracer left in grid box (I,J,L) is what was
                      ! in originally in the non-precipitating fraction 
                      ! of the box, plus MASS_WASH, less WETLOSS. 
