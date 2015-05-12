@@ -211,6 +211,7 @@
       USE GIGC_State_Met_Mod, ONLY : MetState
       USE PRESSURE_MOD,       ONLY : GET_PEDGE
       USE TIME_MOD,           ONLY : GET_LOCALTIME
+      USE TIME_MOD,           ONLY : GET_MONTH
 
       USE CMN_SIZE_MOD             ! Size parameters
       USE CMN_GCTM_MOD             ! Scale height
@@ -240,6 +241,7 @@
       REAL*8  :: BLTOP, BLTHIK, DELP
       REAL*8  :: P(0:LLPAR)
       REAL*8  :: PBL_SCALE
+      REAL*4  :: CORRECT(24d0)
 
       !=================================================================
       ! COMPUTE_PBL_HEIGHT begins here!
@@ -266,13 +268,19 @@
          ! Find PBL top and thickness [hPa]
          !----------------------------------------------
 
+         ! Only apply PBLH correction for August - September when we have 
+         ! DIAL data
          ! Only apply PBLH correction during the day (skim, 2/4/15)
-         IF ( GET_LOCALTIME(I, J, 1) .GT. 10 .AND. 
-     &        GET_LOCALTIME(I, J, 1) .LT. 17 ) THEN
-            PBL_SCALE = 0.6
-         ELSE
-            PBL_SCALE = 1.0
-         ENDIF 
+         
+         PBL_SCALE = 1.0
+         IF ( GET_MONTH() .ge. 6 .and. GET_MONTH() .le. 9 ) THEN 
+            IF ( State_Met%GAMMAPAR(I,J) > 0d0  ) THEN
+               PBL_SCALE = 0.6
+            ELSE
+               PBL_SCALE = 1.0
+            ENDIF 
+         ENDIF
+         ! ----------------Fire Injection --
 
          ! BLTOP = pressure at PBL top [hPa]
          ! Use barometric law since PBL is in [m]
