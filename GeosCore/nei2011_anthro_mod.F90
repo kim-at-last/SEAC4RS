@@ -705,11 +705,11 @@
              ! + ARRAYEGU(:,:,1,:) + ARRAYEGUPK(:,:,1,:)
          ! NO SHIPS OR SURFACE FILES
          GEOS_NATIVE(402:1301,1101:1500,2,:) = ARRAYOTH(:,:,2,:)  &
-              + ARRAYPTN(:,:,2,:) + ARRAYOIL(:,:,2,:) &
+              + ARRAYPTN(:,:,2,:) + ARRAYOIL(:,:,2,:) 
              ! + ARRAYEGU(:,:,2,:) + ARRAYEGUPK(:,:,2,:)
          ! NO SHIPS OR SURFACE FILES
          GEOS_NATIVE(402:1301,1101:1500,3,:) =  ARRAYOTH(:,:,3,:)  &
-              + ARRAYPTN(:,:,3,:) + ARRAYOIL(:,:,3,:) &
+              + ARRAYPTN(:,:,3,:) + ARRAYOIL(:,:,3,:) 
              ! + ARRAYEGU(:,:,3,:) + ARRAYEGUPK(:,:,3,:)
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK
          GEOS_NATIVE(402:1301,1101:1500,4,:) =  ARRAYOTH(:,:,4,:)  &
