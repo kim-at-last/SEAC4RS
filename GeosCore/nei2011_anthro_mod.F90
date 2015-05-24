@@ -713,16 +713,16 @@
          ! Cast to REAL*8 before regridding
          ! ALL FILE TYPES
          GEOS_NATIVE(402:1301,1101:1500,1,:) = ARRAY(:,:,:) + ARRAYOTH(:,:,1,:)  &
-              + ARRAYPTN(:,:,1,:) + ARRAYC3(:,:,:) + ARRAYOIL(:,:,1,:) &
-              + ARRAYEGU(:,:,1,:) + ARRAYEGUPK(:,:,1,:)
+              + ARRAYPTN(:,:,1,:) + ARRAYC3(:,:,:) + ARRAYOIL(:,:,1,:)! &
+             ! + ARRAYEGU(:,:,1,:) + ARRAYEGUPK(:,:,1,:)
          ! NO SHIPS OR SURFACE FILES
          GEOS_NATIVE(402:1301,1101:1500,2,:) = ARRAYOTH(:,:,2,:)  &
-              + ARRAYPTN(:,:,2,:) + ARRAYOIL(:,:,2,:) &
-              + ARRAYEGU(:,:,2,:) + ARRAYEGUPK(:,:,2,:)
+              + ARRAYPTN(:,:,2,:) + ARRAYOIL(:,:,2,:) 
+             ! + ARRAYEGU(:,:,2,:) + ARRAYEGUPK(:,:,2,:)
          ! NO SHIPS OR SURFACE FILES
          GEOS_NATIVE(402:1301,1101:1500,3,:) =  ARRAYOTH(:,:,3,:)  &
-              + ARRAYPTN(:,:,3,:) + ARRAYOIL(:,:,3,:) &
-              + ARRAYEGU(:,:,3,:) + ARRAYEGUPK(:,:,3,:)
+              + ARRAYPTN(:,:,3,:) + ARRAYOIL(:,:,3,:) 
+             ! + ARRAYEGU(:,:,3,:) + ARRAYEGUPK(:,:,3,:)
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK
          GEOS_NATIVE(402:1301,1101:1500,4,:) =  ARRAYOTH(:,:,4,:)  &
               + ARRAYPTN(:,:,4,:) + ARRAYOIL(:,:,4,:) 
@@ -731,7 +731,18 @@
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
          GEOS_NATIVE(402:1301,1101:1500,6,:) =  ARRAYOTH(:,:,6,:) 
          
-         IF ( LSCALEONROAD ) THEN
+         ! ------ Scale GEOS-NATIVE without EGU by 50% krt, 5/20/15
+         GEOS_NATIVE = GEOS_NATIVE * 0.50
+         ! Add in EGU
+         GEOS_NATIVE(402:1301,1101:1500,1,:) = GEOS_NATIVE(402:1301,1101:1500,1,:) &
+              + ARRAYEGU(:,:,1,:) + ARRAYEGUPK(:,:,1,:)
+         GEOS_NATIVE(402:1301,1101:1500,2,:) = GEOS_NATIVE(402:1301,1101:1500,2,:) &
+              + ARRAYEGU(:,:,2,:) + ARRAYEGUPK(:,:,2,:)
+         GEOS_NATIVE(402:1301,1101:1500,3,:) = GEOS_NATIVE(402:1301,1101:1500,3,:) &
+              + ARRAYEGU(:,:,3,:) + ARRAYEGUPK(:,:,3,:)
+        ! -----------------------------------------------------------------------
+         LSCALEONROAD = .FALSE.  ! Turn off, possibly should remove code if we stick with above method
+         IF ( LSCALEONROAD  ) THEN
             ScON = 0.5
             IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2') THEN
                Call NcRd(ARRAYON,   fId1o,  TRIM(SId), st3d, ct3d )
