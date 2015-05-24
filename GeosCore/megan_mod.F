@@ -684,6 +684,9 @@
              ! From kyu, at nested resolution we get 2.58 Tg C over the SEUS.
              ! 0.7=1.81 Tg C (krt, 10/6/14)
             EMFAC = 0.85 * AEF_ISOP(I,J)
+#elif defined ( GRID2x25)
+             ! From kyu, at 2x25, scaling factor is 0.92
+            EMFAC = 0.92 * AEF_ISOP(I,J)
 #elif defined ( GRID4x5)
              ! From kyu, at 4x5 we get 2.21 Tg C over the SEUS.
              !To constrain to 1.81 Tg, multiply by 0.82
