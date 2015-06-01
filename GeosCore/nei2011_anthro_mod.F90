@@ -553,17 +553,9 @@
       DATA_DIR_NEI =  '/as/data/geos/ExtData/HEMCO/NEI2011/v2015-03/'// &
         TRIM( TIME_STR ) // '/NEI11_0.1x0.1_2011'
       
-      ! Base data directory
-      DATA_DIR_ON =   '/as/scratch/krt/NEI11/VERYNESTED/onroad/'// &
-           'NEI11_0.1x0.1_2011'
-
-      DATA_DIR_NON =  '/as/scratch/krt/NEI11/VERYNESTED/nonroad/'// &
-           'NEI11_0.1x0.1_2011'
-
       ! For NH3 -- files with agricultural emissions only (jaf, 12/12/13)
       ! Eventually these files will move to the data directory
-      DATA_DIR_NH3_ag = '/as/scratch/krt/NEI11/VERYNESTED/ag/'
-
+      DATA_DIR_NH3_ag = '/as/data/geos/ExtData/HEMCO/NEI2011_ag_only/v2015-03/'
      
       ! Get day
       THISDAY   = GET_DAY()
@@ -598,20 +590,20 @@
       ! into the surface above.  We use them to subtract out their
       ! contribution, scale it, and then add it back in. (krt, 2/14/15)
       ! Onroad
-      FILENAMEON  = TRIM( DATA_DIR_ON ) //  &
+      FILENAMEON  = TRIM( DATA_DIR_NEI ) //  &
            TRIM(FMON) // TRIM(FDAY)//  '_onroad.nc'
       ! Onroad - california and texas are separate
-      FILENAMECATX  = TRIM( DATA_DIR_ON ) //  &
+      FILENAMECATX  = TRIM( DATA_DIR_NEI ) //  &
            TRIM(FMON) // TRIM(FDAY)//  '_onroad_catx.nc'
       ! Nonroad
       IF ( DOY == 0 ) THEN
-         FILENAMENON  = TRIM( DATA_DIR_NON ) // TRIM(FMON) // '_Sun_nonroad.nc'
+         FILENAMENON  = TRIM( DATA_DIR_NEI ) // TRIM(FMON) // '_Sun_nonroad.nc'
       ELSEIF ( DOY == 6 ) THEN
-         FILENAMENON  = TRIM( DATA_DIR_NON ) // TRIM(FMON) // '_Sat_nonroad.nc'
+         FILENAMENON  = TRIM( DATA_DIR_NEI ) // TRIM(FMON) // '_Sat_nonroad.nc'
       ELSEIF ( DOY == 1 ) THEN
-         FILENAMENON  = TRIM( DATA_DIR_NON ) // TRIM(FMON) //'_Mon_nonroad.nc'
+         FILENAMENON  = TRIM( DATA_DIR_NEI ) // TRIM(FMON) //'_Mon_nonroad.nc'
       ELSE
-         FILENAMENON  = TRIM( DATA_DIR_NON ) // TRIM(FMON) //  '_WK_nonroad.nc'
+         FILENAMENON  = TRIM( DATA_DIR_NEI ) // TRIM(FMON) //  '_WK_nonroad.nc'
       ENDIF
 
       ! Allocate start and count arrays
@@ -637,8 +629,8 @@
 
       ! Open NH3 ag files (only avail at 025x03125)
       IF ( LSCALE2MASAGE ) THEN
-         FILENAME_NH3ag = TRIM(DATA_DIR_NH3_ag) // &
-            'NEI11_0.1x0.1_2011'              // &
+         FILENAME_NH3ag = TRIM(DATA_DIR_NH3_ag) // TRIM( TIME_STR ) // &
+            '/NEI11_0.1x0.1_2011'              // &
             TRIM(FMON) // TRIM(FDAY) //  '_ag.nc'
          FILENAME_ScAg  = TRIM(DATA_DIR_NH3_ag) // &
             'MASAGE_NEI11_Ratio.geos.0.1x0.1.nc'
