@@ -6900,8 +6900,13 @@ ccc
                ! JLOOP is the 1-D grid box index for SMVGEAR arrays
                JLOOP = JLOP(I,J,1)
 
-               FNOX = CSPEC(JLOOP,IDXRIO2HO2) /
-     &               (CSPEC(JLOOP,IDXRIO2HO2) + CSPEC(JLOOP,IDXRIO2NO))
+               FNOX = CSPEC(JLOOP,IDXRIO2NO  ) /
+     &               (CSPEC(JLOOP,IDXRIO2HO2 ) + 
+     &                CSPEC(JLOOP,IDXRIO2NO  ) +
+     &                CSPEC(JLOOP,IDXRIO2ISOM) +
+     &                CSPEC(JLOOP,IDXRIO2RIO2) +
+     &                CSPEC(JLOOP,IDXRIO2MCO3) +
+     &                CSPEC(JLOOP,IDXRIO2MO2 ))
 
 !               PRINT*, I, J, FNOX,
 !     &                 CSPEC(JLOOP,IDXRIO2NO), CSPEC(JLOOP,IDXRIO2HO2)
@@ -6909,10 +6914,10 @@ ccc
                ! Zero each fake chemical tracer
                CSPEC( JLOOP, IDXRIO2NO   ) = 0
                CSPEC( JLOOP, IDXRIO2HO2  ) = 0
-!              CSPEC( JLOOP, pXRIO2ISOM ) = 0
-!              CSPEC( JLOOP, pXRIO2RIO2 ) = 0
-!              CSPEC( JLOOP, pXRIO2MCO3 ) = 0
-!              CSPEC( JLOOP, pXRIO2MO2  ) = 0
+               CSPEC( JLOOP, IDXRIO2ISOM ) = 0
+               CSPEC( JLOOP, IDXRIO2RIO2 ) = 0
+               CSPEC( JLOOP, IDXRIO2MCO3 ) = 0
+               CSPEC( JLOOP, IDXRIO2MO2  ) = 0
 
                ENDIF
 
@@ -6927,12 +6932,12 @@ ccc
 
                ! Now separate the components and split between high/low NOx
                !    First deal with OA from isoprene (skim, 6/13/14)
-               BGSOA_EMIS(I,J,1) = EMIS_ISOP * FBIOG_ISOP * FNOX
-               BGSOA_EMIS(I,J,2) = EMIS_ISOP * FBIOG_ISOP * (1 - FNOX)
+               BGSOA_EMIS(I,J,1) = EMIS_ISOP * FBIOG_ISOP * (1 - FNOX)
+               BGSOA_EMIS(I,J,2) = EMIS_ISOP * FBIOG_ISOP * FNOX
 
                ! Do the same for the OA from monoterpenes
-               BGSOA_EMIS(I,J,3) = EMMO * FBIOG * FNOX
-               BGSOA_EMIS(I,J,4) = EMMO * FBIOG * (1 - FNOX)
+               BGSOA_EMIS(I,J,3) = EMMO * FBIOG * (1 - FNOX)
+               BGSOA_EMIS(I,J,4) = EMMO * FBIOG * FNOX
               
                ! -------------------------------------------------------
                ! Original Code 
