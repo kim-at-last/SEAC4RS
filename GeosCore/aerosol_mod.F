@@ -1156,7 +1156,7 @@
 #else
       MSDENS(2) = 1000.0d0    !BC 
 #endif
-      MSDENS(3) = 1800.0d0    !OC 
+      MSDENS(3) = 1300.0d0    !OC 
       MSDENS(4) = 2200.0d0    !SS (accum)
       MSDENS(5) = 2200.0d0    !SS (coarse)
 
