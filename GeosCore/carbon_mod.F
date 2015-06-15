@@ -6783,8 +6783,7 @@ ccc
       USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
       USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
       ! Calculate the NOx regime (skim, 6/20/14)
-      USE TRACERID_MOD,       ONLY : IDXRIO2HO2 ,IDXRIO2NO  ,IDXRIO2ISOM
-      USE TRACERID_MOD,       ONLY : IDXRIO2RIO2,IDXRIO2MCO3,IDXRIO2MO2
+      USE TRACERID_MOD,       ONLY : IDXRIO2HO2 ,IDXRIO2NO, IDXRIO2OTHER
 
       ! Arguments
       TYPE(OptInput), INTENT(IN)  :: Input_Opt   ! Input Options object
@@ -6900,24 +6899,18 @@ ccc
                ! JLOOP is the 1-D grid box index for SMVGEAR arrays
                JLOOP = JLOP(I,J,1)
 
-               FNOX = CSPEC(JLOOP,IDXRIO2NO  ) /
-     &               (CSPEC(JLOOP,IDXRIO2HO2 ) + 
-     &                CSPEC(JLOOP,IDXRIO2NO  ) +
-     &                CSPEC(JLOOP,IDXRIO2ISOM) +
-     &                CSPEC(JLOOP,IDXRIO2RIO2) +
-     &                CSPEC(JLOOP,IDXRIO2MCO3) +
-     &                CSPEC(JLOOP,IDXRIO2MO2 ))
+               FNOX = CSPEC(JLOOP,IDXRIO2NO    ) /
+     &               (CSPEC(JLOOP,IDXRIO2HO2   ) + 
+     &                CSPEC(JLOOP,IDXRIO2NO    ) +
+     &                CSPEC(JLOOP,IDXRIO2OTHER ))
 
 !               PRINT*, I, J, FNOX,
 !     &                 CSPEC(JLOOP,IDXRIO2NO), CSPEC(JLOOP,IDXRIO2HO2)
 
                ! Zero each fake chemical tracer
-               CSPEC( JLOOP, IDXRIO2NO   ) = 0
-               CSPEC( JLOOP, IDXRIO2HO2  ) = 0
-               CSPEC( JLOOP, IDXRIO2ISOM ) = 0
-               CSPEC( JLOOP, IDXRIO2RIO2 ) = 0
-               CSPEC( JLOOP, IDXRIO2MCO3 ) = 0
-               CSPEC( JLOOP, IDXRIO2MO2  ) = 0
+               CSPEC( JLOOP, IDXRIO2NO    ) = 0
+               CSPEC( JLOOP, IDXRIO2HO2   ) = 0
+               CSPEC( JLOOP, IDXRIO2OTHER ) = 0
 
                ENDIF
 

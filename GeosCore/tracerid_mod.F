@@ -321,8 +321,7 @@
       INTEGER            :: IDH2SO4   !(win, 6/23/09)
 
       ! Track RO2 and SO2 loss for SEAC4RS (skim, 6/17/14)
-      INTEGER            :: IDXRIO2NO,   IDXRIO2HO2,  IDXRIO2ISOM
-      INTEGER            :: IDXRIO2RIO2, IDXRIO2MCO3, IDXRIO2MO2
+      INTEGER            :: IDXRIO2NO,   IDXRIO2HO2,  IDXRIO2OTHER
       INTEGER            :: IDXSO2
 
       ! SEAC4RS tracers (jaf, 6/13/13)
@@ -3661,13 +3660,10 @@
          ! Add for SEAC4RS (skim, 6/17/14)
          ! Highlight SO4 production from SO2
          ! Highlight RO2 production pathways
-         IF ( NAMEGAS(I) == "XRIO2NO"   ) IDXRIO2NO   = I
-         IF ( NAMEGAS(I) == "XRIO2HO2"  ) IDXRIO2HO2  = I
-         IF ( NAMEGAS(I) == "XRIO2ISOM" ) IDXRIO2ISOM = I
-         IF ( NAMEGAS(I) == "XRIO2RIO2" ) IDXRIO2RIO2 = I
-         IF ( NAMEGAS(I) == "XRIO2MCO3" ) IDXRIO2MCO3 = I
-         IF ( NAMEGAS(I) == "XRIO2MO2"  ) IDXRIO2MO2  = I
-         IF ( NAMEGAS(I) == "XSO2"      ) IDXSO2      = I
+         IF ( NAMEGAS(I) == "XRIO2NO"    ) IDXRIO2NO    = I
+         IF ( NAMEGAS(I) == "XRIO2HO2"   ) IDXRIO2HO2   = I
+         IF ( NAMEGAS(I) == "XRIO2OTHER" ) IDXRIO2OTHER = I
+         IF ( NAMEGAS(I) == "XSO2"       ) IDXSO2       = I
       ENDDO
 
       !=================================================================
@@ -4866,13 +4862,10 @@
       !IDPISOP   = 0
 
       ! Track RO2 and SO2 loss for SEAC4RS (skim, 6/17/14)
-      IDXRIO2NO   = 0
-      IDXRIO2HO2  = 0
-      IDXRIO2ISOM = 0
-      IDXRIO2RIO2 = 0
-      IDXRIO2MCO3 = 0
-      IDXRIO2MO2  = 0
-      IDXSO2      = 0
+      IDXRIO2NO    = 0
+      IDXRIO2HO2   = 0
+      IDXRIO2OTHER = 0
+      IDXSO2       = 0
 
       IDAPI     = 0
       IDLIM     = 0
