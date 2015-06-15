@@ -6807,7 +6807,7 @@ ccc
       CHARACTER(LEN=255)          :: FILENAME
 
       ! Fraction of yield of OC (hydrophilic) from terpene emission
-      REAL*8, PARAMETER           :: FBIOG = 5.0d-2
+      REAL*8, PARAMETER           :: FBIOG = 2.5d-2
 
       ! SEAC4RS SOA tracers (jaf, 6/25/13)
       REAL*8                      :: EMIS_ISOP
