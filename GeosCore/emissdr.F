@@ -367,10 +367,11 @@
             IF ( MONTH .eq. 6 .or. MONTH .eq. 7 .or. MONTH .eq. 8 ) THEN
             ! Use the definition of midwest from Vinken et al, 2014
             ! Mid-USA (93.8°-106.3°W; 37°-49°N), just for JJA
+               ! krt, lower to 28oN
                IF ( I .eq. 1 .and. J .eq. 1 )  
      &              WRITE(*,*) 'Cutting USA Midwest Soil NOx by 1/2'
                IF ( (X >= -106.3) .AND. (X <=  -93.8)  .AND.
-     &              (Y >=   37.0) .AND. (Y <=   49.0) ) THEN  
+     &              (Y >=   28.0) .AND. (Y <=   49.0) ) THEN  
                   GEMISNOX2(I,J) = GEMISNOX2(I,J) / 2.0
                ENDIF
             ENDIF
