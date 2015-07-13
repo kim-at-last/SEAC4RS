@@ -5209,6 +5209,10 @@ c$$$            FLAG(NUMDEP)    = 2
             AIROSOL(NUMDEP) = .FALSE.
             FLAG(NUMDEP)    = 0
          
+!!! Sensitivity test: no MVK+MACR dry dep (ISOPOOH interference?)
+!!!   jaf, 4/29/15 from P. Wennberg
+!!!   Remove for now, maybe add back in later by removing the next two
+!!!   blocks (25/5/15)
          !MVK
          ELSE IF ( N == IDTMVK ) THEN
             NUMDEP          = NUMDEP + 1
@@ -5900,7 +5904,7 @@ c$$$            FLAG(NUMDEP)    = 2
             DEPNAME(NUMDEP) = 'MONITS'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 119d-3
+            XMW(NUMDEP)     = 215d-3
             AIROSOL(NUMDEP) = .FALSE.
             FLAG(NUMDEP)    = 4
             ! Scale based on molecular weight per Nguyen et al, 2014
@@ -5910,7 +5914,7 @@ c$$$            FLAG(NUMDEP)    = 2
             DEPNAME(NUMDEP) = 'MONITU'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 119d-3
+            XMW(NUMDEP)     = 215d-3
             AIROSOL(NUMDEP) = .FALSE.
             FLAG(NUMDEP)    = 4
 
@@ -5922,7 +5926,7 @@ c$$$            FLAG(NUMDEP)    = 2
             DEPNAME(NUMDEP) = 'HONIT'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 119d-3
+            XMW(NUMDEP)     = 215d-3
             AIROSOL(NUMDEP) = .FALSE.
             FLAG(NUMDEP)    = 4
 
