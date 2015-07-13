@@ -129,7 +129,7 @@
       INTEGER,           PARAMETER   :: MAXPOINTS = 10000
       INTEGER,           PARAMETER   :: MAXREAC   = 50
       INTEGER,           PARAMETER   :: MAXRO2    = 45
-      INTEGER,           PARAMETER   :: MAXAN     = 12 ! FP 04/01/2010 (AN) 
+      INTEGER,           PARAMETER   :: MAXAN     = 13 ! FP 04/01/2010 (AN) 
       INTEGER,           PARAMETER   :: MAXNOY    = 12 ! FP 04/01/2010 (NOy)
 
       ! For specifying flight track points
@@ -1173,7 +1173,7 @@
 
            CASE ( 'ISOPNB', 'ISOPND', 'MVKN',  'MACRN', 'R4N2',
      &            'ISN1',   'PROPNN', 'ETHLN', 'DHDN',  'HONIT',
-     &            'MONITU', 'MONITS' )
+     &            'MONITU', 'MONITS', 'INPN' )
 
                NPAN       = NPAN + 1
                P_AN(NPAN) = M
