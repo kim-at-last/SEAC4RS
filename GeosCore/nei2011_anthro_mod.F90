@@ -553,16 +553,8 @@
       DATA_DIR_NEI =  '/as/data/geos/ExtData/HEMCO/NEI2011/v2015-03/'// &
         TRIM( TIME_STR ) // '/NEI11_0.1x0.1_2011'
       
-      ! Base data directory
-      DATA_DIR_ON =   '/as/scratch/krt/NEI11/VERYNESTED/onroad/'// &
-           'NEI11_0.1x0.1_2011'
-
-      DATA_DIR_NON =  '/as/scratch/krt/NEI11/VERYNESTED/nonroad/'// &
-           'NEI11_0.1x0.1_2011'
-
       ! For NH3 -- files with agricultural emissions only (jaf, 12/12/13)
       ! Eventually these files will move to the data directory
-      !DATA_DIR_NH3_ag = '/as/scratch/krt/NEI11/VERYNESTED/ag/'
       DATA_DIR_NH3_ag = &
          '/as/data/geos/ExtData/HEMCO/NEI2011_ag_only/v2015-03/'
      
@@ -599,11 +591,9 @@
       ! into the surface above.  We use them to subtract out their
       ! contribution, scale it, and then add it back in. (krt, 2/14/15)
       ! Onroad
-      !FILENAMEON  = TRIM( DATA_DIR_ON ) //  &
       FILENAMEON  = TRIM( DATA_DIR_NEI ) //  &
            TRIM(FMON) // TRIM(FDAY)//  '_onroad.nc'
       ! Onroad - california and texas are separate
-      !FILENAMECATX  = TRIM( DATA_DIR_ON ) //  &
       FILENAMECATX  = TRIM( DATA_DIR_NEI ) //  &
            TRIM(FMON) // TRIM(FDAY)//  '_onroad_catx.nc'
       ! Nonroad
@@ -732,7 +722,10 @@
          GEOS_NATIVE(402:1301,1101:1500,6,:) =  ARRAYOTH(:,:,6,:) 
          
          ! ------ Scale GEOS-NATIVE without EGU by 50% krt, 5/20/15
-         GEOS_NATIVE = GEOS_NATIVE * 0.50
+         IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2') THEN
+            GEOS_NATIVE = GEOS_NATIVE * 0.50
+            WRITE(*,*) 'REMOVING 50% OF NON EGU NOx EMISSIONS'
+         ENDIF
          ! Add in EGU
          GEOS_NATIVE(402:1301,1101:1500,1,:) = GEOS_NATIVE(402:1301,1101:1500,1,:) &
               + ARRAYEGU(:,:,1,:) + ARRAYEGUPK(:,:,1,:)
@@ -741,19 +734,19 @@
          GEOS_NATIVE(402:1301,1101:1500,3,:) = GEOS_NATIVE(402:1301,1101:1500,3,:) &
               + ARRAYEGU(:,:,3,:) + ARRAYEGUPK(:,:,3,:)
         ! -----------------------------------------------------------------------
-         LSCALEONROAD = .FALSE.  ! Turn off, possibly should remove code if we stick with above method
-         IF ( LSCALEONROAD  ) THEN
-            ScON = 0.5
-            IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2') THEN
-               Call NcRd(ARRAYON,   fId1o,  TRIM(SId), st3d, ct3d )
-               Call NcRd(ARRAYCATX, fId1t,  TRIM(SId), st3d, ct3d )
-               Call NcRd(ARRAYNON,  fId1p,  TRIM(SId), st3d, ct3d )
-               !IF ( TRIM(SId) .eq. 'CO' ) ScON = 0.4 
-               WRITE(*,*) 'REMOVING 50% OF ONROAD/NONROAD NOx EMISSIONS'
-               GEOS_NATIVE(402:1301,1101:1500,1,:) = GEOS_NATIVE(402:1301,1101:1500,1,:) -  &
-                    (ARRAYON(:,:,:) + ARRAYCATX(:,:,:) + ARRAYNON(:,:,:) )*ScON
-            ENDIF
-         ENDIF
+!!$         LSCALEONROAD = .FALSE.  ! Turn off, possibly should remove code if we stick with above method
+!!$         IF ( LSCALEONROAD  ) THEN
+!!$            ScON = 0.5
+!!$            IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2') THEN
+!!$               Call NcRd(ARRAYON,   fId1o,  TRIM(SId), st3d, ct3d )
+!!$               Call NcRd(ARRAYCATX, fId1t,  TRIM(SId), st3d, ct3d )
+!!$               Call NcRd(ARRAYNON,  fId1p,  TRIM(SId), st3d, ct3d )
+!!$               !IF ( TRIM(SId) .eq. 'CO' ) ScON = 0.4 
+!!$               WRITE(*,*) 'REMOVING 50% OF ONROAD/NONROAD NOx  EMISSIONS'
+!!$               GEOS_NATIVE(402:1301,1101:1500,1,:) = GEOS_NATIVE(402:1301,1101:1500,1,:) -  &
+!!$                    (ARRAYON(:,:,:) + ARRAYCATX(:,:,:) + ARRAYNON(:,:,:) )*ScON
+!!$            ENDIF
+!!$         ENDIF
          ! Special case for NH3 emissions -- scale agricultural
          ! component based on MASAGE monthly gridded values from Paulot
          ! et al., 2013 (jaf, 12/10/13)

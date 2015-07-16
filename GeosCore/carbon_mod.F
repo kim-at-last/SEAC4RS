@@ -6783,8 +6783,7 @@ ccc
       USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
       USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
       ! Calculate the NOx regime (skim, 6/20/14)
-      USE TRACERID_MOD,       ONLY : IDXRIO2HO2 ,IDXRIO2NO  ,IDXRIO2ISOM
-      USE TRACERID_MOD,       ONLY : IDXRIO2RIO2,IDXRIO2MCO3,IDXRIO2MO2
+      USE TRACERID_MOD,       ONLY : IDXRIO2HO2 ,IDXRIO2NO, IDXRIO2OTHER
 
       ! Arguments
       TYPE(OptInput), INTENT(IN)  :: Input_Opt   ! Input Options object
@@ -6807,7 +6806,7 @@ ccc
       CHARACTER(LEN=255)          :: FILENAME
 
       ! Fraction of yield of OC (hydrophilic) from terpene emission
-      REAL*8, PARAMETER           :: FBIOG = 5.0d-2
+      REAL*8, PARAMETER           :: FBIOG = 2.5d-2
 
       ! SEAC4RS SOA tracers (jaf, 6/25/13)
       REAL*8                      :: EMIS_ISOP
@@ -6900,19 +6899,18 @@ ccc
                ! JLOOP is the 1-D grid box index for SMVGEAR arrays
                JLOOP = JLOP(I,J,1)
 
-               FNOX = CSPEC(JLOOP,IDXRIO2HO2) /
-     &               (CSPEC(JLOOP,IDXRIO2HO2) + CSPEC(JLOOP,IDXRIO2NO))
+               FNOX = CSPEC(JLOOP,IDXRIO2NO    ) /
+     &               (CSPEC(JLOOP,IDXRIO2HO2   ) + 
+     &                CSPEC(JLOOP,IDXRIO2NO    ) +
+     &                CSPEC(JLOOP,IDXRIO2OTHER ))
 
 !               PRINT*, I, J, FNOX,
 !     &                 CSPEC(JLOOP,IDXRIO2NO), CSPEC(JLOOP,IDXRIO2HO2)
 
                ! Zero each fake chemical tracer
-               CSPEC( JLOOP, IDXRIO2NO   ) = 0
-               CSPEC( JLOOP, IDXRIO2HO2  ) = 0
-!              CSPEC( JLOOP, pXRIO2ISOM ) = 0
-!              CSPEC( JLOOP, pXRIO2RIO2 ) = 0
-!              CSPEC( JLOOP, pXRIO2MCO3 ) = 0
-!              CSPEC( JLOOP, pXRIO2MO2  ) = 0
+               CSPEC( JLOOP, IDXRIO2NO    ) = 0
+               CSPEC( JLOOP, IDXRIO2HO2   ) = 0
+               CSPEC( JLOOP, IDXRIO2OTHER ) = 0
 
                ENDIF
 
@@ -6927,12 +6925,12 @@ ccc
 
                ! Now separate the components and split between high/low NOx
                !    First deal with OA from isoprene (skim, 6/13/14)
-               BGSOA_EMIS(I,J,1) = EMIS_ISOP * FBIOG_ISOP * FNOX
-               BGSOA_EMIS(I,J,2) = EMIS_ISOP * FBIOG_ISOP * (1 - FNOX)
+               BGSOA_EMIS(I,J,1) = EMIS_ISOP * FBIOG_ISOP * (1 - FNOX)
+               BGSOA_EMIS(I,J,2) = EMIS_ISOP * FBIOG_ISOP * FNOX
 
                ! Do the same for the OA from monoterpenes
-               BGSOA_EMIS(I,J,3) = EMMO * FBIOG * FNOX
-               BGSOA_EMIS(I,J,4) = EMMO * FBIOG * (1 - FNOX)
+               BGSOA_EMIS(I,J,3) = EMMO * FBIOG * (1 - FNOX)
+               BGSOA_EMIS(I,J,4) = EMMO * FBIOG * FNOX
               
                ! -------------------------------------------------------
                ! Original Code 
