@@ -2237,7 +2237,7 @@ c$$$     &              RRATE(KLOOP,NKHO2H2ONO2), RRATE(KLOOP, NKHO2H2O)
       REAL*8              :: AERVOL   ! Aerosol volume [cm3/cm3]
       REAL*8              :: KPART ! Particle-phase reaction rate [1/s]
       REAL*8              :: XMMS  ! Mean molecular speed [cm/s]
-      REAL*8              :: VAL1, VAL2, VAL3  ! Terms for calculating GAMMA
+      REAL*8              :: VAL1, VAL2, VAL3, VALTMP  ! Terms for calculating GAMMA
 
       ! Local constants:
       ! Gas-phase diffusion constant [cm2/s]:
@@ -2271,9 +2271,13 @@ c$$$     &              RRATE(KLOOP,NKHO2H2ONO2), RRATE(KLOOP, NKHO2H2O)
       VAL2 = ( 1.d0/MACOEFF )
 
       ! Calculate the third uptake parameterization term:
-      VAL3 = 1.d0/
-     &       ( ( 4.d0 * AERVOL * RGASLATM * TEMP * HENRY * KPART )/
+      VALTMP = ( ( 4.d0 * AERVOL * RGASLATM * TEMP * HENRY * KPART )/
      &         ( XRADIUS * XMMS ) )
+      IF ( VALTMP .ne. 0 ) THEN
+         VAL3 = 1.d0/VALTMP
+      ELSE
+         VAL3 = 0d0
+      ENDIF
 
       ! Account for small reaction rates:
       IF ( KPART .LT. 1.D-8 ) THEN
