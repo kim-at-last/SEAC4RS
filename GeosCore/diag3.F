@@ -633,21 +633,6 @@
      &                  JFIRST,    LFIRST,    ARRAY(:,:,1:LD07) )
          ENDIF
 
-         ! Add the conversion of BBOCPI to BBOCPO (skim, 6/13/14)
-         IF ( IDTBBOCPI > 0 ) THEN
-            CATEGORY     = 'PL-OC=$'
-            N            = IDTBBOCPI
-
-            DO L = 1, LD07
-               ARRAY(:,:,L) = AD07_OC(:,:,L,2)
-            ENDDO
-
-            CALL BPCH2( IU_BPCH,   MODELNAME, LONRES,   LATRES,
-     &                  HALFPOLAR, CENTER180, CATEGORY, N,
-     &                  UNIT,      DIAGb,     DIAGe,    RESERVED,
-     &                  IIPAR,     JJPAR,     LD07,     IFIRST,
-     &                  JFIRST,    LFIRST,    ARRAY(:,:,1:LD07) )
-         ENDIF
 
          ! Only save extra SOA diagnostics if LSOA=T
          IF ( LSOA ) THEN

@@ -5473,17 +5473,6 @@ c$$$            FLAG(NUMDEP)    = 2
             AIROSOL(NUMDEP) = .TRUE.
             FLAG(NUMDEP)    = 0
 
-         ! Hydrophilic BB OC (aerosol)
-         ELSE IF ( N == IDTBBOCPI ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBBOCPI
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BBOCPI'
-            HSTAR(NUMDEP)   = 0.0d0
-            F0(NUMDEP)      = 0.0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
 
          ! Hydrophobic BC (aerosol)
          ELSE IF ( N == IDTBCPO ) THEN
@@ -5509,17 +5498,6 @@ c$$$            FLAG(NUMDEP)    = 2
             AIROSOL(NUMDEP) = .TRUE.
             FLAG(NUMDEP)    = 0
 
-         ! Hydrophobic BB OC (aerosol)
-         ELSE IF ( N == IDTBBOCPO ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBBOCPO
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BBOCPO'
-            HSTAR(NUMDEP)   = 0.0d0
-            F0(NUMDEP)      = 0.0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
 
 !--------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)

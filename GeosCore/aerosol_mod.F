@@ -337,13 +337,6 @@
       USE TRACERID_MOD,       ONLY : IDTSO4,  IDTSOA5  
       USE TRACERID_MOD,       ONLY : IDTSOAG, IDTSOAM
       !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
-      !----------------------------------------------------------------
       USE TRACERID_MOD,       ONLY : IDTASOA, IDTBBSOA
       USE TRACERID_MOD,       ONLY : IDTBGSOA
       USE TRACERID_MOD,       ONLY : IDTSO4,   IDTSOAG, IDTSOAM
@@ -512,12 +505,8 @@
 
             ! Hydrophobic OC [kg/m3] 
             ! Add the anthropognic and biomass burning POA (skim, 6/13/14)
-            OCPO(I,J,L) = ( 1.34 * STT(I,J,L,IDTOCPO)   + 
-     &                      1.64 * STT(I,J,L,IDTBBOCPO) )
+            OCPO(I,J,L) = ( 1.34 * STT(I,J,L,IDTOCPO) )
      &                    / State_Met%AIRVOL(I,J,L)
-
-!            OCPO(I,J,L) = ( STT(I,J,L,IDTOCPO) + STT(I,J,L,IDTBBOCPO) ) 
-!     &                    * OCF / State_Met%AIRVOL(I,J,L)
 
             IF ( LSOA ) THEN
 
@@ -560,8 +549,7 @@
 !     &                       State_Met%AIRVOL(I,J,L)
                ! Add the anthropogenic and biomass burning POA components
                ! (skim, 6/13/14)
-               OCPI(I,J,L) = 1.34 * STT(I,J,L,IDTOCPI) + 
-     &                       1.64 * STT(I,J,L,IDTBBOCPI)
+               OCPI(I,J,L) = 1.34 * STT(I,J,L,IDTOCPI) 
 
                ! Add SEAC4RS SOA tracers if they are turned on
                ! For now assume the same correction factor for SOA

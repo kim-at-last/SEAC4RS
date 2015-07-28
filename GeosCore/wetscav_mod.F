@@ -846,13 +846,6 @@
       USE TRACERID_MOD,       ONLY : IDTBCPO,   IDTOCPO,   IDTDST1 
       USE TRACERID_MOD,       ONLY : IDTDST2,   IDTDST3,   IDTDST4
       !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
-      !----------------------------------------------------------------
       USE TRACERID_MOD,       ONLY : IDTSALA,   IDTSALC
       USE TRACERID_MOD,       ONLY : IS_Hg2,    IS_HgP
       USE TRACERID_MOD,       ONLY : IDTGLYX,   IDTMGLY,   IDTGLYC      
@@ -1782,11 +1775,9 @@
       ! BC HYDROPHOBIC (aerosol) or
       ! OC HYDROPHILIC (aerosol) or 
       ! OC HYDROPHOBIC (aerosol) or 
-      ! Add BBOCPI and BBOCPO tracers (skim, 6/13/14)
       !-------------------------------
       ELSE IF ( N == IDTBCPI   .or. N == IDTOCPI   .or.
-     &          N == IDTBCPO   .or. N == IDTOCPO   .or. 
-     &          N == IDTBBOCPI .or. N == IDTBBOCPO ) THEN
+     &          N == IDTBCPO   .or. N == IDTOCPO ) THEN
          CALL F_AEROSOL( KC, N, F, State_Met ) 
          ISOL = GET_ISOL( N )
 
@@ -3334,9 +3325,7 @@
       USE TRACERID_MOD,       ONLY : IDTDST2,  IDTDST3,  IDTDST4
       USE TRACERID_MOD,       ONLY : IDTOCPO,  IDTPOA1,  IDTPOA2
       USE TRACERID_MOD,       ONLY : IDTPOPPOC,  IDTPOPPBC
-      ! Add BBOCPO as a tracer (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPO
-!
+    
 ! !INPUT PARAMETERS: 
 !
       ! Conversion rate from cloud condensate to precip [1/s]
@@ -3391,12 +3380,10 @@
      &                   State_Met%BXHEIGHT(I,J,L) ) 
        
          ! snow vs rain (qq, 10/11/2011)
-         ! Also take into account BBOCPO (skim, 6/13/14)
          IF ( State_Met%T(I,J,L) >= 258d0) THEN
              IF (N == IDTBCPO   .or. N == IDTOCPO   .or.
      &           N == IDTPOA1   .or. N == IDTPOA2   .or.
-     &           N == IDTPOPPOC .or. N == IDTPOPPBC .or. 
-     &           N == IDTBBOCPO ) THEN
+     &           N == IDTPOPPOC .or. N == IDTPOPPBC ) THEN
                 FF=0.5d0
              ELSE
                 FF=1d0
@@ -3404,8 +3391,7 @@
 
          ELSE IF ( State_Met%T(I,J,L) < 237d0) THEN
              IF (N == IDTOCPO  .or. N == IDTPOPPOC .or.
-     &           N == IDTPOA1  .or. N == IDTPOA2   .or.
-     &           N == IDTBBOCPO ) THEN
+     &           N == IDTPOA1  .or. N == IDTPOA2  ) THEN
                 FF=0.5d0
              ELSE
                 FF=1d0
@@ -3555,13 +3541,6 @@
       USE TRACERID_MOD,       ONLY : IDTOCPI, IDTBCPO,  IDTOCPO, IDTDST1 
       USE TRACERID_MOD,       ONLY : IDTDST2, IDTDST3,  IDTDST4, IDTSALA 
       USE TRACERID_MOD,       ONLY : IDTSALC
-      !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
       !----------------------------------------------------------------
       USE TRACERID_MOD,       ONLY : IS_Hg2,  IS_HgP
       USE TRACERID_MOD,       ONLY : IDTGLYX,   IDTMGLY,   IDTGLYC
@@ -4938,21 +4917,17 @@
          !------------------------------
          ! BC HYDROPHILIC (aerosol) or
          ! OC HYDROPHILIC (aerosol)
-         ! Add BBOCPI (skim, 6/13/14)
          !------------------------------
-         ELSE IF ( N == IDTBCPI   .or. N == IDTOCPI .or. 
-     &             N == IDTBBOCPI ) THEN
+         ELSE IF ( N == IDTBCPI .or. N == IDTOCPI) THEN
             RAINFRAC = GET_RAINFRAC( K_RAIN, F, DT )
   
          !-------------------------------
          ! BC HYDROPHOBIC (aerosol) or
          ! OC HYDROPHOBIC (aerosol)
-         ! Add BBOCPO (skim, 6/13/14)
          !-------------------------------
          ! SOAupdate (hotp 6/15/09)
          ! treat POA and hydrophobic
          ELSE IF ( N == IDTBCPO   .or. N == IDTOCPO .or. 
-     &             N == IDTBBOCPO .or.
      &             N == IDTPOA1   .or. N == IDTPOA2 ) THEN
   
             ! No rainout 
@@ -5216,13 +5191,6 @@
       USE TRACERID_MOD, ONLY : IDTOCPI,  IDTBCPO,  IDTOCPO, IDTDST1 
       USE TRACERID_MOD, ONLY : IDTDST2,  IDTDST3,  IDTDST4, IDTSALA 
       USE TRACERID_MOD, ONLY : IDTSALC
-      !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
       !----------------------------------------------------------------
       USE TRACERID_MOD, ONLY : IS_Hg2,   IS_HgP
       USE TRACERID_MOD, ONLY : IDTGLYX,  IDTMGLY,  IDTGLYC
@@ -5669,10 +5637,8 @@
       !------------------------------
       ! SOAupdate (hotp 6/15/09)
       ! treat POA like OCPO
-      ! Add BBOCPI and BBOCPO (skim, 6/13/14)
       ELSE IF ( N == IDTBCPI   .or. N == IDTOCPI   .or.
      &          N == IDTBCPO   .or. N == IDTOCPO   .or.
-     &          N == IDTBBOCPI .or. N == IDTBBOCPO .or.
      &          N == IDTPOA1   .or. N == IDTPOA2   ) THEN
          KIN      = .TRUE.
          WASHFRAC = WASHFRAC_FINE_AEROSOL( DT, F, PP, TK )
@@ -8865,13 +8831,6 @@
       USE TRACERID_MOD, ONLY : IDTDST2,   IDTDST3,   IDTDST4, IDTSALA 
       USE TRACERID_MOD, ONLY : IDTSALC
       !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
-      !----------------------------------------------------------------
       USE TRACERID_MOD, ONLY : IS_Hg2,    IS_HgP
       USE TRACERID_MOD, ONLY : IDTGLYX,   IDTMGLY,   IDTGLYC
       USE TRACERID_MOD, ONLY : IDTHAC,    IDTISN1  !krt, 4/10/14
@@ -9145,11 +9104,6 @@
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTOCPI
 
-         ! SEAC4RS update (skim, 6/13/14)
-         ELSE IF ( N == IDTBBOCPI ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBBOCPI
-
          ELSE IF ( N == IDTBCPO ) THEN
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTBCPO
@@ -9157,11 +9111,6 @@
          ELSE IF ( N == IDTOCPO ) THEN
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTOCPO
-
-         ! SEAC4RS update (skim, 6/13/14)
-         ELSE IF ( N == IDTBBOCPO ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBBOCPO
 
          ! SOAudpate: semivolpoa: POA (hotp 8/24/09)
          ELSE IF ( N == IDTPOA1 ) THEN
@@ -9641,7 +9590,7 @@
             IF ( IDTSOAG /= 0 ) NMAX = NMAX + 1      ! plus SOAG deposition
             IF ( IDTSOAM /= 0 ) NMAX = NMAX + 1      ! plus SOAM deposition
          ELSE                                        !%% non-SOA SIMULATION %%
-            IF ( LCARB ) NMAX = NMAX + 6             ! BCPI, BCPO, OCPI, OCPO, BBOCPI, BBOCPO
+            IF ( LCARB ) NMAX = NMAX + 4            ! BCPI, BCPO, OCPI, OCPO
             IF ( IDTASOA  /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
             IF ( IDTBBSOA /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
 
@@ -9680,8 +9629,7 @@
             ! SOAudpate (hotp 7/25/10)
             IF ( LCARB ) NMAX = NMAX + 32            ! carbon + SOA aerosols
          ELSE                                        !%% non-SOA simulation %%
-            ! Update for SEAC4RS (skim, 6/13/14)
-            IF ( LCARB ) NMAX = NMAX + 6             ! BCPI, BCPO, OCPI, OCPO, BBOCPI, BBOCPO
+            IF ( LCARB ) NMAX = NMAX + 4            ! BCPI, BCPO, OCPI, OCPO
          ENDIF
 
 #if defined( TOMAS )

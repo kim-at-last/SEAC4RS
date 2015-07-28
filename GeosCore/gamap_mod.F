@@ -4533,8 +4533,7 @@
             ! hotp updated for SOA (7/31/08)
             NTRAC(07) = 15
          ELSE
-            ! +1 for BBOCPI (skim, 6/13/14)
-            NTRAC(07) = 3
+            NTRAC(07) = 2
          ENDIF
 
          ! Loop over tracers
@@ -4568,11 +4567,6 @@
                      FNAME(T,07) = 'lumped ALPH'
                      INDEX(T,07) = IDTMTPA + ( SPACING * 33 )
                      MWT  (T,07) = 136e-3
-                  ELSE
-                     NAME (T,07) = 'BBORGC'
-                     FNAME(T,07) = 'BB Organic Carbon'
-                     INDEX(T,07) = IDTBBOCPI + ( SPACING * 33 )
-                     UNIT (T,07) = 'kgC'
                   ENDIF
                CASE( 4 )
                   NAME (T,07) = 'LIMO'

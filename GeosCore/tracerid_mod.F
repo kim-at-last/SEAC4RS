@@ -337,14 +337,6 @@
       INTEGER :: IDTPPN,   IDTR4N2, IDTPRPE, IDTC3H8, IDTCH2O
       INTEGER :: IDTC2H6,  IDTN2O5, IDTHNO4, IDTMP, IDTDMS
       INTEGER :: IDTOH,    IDTHPALD
-      !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      !----------------------------------------------------------------
-      INTEGER :: IDTBBOCPI, IDTBBOCPO
       INTEGER :: IDTSO2,   IDTSO4,  IDTSO4s, IDTMSA, IDTNH3
       INTEGER :: IDTNH4,   IDTNIT,  IDTNITs, IDTBCPI, IDTBCPO
       INTEGER :: IDTOCPI,  IDTOCPO, IDTDST1, IDTDST2, IDTDST3
@@ -1021,19 +1013,11 @@
                COUNT_BB = COUNT_BB + 1
                IDBOC    = COUNT_BB
 
-            ! Add for BB POA component (skim, 6/13/14)
-            CASE( 'BBOCPI' )
-               IDTBBOCPI = N
-
             CASE ( 'BCPO' )
                IDTBCPO  = N
     
             CASE ( 'OCPO' )
                IDTOCPO  = N
-
-            ! Add for BB POA component (skim, 6/13/14)
-            CASE( 'BBOCPO' )
-               IDTBBOCPO = N
 
             CASE ( 'ALPH' )
                IDTALPH  = N
