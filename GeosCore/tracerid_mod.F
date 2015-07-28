@@ -517,10 +517,8 @@
       INTEGER            :: IDTAVOC,   IDTBBVOC,  IDTASOA,  IDTBBSOA
 
       ! Separate biogenic SOA into components from isoprene/monoterpenes
-      !    Further separate based on low or high NOx
       ! (skim, 6/13/14)
-      INTEGER            :: IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      INTEGER            :: IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      INTEGER            :: IDTBGSOA
 
       ! Add organic nitrate aerosol tracers (jaf, 7/26/14)
       INTEGER            :: IDTONITAam
@@ -1570,17 +1568,8 @@
             ! isoprene/monoterpenes
             !    Further separate based on low or high NOx
             ! (skim, 6/13/14)
-            CASE ( 'BGSOA_ILNOX' )
-               IDTBGSOA_ILNOX  = N
-
-            CASE ( 'BGSOA_IHNOX' )
-               IDTBGSOA_IHNOX  = N
-
-            CASE ( 'BGSOA_MLNOX' )
-               IDTBGSOA_MLNOX  = N
-
-            CASE ( 'BGSOA_MHNOX' )
-               IDTBGSOA_MHNOX  = N
+            CASE ( 'BGSOA' )
+               IDTBGSOA = N
 
             ! Add organic nitrate aerosol tracers (day/night) (jaf,
             ! 7/26/14)
@@ -5026,12 +5015,8 @@
       IDTBBSOA   = 0
 
       ! Separate biogenic SOA into components from isoprene/monoterpenes
-      !    Further separate based on low or high NOx
       ! (skim, 6/13/14)
-      IDTBGSOA_ILNOX = 0
-      IDTBGSOA_IHNOX = 0
-      IDTBGSOA_MLNOX = 0
-      IDTBGSOA_MHNOX = 0
+      IDTBGSOA = 0
  
       ! Add organic nitrate aerosol tracer (jaf, 7/26/14)
       IDTONITAam = 0

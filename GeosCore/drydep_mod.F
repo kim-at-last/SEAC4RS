@@ -5959,45 +5959,11 @@ c$$$            FLAG(NUMDEP)    = 2
             FLAG(NUMDEP)    = 0
 
          ! BGSOA
-         ! Separate into component parts (skim, 6/13/14)
-         ELSE IF ( N == IDTBGSOA_ILNOX ) THEN
+         ELSE IF ( N == IDTBGSOA ) THEN
             NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBGSOA_ILNOX
+            NTRAIND(NUMDEP) = IDTBGSOA
             NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BGSOA_ILNOX'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
-
-         ELSE IF ( N == IDTBGSOA_IHNOX ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBGSOA_IHNOX
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BGSOA_IHNOX'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
-
-         ELSE IF ( N == IDTBGSOA_MLNOX ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBGSOA_MLNOX
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BGSOA_MLNOX'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
-
-         ELSE IF ( N == IDTBGSOA_MHNOX ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBGSOA_MHNOX
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BGSOA_MHNOX'
+            DEPNAME(NUMDEP) = 'BGSOA'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3

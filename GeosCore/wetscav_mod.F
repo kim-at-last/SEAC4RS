@@ -872,10 +872,7 @@
 
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD,       ONLY : IDTASOA,   IDTBBSOA
-
-      ! Separate BGSOA tracer into components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
  
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam
@@ -2376,12 +2373,10 @@
       ! SEAC4RS SOA (aerosol)
       ! Treat like standard SOA (jaf, 6/24/13)
       ! Scavenging efficiency for SOA is 0.8
-      ! Separate the BGSOA into its components (skim, 6/13/14)
       !------------------------------------------
       ELSE IF ( N == IDTASOA        .or. N == IDTBBSOA       .or.
      &          N == IDTONITAam     .or. N == IDTONITApm     .or.
-     &          N == IDTBGSOA_ILNOX .or. N == IDTBGSOA_IHNOX .or.
-     &          N == IDTBGSOA_MLNOX .or. N == IDTBGSOA_MHNOX ) THEN
+     &          N == IDTBGSOA ) THEN
          CALL F_AEROSOL( KC, N, F, State_Met )
 
          DO L = 2, LLPAR
@@ -3598,10 +3593,7 @@
 
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD,       ONLY : IDTASOA,   IDTBBSOA
-
-      ! Separate BGSOA tracer into components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
 
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
@@ -5008,12 +5000,10 @@
          ! SEAC4RS SOA (aerosol)
          ! Treat like standard SOA (jaf, 6/24/13)
          ! Scavenging efficiency for SOA is 0.8
-         ! Separate BGSOA into its components (skim, 6/13/14)
          !--------------------------------------
          ELSE IF ( N == IDTASOA        .or. N == IDTBBSOA       .or.
      &             N == IDTONITAam     .or. N == IDTONITApm     .or.
-     &             N == IDTBGSOA_ILNOX .or. N == IDTBGSOA_IHNOX .or.
-     &             N == IDTBGSOA_MLNOX .or. N == IDTBGSOA_MHNOX ) THEN
+     &             N == IDTBGSOA) THEN
             RAINFRAC = GET_RAINFRAC( K_RAIN, F, DT )
             RAINFRAC = RAINFRAC * 0.8d0
 
@@ -5247,9 +5237,7 @@
       USE TRACERID_MOD, ONLY : IDTPOPPOC, IDTPOPPBC, IDTPOPG
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD, ONLY : IDTASOA,   IDTBBSOA
-      ! Separate the BGSOA tracer into its components (skim, 6/13/14)
-      USE TRACERID_MOD, ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD, ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD, ONLY : IDTBGSOA
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD, ONLY : IDTONITAam, IDTONITApm
       ! SOAupdate: update biogenics (new mtp) (hotp 5/24/10)
@@ -5825,12 +5813,10 @@
       !------------------------------
       ! SEAC4RS SOA (aerosol)
       ! Treat like standard SOA (jaf, 6/24/13)
-      ! Separate BGSOA into its components (skim, 6/13/14)
       !------------------------------
       ELSE IF ( N == IDTASOA        .or. N == IDTBBSOA       .or.
      &          N == IDTONITAam     .or. N == IDTONITApm     .or.
-     &          N == IDTBGSOA_ILNOX .or. N == IDTBGSOA_IHNOX .or.
-     &          N == IDTBGSOA_MLNOX .or. N == IDTBGSOA_MHNOX ) THEN
+     &          N == IDTBGSOA ) THEN
          KIN      = .TRUE.
          WASHFRAC = WASHFRAC_FINE_AEROSOL( DT, F, PP, TK )
 
@@ -8898,9 +8884,7 @@
       USE TRACERID_MOD, ONLY : IDTPOPPOC, IDTPOPPBC,  IDTPOPG
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD, ONLY : IDTASOA,   IDTBBSOA
-      ! Separate BGSOA tracer into components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
       ! SEAC4RS monoterpenes (jaf, 3/16/15)
@@ -9353,22 +9337,9 @@
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTBBSOA
 
-         ! Separate BGSOA into its components (skim, 6/13/14)
-         ELSE IF ( N == IDTBGSOA_ILNOX ) THEN
+         ELSE IF ( N == IDTBGSOA ) THEN
             NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBGSOA_ILNOX
-
-         ELSE IF ( N == IDTBGSOA_IHNOX ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBGSOA_IHNOX
-
-         ELSE IF ( N == IDTBGSOA_MLNOX ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBGSOA_MLNOX
-
-         ELSE IF ( N == IDTBGSOA_MHNOX ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBGSOA_MHNOX
+            IDWETD(NSOL) = IDTBGSOA
 
          ! Add organic nitrate aerosol tracers (jaf, 7/26/14)
          ELSE IF ( N == IDTONITAam ) THEN
@@ -9567,9 +9538,7 @@
       USE TRACERID_MOD,       ONLY : IDTSOAG,  IDTSOAM
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD,       ONLY : IDTASOA,   IDTBBSOA
-      ! Separate BGSOA tracer into components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
       ! SEAC4RS monoterpenes (jaf, 3/16/15)
@@ -9676,12 +9645,8 @@
             IF ( IDTASOA  /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
             IF ( IDTBBSOA /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
 
-            ! Separate BGSOA into its components (skim, 6/13/14)
-            IF ( IDTBGSOA_ILNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
-            IF ( IDTBGSOA_IHNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
-            IF ( IDTBGSOA_MLNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
-            IF ( IDTBGSOA_MHNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
-            ! Add organic nitrate aerosols (jaf, 7/26/14)
+            IF ( IDTBGSOA /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
+             ! Add organic nitrate aerosols (jaf, 7/26/14)
             IF ( IDTONITAam /= 0 ) NMAX = NMAX + 1         ! SEAC4RS SOA tracers
             IF ( IDTONITApm /= 0 ) NMAX = NMAX + 1         ! SEAC4RS SOA tracers
             ! SEAC4RS monoterpenes (jaf, 3/16/15)

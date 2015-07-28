@@ -345,9 +345,7 @@
       USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
       !----------------------------------------------------------------
       USE TRACERID_MOD,       ONLY : IDTASOA, IDTBBSOA
-      ! Separate BGSOA into its components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
       USE TRACERID_MOD,       ONLY : IDTSO4,   IDTSOAG, IDTSOAM
 !-----------------------------------------------------------------------------
 ! These are in the std code (bmy, 10/30/13)
@@ -461,19 +459,6 @@
       LSSALT = Input_Opt%LSSALT
       LSULF  = Input_Opt%LSULF
 
-!      PRINT*, 'MAXVAL OC TRACERS'
-!      PRINT*, MAXVAL( STT(:,:,:,IDTOCPI  ) )
-!      PRINT*, MAXVAL( STT(:,:,:,IDTBBOCPI) )
-!      PRINT*, MAXVAL( STT(:,:,:,IDTOCPO  ) )
-!      PRINT*, MAXVAL( STT(:,:,:,IDTBBOCPO) )
-!      PRINT*, MAXVAL( STT(:,:,:,IDTASOA  ) )
-!      PRINT*, MAXVAL( STT(:,:,:,IDTBBSOA ) )
-!
-!      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_ILNOX) )
-!      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_IHNOX) )
-!      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_MLNOX) )
-!      PRINT*, MAXVAL( STT(:,:,:,IDTBGSOA_MHNOX) )
-
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
 !$OMP+PRIVATE( I, J, L, N )
@@ -586,14 +571,8 @@
      &                                  2.03 * STT(I,J,L,IDTASOA)
                IF ( IDTBBSOA > 0 ) OCPI(I,J,L) = OCPI(I,J,L) + 
      &                                  2.03 * STT(I,J,L,IDTBBSOA)
-               IF ( IDTBGSOA_ILNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) + 
-     &                                  2.03 * STT(I,J,L,IDTBGSOA_ILNOX)
-               IF ( IDTBGSOA_IHNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) +
-     &                                  2.03 * STT(I,J,L,IDTBGSOA_IHNOX)
-               IF ( IDTBGSOA_MLNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) +
-     &                                  2.03 * STT(I,J,L,IDTBGSOA_MLNOX)
-               IF ( IDTBGSOA_MHNOX > 0 ) OCPI(I,J,L) = OCPI(I,J,L) +
-     &                                  2.03 * STT(I,J,L,IDTBGSOA_MHNOX)
+               IF ( IDTBGSOA > 0 ) OCPI(I,J,L) = OCPI(I,J,L) + 
+     &                                  2.03 * STT(I,J,L,IDTBGSOA)
 
                OCPI(I,J,L) = OCPI(I,J,L) / State_Met%AIRVOL(I,J,L)
 !-----------

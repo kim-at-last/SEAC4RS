@@ -279,7 +279,7 @@
       REAL*8, ALLOCATABLE :: AVOC_EMIS(:,:)
       ! Separate BGSOA emissions into isoprene/monterpenes under
       ! high/low NOx conditions (skim, 6/13/14)
-      REAL*8, ALLOCATABLE :: BGSOA_EMIS(:,:,:)
+      REAL*8, ALLOCATABLE :: BGSOA_EMIS(:,:)
 
       REAL*8, ALLOCATABLE :: GLOB_DARO2(:,:,:,:,:) ! Diagnostic (dkh, 11/10/06) 
       ! Cloud fraction - for cloud droplet uptake of dicarbonyls 
@@ -5596,8 +5596,7 @@ c
 #endif
       USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC
       ! Separate BGSOA into its components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
 #if defined( DEVEL )
       USE TRACERID_MOD,       ONLY : IDTBCPI, IDTBCPO, IDTOCPI, IDTOCPO
 #endif
@@ -6046,20 +6045,8 @@ c
      &              AD07(I,J,L,14) + BBVOC_EMIS(I,J,L)
             ENDDO
 
-            IF ( IDTBGSOA_ILNOX > 0 ) THEN
-               AD07(I,J,1,15) = AD07(I,J,1,15) + BGSOA_EMIS(I,J,1)
-            ENDIF
-
-            IF ( IDTBGSOA_IHNOX > 0 ) THEN
-               AD07(I,J,1,16) = AD07(I,J,1,16) + BGSOA_EMIS(I,J,2)
-            ENDIF
-
-            IF ( IDTBGSOA_MLNOX > 0 ) THEN
-               AD07(I,J,1,17) = AD07(I,J,1,17) + BGSOA_EMIS(I,J,3)
-            ENDIF
-
-            IF ( IDTBGSOA_MHNOX > 0 ) THEN
-               AD07(I,J,1,18) = AD07(I,J,1,18) + BGSOA_EMIS(I,J,4)
+            IF ( IDTBGSOA > 0 ) THEN
+               AD07(I,J,1,15) = AD07(I,J,1,15) + BGSOA_EMIS(I,J)
             ENDIF
 
          ENDDO
@@ -6780,8 +6767,7 @@ ccc
       USE TIME_MOD,           ONLY : GET_TS_EMIS,      ITS_A_NEW_MONTH
       USE TRANSFER_MOD,       ONLY : TRANSFER_2D
       ! Separate BGSOA into its components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
       ! Calculate the NOx regime (skim, 6/20/14)
       USE TRACERID_MOD,       ONLY : IDXRIO2HO2 ,IDXRIO2NO, IDXRIO2OTHER
 
@@ -6885,8 +6871,7 @@ ccc
 
             ! For SEAC4RS SOA tracers, add this to biogenic SOA instead
             ! of POA (jaf, 6/25/13)
-            IF ( ( IDTBGSOA_ILNOX + IDTBGSOA_IHNOX + 
-     &             IDTBGSOA_MLNOX + IDTBGSOA_MHNOX ) > 0 ) THEN
+            IF ( IDTBGSOA > 0 ) THEN
 
                ! Calculate the fraction of the chemistry proceeding by
                ! the low NOx pathway
@@ -6925,12 +6910,11 @@ ccc
 
                ! Now separate the components and split between high/low NOx
                !    First deal with OA from isoprene (skim, 6/13/14)
-               BGSOA_EMIS(I,J,1) = EMIS_ISOP * FBIOG_ISOP * (1 - FNOX)
-               BGSOA_EMIS(I,J,2) = EMIS_ISOP * FBIOG_ISOP * FNOX
-
                ! Do the same for the OA from monoterpenes
-               BGSOA_EMIS(I,J,3) = EMMO * FBIOG * (1 - FNOX)
-               BGSOA_EMIS(I,J,4) = EMMO * FBIOG * FNOX
+               BGSOA_EMIS(I,J) = EMIS_ISOP * FBIOG_ISOP * (1 - FNOX)+
+     &              EMIS_ISOP * FBIOG_ISOP * FNOX + 
+     &              EMMO * FBIOG * (1 - FNOX) +
+     &              EMMO * FBIOG * FNOX
               
                ! -------------------------------------------------------
                ! Original Code 
@@ -8535,8 +8519,7 @@ ccc
       USE TRACERID_MOD,       ONLY : IDTALPH, IDTLIMO, IDTALCO
       USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC
       ! Separate BGSOA into its components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
       !----------------------------------------------------------------
       ! SEAC4RS specific-change
       ! Separate POA into anthropogenic and biomass burning components
@@ -8606,8 +8589,7 @@ ccc
       ! Add check for BB POA (skim, 6/19/14)
       IS_BBPOA = ( IDTBBOCPI + IDTBBOCPO > 0 )
       IS_BBVOC = ( IDTBBVOC > 0 )
-      IS_BGSOA = ( IDTBGSOA_ILNOX + IDTBGSOA_IHNOX + 
-     &             IDTBGSOA_MLNOX + IDTBGSOA_MHNOX > 0 ) 
+      IS_BGSOA = ( IDTBGSOA > 0 ) 
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      IS_MTPO = ( IDTMTPO > 0 )
@@ -8640,23 +8622,7 @@ ccc
 
       IF ( IS_AVOC  ) EMIS_SAVE(:,:,IDTAVOC ) = 0d0
       IF ( IS_BBVOC ) EMIS_SAVE(:,:,IDTBBVOC) = 0d0
-      IF ( IS_BGSOA ) THEN
-
-         EMIS_SAVE(:,:,IDTBGSOA_ILNOX) = 0d0
-         EMIS_SAVE(:,:,IDTBGSOA_IHNOX) = 0d0
-         EMIS_SAVE(:,:,IDTBGSOA_MLNOX) = 0d0
-         EMIS_SAVE(:,:,IDTBGSOA_MHNOX) = 0d0
-
-      ENDIF
-
-!      PRINT*, 'EMITTING BIOGENIC SOA IN EMITHIGH'
-!      PRINT*, IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-!      PRINT*, IDTBGSOA_MLNOX, IDTBGSOA_MHNOX 
-!
-!      PRINT*, MAXVAL( BGSOA_EMIS(:,:,1) )
-!      PRINT*, MAXVAL( BGSOA_EMIS(:,:,2) )
-!      PRINT*, MAXVAL( BGSOA_EMIS(:,:,3) )
-!      PRINT*, MAXVAL( BGSOA_EMIS(:,:,4) )
+      IF ( IS_BGSOA ) EMIS_SAVE(:,:,IDTBGSOA) = 0d0
 
       IF ( LNLPBL ) THEN
 
@@ -8692,14 +8658,8 @@ ccc
                   IF ( IS_AVOC ) EMIS_SAVE(I,J,IDTAVOC) = AVOC_EMIS(I,J)
 
                   ! Separate the BGSOA tracers (skim, 6/13/14)
-                  IF ( IS_BGSOA ) THEN
+                  IF (IS_BGSOA) EMIS_SAVE(I,J,IDTBGSOA) =BGSOA_EMIS(I,J)
 
-                     EMIS_SAVE(I,J,IDTBGSOA_ILNOX) = BGSOA_EMIS(I,J,1)
-                     EMIS_SAVE(I,J,IDTBGSOA_IHNOX) = BGSOA_EMIS(I,J,2)
-                     EMIS_SAVE(I,J,IDTBGSOA_MLNOX) = BGSOA_EMIS(I,J,3)
-                     EMIS_SAVE(I,J,IDTBGSOA_MHNOX) = BGSOA_EMIS(I,J,4)
-
-                  ENDIF
 
                ENDIF
 
@@ -8860,17 +8820,8 @@ ccc
          IF ( IS_BGSOA ) THEN
 
             ! Separate BGSOA into its components (skim, 6/13/14)
-            STT(I,J,L,IDTBGSOA_ILNOX) = STT(I,J,L,IDTBGSOA_ILNOX) +
-     &                                  ( F_OF_PBL * BGSOA_EMIS(I,J,1) )
-
-            STT(I,J,L,IDTBGSOA_IHNOX) = STT(I,J,L,IDTBGSOA_IHNOX) +
-     &                                  ( F_OF_PBL * BGSOA_EMIS(I,J,2) )
-
-            STT(I,J,L,IDTBGSOA_MLNOX) = STT(I,J,L,IDTBGSOA_MLNOX) +
-     &                                  ( F_OF_PBL * BGSOA_EMIS(I,J,3) )
-
-            STT(I,J,L,IDTBGSOA_MHNOX) = STT(I,J,L,IDTBGSOA_MHNOX) +
-     &                                  ( F_OF_PBL * BGSOA_EMIS(I,J,4) )
+            STT(I,J,L,IDTBGSOA) = STT(I,J,L,IDTBGSOA) +
+     &                                  ( F_OF_PBL * BGSOA_EMIS(I,J) )
 
 !------------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
@@ -10413,9 +10364,7 @@ ccc
       USE TIME_MOD,           ONLY : GET_NYMDb, GET_NHMSb, GET_TAUb
       USE TRACERID_MOD,       ONLY : IDTSOA5
       USE TRACERID_MOD,       ONLY : IDTAVOC, IDTBBVOC
-      ! Separate BGSOA into its components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
 !
 ! !INPUT PARAMETERS:
 !
@@ -10570,12 +10519,8 @@ ccc
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'BBVOC_EMIS' )
          BBVOC_EMIS = 0d0
       ENDIF
-      IF ( ( IDTBGSOA_ILNOX + IDTBGSOA_IHNOX + 
-     &       IDTBGSOA_MLNOX + IDTBGSOA_MHNOX > 0 ) ) THEN
-!         PRINT*, IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-!         PRINT*, IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
-         PRINT*, 'ALLOCATED BGSOA_EMIS'
-         ALLOCATE( BGSOA_EMIS( IIPAR, JJPAR, 4 ), STAT=AS )
+      IF ( ( IDTBGSOA > 0 ) ) THEN
+         ALLOCATE( BGSOA_EMIS( IIPAR, JJPAR ), STAT=AS )
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'BGSOA_EMIS' )
          BGSOA_EMIS = 0d0
       ENDIF
