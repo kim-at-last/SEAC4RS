@@ -1631,18 +1631,8 @@
       USE TRACERID_MOD, ONLY : IDTSALA,  IDTSALC 
       USE TRACERID_MOD, ONLY : IDTSOAG,  IDTSOAM,  IDTSOA5
       USE TRACERID_MOD, ONLY : IDTASOA,  IDTBBSOA
-      ! Separate the BGSOA tracer into its components (skim, 6/13/14)
-      USE TRACERID_MOD, ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD, ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD, ONLY : IDTBGSOA
       USE TRACERID_MOD, ONLY : IDTAVOC,  IDTBBVOC
-      !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
-      !----------------------------------------------------------------
       USE GIGC_ErrCode_Mod
       USE GIGC_Input_Opt_Mod, ONLY : OptInput
 !
@@ -1855,7 +1845,7 @@
       ! Error check CARBON AEROSOLS
       !---------------------------------
       ! Add the BB POA tracer to the error check (skim, 6/13/14)
-      I = IDTBCPO + IDTBCPI + IDTOCPO + IDTOCPI + IDTBBOCPI + IDTBBOCPO
+      I = IDTBCPO + IDTBCPI + IDTOCPO + IDTOCPI 
 
       IF ( LCARB ) THEN
          IF ( I == 0 ) THEN
@@ -1884,9 +1874,7 @@
             MSG = 'LSOA=T but ONLINE 2dy ORG AEROSOLS are undefined!'
             CALL ERROR_STOP( MSG, LOCATION )
          ENDIF
-         IF ( ( IDTASOA         + IDTBBSOA       + IDTBGSOA_ILNOX + 
-     &          IDTBGSOA_IHNOX) + IDTBGSOA_MLNOX + IDTBGSOA_MHNOX > 0 ) 
-     &      THEN
+         IF (  IDTASOA   + IDTBBSOA  + IDTBGSOA > 0 ) THEN
             MSG = 'Cannot used simplified SOA with full SOA chem!'
             CALL ERROR_STOP( MSG, LOCATION )
          ENDIF
@@ -1898,8 +1886,7 @@
       ENDIF
 
       ! SEAC4RS simplified SOA tracers
-      IF ( ( (IDTASOA        + IDTBBSOA       + IDTBGSOA_ILNOX  + 
-     &        IDTBGSOA_IHNOX + IDTBGSOA_MLNOX + IDTBGSOA_MHNOX) > 0 )
+      IF ( (IDTASOA        + IDTBBSOA       + IDTBGSOA > 0 )
      &     .and. ITS_AN_AEROSOL_SIM() ) THEN
          MSG = 'Simplified SOA not yet available in offline sim'
          CALL ERROR_STOP( MSG, LOCATION )

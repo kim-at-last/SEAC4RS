@@ -846,13 +846,6 @@
       USE TRACERID_MOD,       ONLY : IDTBCPO,   IDTOCPO,   IDTDST1 
       USE TRACERID_MOD,       ONLY : IDTDST2,   IDTDST3,   IDTDST4
       !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
-      !----------------------------------------------------------------
       USE TRACERID_MOD,       ONLY : IDTSALA,   IDTSALC
       USE TRACERID_MOD,       ONLY : IS_Hg2,    IS_HgP
       USE TRACERID_MOD,       ONLY : IDTGLYX,   IDTMGLY,   IDTGLYC      
@@ -872,10 +865,7 @@
 
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD,       ONLY : IDTASOA,   IDTBBSOA
-
-      ! Separate BGSOA tracer into components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
  
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam
@@ -1785,11 +1775,9 @@
       ! BC HYDROPHOBIC (aerosol) or
       ! OC HYDROPHILIC (aerosol) or 
       ! OC HYDROPHOBIC (aerosol) or 
-      ! Add BBOCPI and BBOCPO tracers (skim, 6/13/14)
       !-------------------------------
       ELSE IF ( N == IDTBCPI   .or. N == IDTOCPI   .or.
-     &          N == IDTBCPO   .or. N == IDTOCPO   .or. 
-     &          N == IDTBBOCPI .or. N == IDTBBOCPO ) THEN
+     &          N == IDTBCPO   .or. N == IDTOCPO ) THEN
          CALL F_AEROSOL( KC, N, F, State_Met ) 
          ISOL = GET_ISOL( N )
 
@@ -2376,12 +2364,10 @@
       ! SEAC4RS SOA (aerosol)
       ! Treat like standard SOA (jaf, 6/24/13)
       ! Scavenging efficiency for SOA is 0.8
-      ! Separate the BGSOA into its components (skim, 6/13/14)
       !------------------------------------------
       ELSE IF ( N == IDTASOA        .or. N == IDTBBSOA       .or.
      &          N == IDTONITAam     .or. N == IDTONITApm     .or.
-     &          N == IDTBGSOA_ILNOX .or. N == IDTBGSOA_IHNOX .or.
-     &          N == IDTBGSOA_MLNOX .or. N == IDTBGSOA_MHNOX ) THEN
+     &          N == IDTBGSOA ) THEN
          CALL F_AEROSOL( KC, N, F, State_Met )
 
          DO L = 2, LLPAR
@@ -3339,9 +3325,7 @@
       USE TRACERID_MOD,       ONLY : IDTDST2,  IDTDST3,  IDTDST4
       USE TRACERID_MOD,       ONLY : IDTOCPO,  IDTPOA1,  IDTPOA2
       USE TRACERID_MOD,       ONLY : IDTPOPPOC,  IDTPOPPBC
-      ! Add BBOCPO as a tracer (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPO
-!
+    
 ! !INPUT PARAMETERS: 
 !
       ! Conversion rate from cloud condensate to precip [1/s]
@@ -3396,12 +3380,10 @@
      &                   State_Met%BXHEIGHT(I,J,L) ) 
        
          ! snow vs rain (qq, 10/11/2011)
-         ! Also take into account BBOCPO (skim, 6/13/14)
          IF ( State_Met%T(I,J,L) >= 258d0) THEN
              IF (N == IDTBCPO   .or. N == IDTOCPO   .or.
      &           N == IDTPOA1   .or. N == IDTPOA2   .or.
-     &           N == IDTPOPPOC .or. N == IDTPOPPBC .or. 
-     &           N == IDTBBOCPO ) THEN
+     &           N == IDTPOPPOC .or. N == IDTPOPPBC ) THEN
                 FF=0.5d0
              ELSE
                 FF=1d0
@@ -3409,8 +3391,7 @@
 
          ELSE IF ( State_Met%T(I,J,L) < 237d0) THEN
              IF (N == IDTOCPO  .or. N == IDTPOPPOC .or.
-     &           N == IDTPOA1  .or. N == IDTPOA2   .or.
-     &           N == IDTBBOCPO ) THEN
+     &           N == IDTPOA1  .or. N == IDTPOA2  ) THEN
                 FF=0.5d0
              ELSE
                 FF=1d0
@@ -3561,13 +3542,6 @@
       USE TRACERID_MOD,       ONLY : IDTDST2, IDTDST3,  IDTDST4, IDTSALA 
       USE TRACERID_MOD,       ONLY : IDTSALC
       !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
-      !----------------------------------------------------------------
       USE TRACERID_MOD,       ONLY : IS_Hg2,  IS_HgP
       USE TRACERID_MOD,       ONLY : IDTGLYX,   IDTMGLY,   IDTGLYC
       USE TRACERID_MOD,       ONLY : IDTSOAG,   IDTSOAM,   IDTHCOOH
@@ -3598,10 +3572,7 @@
 
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD,       ONLY : IDTASOA,   IDTBBSOA
-
-      ! Separate BGSOA tracer into components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
 
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
@@ -4946,21 +4917,17 @@
          !------------------------------
          ! BC HYDROPHILIC (aerosol) or
          ! OC HYDROPHILIC (aerosol)
-         ! Add BBOCPI (skim, 6/13/14)
          !------------------------------
-         ELSE IF ( N == IDTBCPI   .or. N == IDTOCPI .or. 
-     &             N == IDTBBOCPI ) THEN
+         ELSE IF ( N == IDTBCPI .or. N == IDTOCPI) THEN
             RAINFRAC = GET_RAINFRAC( K_RAIN, F, DT )
   
          !-------------------------------
          ! BC HYDROPHOBIC (aerosol) or
          ! OC HYDROPHOBIC (aerosol)
-         ! Add BBOCPO (skim, 6/13/14)
          !-------------------------------
          ! SOAupdate (hotp 6/15/09)
          ! treat POA and hydrophobic
          ELSE IF ( N == IDTBCPO   .or. N == IDTOCPO .or. 
-     &             N == IDTBBOCPO .or.
      &             N == IDTPOA1   .or. N == IDTPOA2 ) THEN
   
             ! No rainout 
@@ -5008,12 +4975,10 @@
          ! SEAC4RS SOA (aerosol)
          ! Treat like standard SOA (jaf, 6/24/13)
          ! Scavenging efficiency for SOA is 0.8
-         ! Separate BGSOA into its components (skim, 6/13/14)
          !--------------------------------------
          ELSE IF ( N == IDTASOA        .or. N == IDTBBSOA       .or.
      &             N == IDTONITAam     .or. N == IDTONITApm     .or.
-     &             N == IDTBGSOA_ILNOX .or. N == IDTBGSOA_IHNOX .or.
-     &             N == IDTBGSOA_MLNOX .or. N == IDTBGSOA_MHNOX ) THEN
+     &             N == IDTBGSOA) THEN
             RAINFRAC = GET_RAINFRAC( K_RAIN, F, DT )
             RAINFRAC = RAINFRAC * 0.8d0
 
@@ -5227,13 +5192,6 @@
       USE TRACERID_MOD, ONLY : IDTDST2,  IDTDST3,  IDTDST4, IDTSALA 
       USE TRACERID_MOD, ONLY : IDTSALC
       !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
-      !----------------------------------------------------------------
       USE TRACERID_MOD, ONLY : IS_Hg2,   IS_HgP
       USE TRACERID_MOD, ONLY : IDTGLYX,  IDTMGLY,  IDTGLYC
       USE TRACERID_MOD, ONLY : IDTHAC,   IDTISN1  !krt, 4/10/14
@@ -5247,9 +5205,7 @@
       USE TRACERID_MOD, ONLY : IDTPOPPOC, IDTPOPPBC, IDTPOPG
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD, ONLY : IDTASOA,   IDTBBSOA
-      ! Separate the BGSOA tracer into its components (skim, 6/13/14)
-      USE TRACERID_MOD, ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD, ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD, ONLY : IDTBGSOA
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD, ONLY : IDTONITAam, IDTONITApm
       ! SOAupdate: update biogenics (new mtp) (hotp 5/24/10)
@@ -5681,10 +5637,8 @@
       !------------------------------
       ! SOAupdate (hotp 6/15/09)
       ! treat POA like OCPO
-      ! Add BBOCPI and BBOCPO (skim, 6/13/14)
       ELSE IF ( N == IDTBCPI   .or. N == IDTOCPI   .or.
      &          N == IDTBCPO   .or. N == IDTOCPO   .or.
-     &          N == IDTBBOCPI .or. N == IDTBBOCPO .or.
      &          N == IDTPOA1   .or. N == IDTPOA2   ) THEN
          KIN      = .TRUE.
          WASHFRAC = WASHFRAC_FINE_AEROSOL( DT, F, PP, TK )
@@ -5825,12 +5779,10 @@
       !------------------------------
       ! SEAC4RS SOA (aerosol)
       ! Treat like standard SOA (jaf, 6/24/13)
-      ! Separate BGSOA into its components (skim, 6/13/14)
       !------------------------------
       ELSE IF ( N == IDTASOA        .or. N == IDTBBSOA       .or.
      &          N == IDTONITAam     .or. N == IDTONITApm     .or.
-     &          N == IDTBGSOA_ILNOX .or. N == IDTBGSOA_IHNOX .or.
-     &          N == IDTBGSOA_MLNOX .or. N == IDTBGSOA_MHNOX ) THEN
+     &          N == IDTBGSOA ) THEN
          KIN      = .TRUE.
          WASHFRAC = WASHFRAC_FINE_AEROSOL( DT, F, PP, TK )
 
@@ -8879,13 +8831,6 @@
       USE TRACERID_MOD, ONLY : IDTDST2,   IDTDST3,   IDTDST4, IDTSALA 
       USE TRACERID_MOD, ONLY : IDTSALC
       !----------------------------------------------------------------
-      ! SEAC4RS specific-change
-      ! Separate POA into anthropogenic and biomass burning components
-      ! Leave anthropogenic component in OCPI and OCPO
-      ! Create new tracers for the biomass burning component
-      ! (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBBOCPI, IDTBBOCPO
-      !----------------------------------------------------------------
       USE TRACERID_MOD, ONLY : IS_Hg2,    IS_HgP
       USE TRACERID_MOD, ONLY : IDTGLYX,   IDTMGLY,   IDTGLYC
       USE TRACERID_MOD, ONLY : IDTHAC,    IDTISN1  !krt, 4/10/14
@@ -8898,9 +8843,7 @@
       USE TRACERID_MOD, ONLY : IDTPOPPOC, IDTPOPPBC,  IDTPOPG
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD, ONLY : IDTASOA,   IDTBBSOA
-      ! Separate BGSOA tracer into components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
       ! SEAC4RS monoterpenes (jaf, 3/16/15)
@@ -9161,11 +9104,6 @@
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTOCPI
 
-         ! SEAC4RS update (skim, 6/13/14)
-         ELSE IF ( N == IDTBBOCPI ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBBOCPI
-
          ELSE IF ( N == IDTBCPO ) THEN
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTBCPO
@@ -9173,11 +9111,6 @@
          ELSE IF ( N == IDTOCPO ) THEN
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTOCPO
-
-         ! SEAC4RS update (skim, 6/13/14)
-         ELSE IF ( N == IDTBBOCPO ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBBOCPO
 
          ! SOAudpate: semivolpoa: POA (hotp 8/24/09)
          ELSE IF ( N == IDTPOA1 ) THEN
@@ -9353,22 +9286,9 @@
             NSOL         = NSOL + 1
             IDWETD(NSOL) = IDTBBSOA
 
-         ! Separate BGSOA into its components (skim, 6/13/14)
-         ELSE IF ( N == IDTBGSOA_ILNOX ) THEN
+         ELSE IF ( N == IDTBGSOA ) THEN
             NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBGSOA_ILNOX
-
-         ELSE IF ( N == IDTBGSOA_IHNOX ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBGSOA_IHNOX
-
-         ELSE IF ( N == IDTBGSOA_MLNOX ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBGSOA_MLNOX
-
-         ELSE IF ( N == IDTBGSOA_MHNOX ) THEN
-            NSOL         = NSOL + 1
-            IDWETD(NSOL) = IDTBGSOA_MHNOX
+            IDWETD(NSOL) = IDTBGSOA
 
          ! Add organic nitrate aerosol tracers (jaf, 7/26/14)
          ELSE IF ( N == IDTONITAam ) THEN
@@ -9567,9 +9487,7 @@
       USE TRACERID_MOD,       ONLY : IDTSOAG,  IDTSOAM
       ! SEAC4RS SOA tracers (jaf, 6/24/13)
       USE TRACERID_MOD,       ONLY : IDTASOA,   IDTBBSOA
-      ! Separate BGSOA tracer into components (skim, 6/13/14)
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_ILNOX, IDTBGSOA_IHNOX
-      USE TRACERID_MOD,       ONLY : IDTBGSOA_MLNOX, IDTBGSOA_MHNOX
+      USE TRACERID_MOD,       ONLY : IDTBGSOA
       ! SEAC4RS organic nitrate aerosol tracers (jaf, 7/26/14)
       USE TRACERID_MOD,       ONLY : IDTONITAam, IDTONITApm
       ! SEAC4RS monoterpenes (jaf, 3/16/15)
@@ -9672,16 +9590,12 @@
             IF ( IDTSOAG /= 0 ) NMAX = NMAX + 1      ! plus SOAG deposition
             IF ( IDTSOAM /= 0 ) NMAX = NMAX + 1      ! plus SOAM deposition
          ELSE                                        !%% non-SOA SIMULATION %%
-            IF ( LCARB ) NMAX = NMAX + 6             ! BCPI, BCPO, OCPI, OCPO, BBOCPI, BBOCPO
+            IF ( LCARB ) NMAX = NMAX + 4            ! BCPI, BCPO, OCPI, OCPO
             IF ( IDTASOA  /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
             IF ( IDTBBSOA /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
 
-            ! Separate BGSOA into its components (skim, 6/13/14)
-            IF ( IDTBGSOA_ILNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
-            IF ( IDTBGSOA_IHNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
-            IF ( IDTBGSOA_MLNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
-            IF ( IDTBGSOA_MHNOX /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
-            ! Add organic nitrate aerosols (jaf, 7/26/14)
+            IF ( IDTBGSOA /= 0 ) NMAX = NMAX + 1     ! SEAC4RS SOA tracers
+             ! Add organic nitrate aerosols (jaf, 7/26/14)
             IF ( IDTONITAam /= 0 ) NMAX = NMAX + 1         ! SEAC4RS SOA tracers
             IF ( IDTONITApm /= 0 ) NMAX = NMAX + 1         ! SEAC4RS SOA tracers
             ! SEAC4RS monoterpenes (jaf, 3/16/15)
@@ -9715,8 +9629,7 @@
             ! SOAudpate (hotp 7/25/10)
             IF ( LCARB ) NMAX = NMAX + 32            ! carbon + SOA aerosols
          ELSE                                        !%% non-SOA simulation %%
-            ! Update for SEAC4RS (skim, 6/13/14)
-            IF ( LCARB ) NMAX = NMAX + 6             ! BCPI, BCPO, OCPI, OCPO, BBOCPI, BBOCPO
+            IF ( LCARB ) NMAX = NMAX + 4            ! BCPI, BCPO, OCPI, OCPO
          ENDIF
 
 #if defined( TOMAS )

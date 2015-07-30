@@ -4533,8 +4533,7 @@
             ! hotp updated for SOA (7/31/08)
             NTRAC(07) = 15
          ELSE
-            ! +1 for BBOCPI (skim, 6/13/14)
-            NTRAC(07) = 3
+            NTRAC(07) = 2
          ENDIF
 
          ! Loop over tracers
@@ -4568,11 +4567,6 @@
                      FNAME(T,07) = 'lumped ALPH'
                      INDEX(T,07) = IDTMTPA + ( SPACING * 33 )
                      MWT  (T,07) = 136e-3
-                  ELSE
-                     NAME (T,07) = 'BBORGC'
-                     FNAME(T,07) = 'BB Organic Carbon'
-                     INDEX(T,07) = IDTBBOCPI + ( SPACING * 33 )
-                     UNIT (T,07) = 'kgC'
                   ENDIF
                CASE( 4 )
                   NAME (T,07) = 'LIMO'
@@ -4669,49 +4663,16 @@
             FNAME(T,07) = 'Biomass SOA precursor'
             INDEX(T,07) = IDTBBVOC + ( SPACING * 33 )
          ENDIF
-         IF ( IDTBGSOA_ILNOX > 0 ) THEN
+         IF ( IDTBGSOA > 0 ) THEN
             NTRAC(07) = NTRAC(07)+1
             T = T+1
             UNIT (T,07) = 'kg'
             MOLC (T,07) = 1
             MWT  (T,07) = 12e-3
             SCALE(T,07) = 1e0
-            NAME (T,07) = 'BGSOA_ILNOX'
-            FNAME(T,07) = 'Biogenic SOA ILNOX'
-            INDEX(T,07) = IDTBGSOA_ILNOX + ( SPACING * 33 )
-         ENDIF
-         IF ( IDTBGSOA_IHNOX > 0 ) THEN
-            NTRAC(07) = NTRAC(07)+1
-            T = T+1
-            UNIT (T,07) = 'kg'
-            MOLC (T,07) = 1
-            MWT  (T,07) = 12e-3
-            SCALE(T,07) = 1e0
-            NAME (T,07) = 'BGSOA_IHNOX'
-            FNAME(T,07) = 'Biogenic SOA IHNOX'
-            INDEX(T,07) = IDTBGSOA_IHNOX + ( SPACING * 33 )
-         ENDIF
-         IF ( IDTBGSOA_MLNOX > 0 ) THEN
-            NTRAC(07) = NTRAC(07)+1
-            T = T+1
-            UNIT (T,07) = 'kg'
-            MOLC (T,07) = 1
-            MWT  (T,07) = 12e-3
-            SCALE(T,07) = 1e0
-            NAME (T,07) = 'BGSOA_MLNOX'
-            FNAME(T,07) = 'Biogenic SOA MLNOX'
-            INDEX(T,07) = IDTBGSOA_MLNOX + ( SPACING * 33 )
-         ENDIF
-         IF ( IDTBGSOA_MHNOX > 0 ) THEN
-            NTRAC(07) = NTRAC(07)+1
-            T = T+1
-            UNIT (T,07) = 'kg'
-            MOLC (T,07) = 1
-            MWT  (T,07) = 12e-3
-            SCALE(T,07) = 1e0
-            NAME (T,07) = 'BGSOA_MHNOX'
-            FNAME(T,07) = 'Biogenic SOA MHNOX'
-            INDEX(T,07) = IDTBGSOA_MHNOX + ( SPACING * 33 )
+            NAME (T,07) = 'BGSOA'
+            FNAME(T,07) = 'Biogenic SOA'
+            INDEX(T,07) = IDTBGSOA + ( SPACING * 33 )
          ENDIF
          IF ( IDTASOA  > 0 ) THEN
             NTRAC(07) = NTRAC(07)+1

@@ -4651,7 +4651,7 @@ c$$$            FLAG(NUMDEP)    = 2
             NTRAIND(NUMDEP) = IDTCH2O
             NDVZIND(NUMDEP) = NUMDEP
             DEPNAME(NUMDEP) = 'CH2O'
-            HSTAR(NUMDEP)   = 6.0d+3
+            HSTAR(NUMDEP)   = 3.0d+3  ! Jacob et al, 2000
             F0(NUMDEP)      = 1.0d0 !Karl et al. 2010(science)
             XMW(NUMDEP)     = 30d-3
             AIROSOL(NUMDEP) = .FALSE.
@@ -5473,17 +5473,6 @@ c$$$            FLAG(NUMDEP)    = 2
             AIROSOL(NUMDEP) = .TRUE.
             FLAG(NUMDEP)    = 0
 
-         ! Hydrophilic BB OC (aerosol)
-         ELSE IF ( N == IDTBBOCPI ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBBOCPI
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BBOCPI'
-            HSTAR(NUMDEP)   = 0.0d0
-            F0(NUMDEP)      = 0.0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
 
          ! Hydrophobic BC (aerosol)
          ELSE IF ( N == IDTBCPO ) THEN
@@ -5509,17 +5498,6 @@ c$$$            FLAG(NUMDEP)    = 2
             AIROSOL(NUMDEP) = .TRUE.
             FLAG(NUMDEP)    = 0
 
-         ! Hydrophobic BB OC (aerosol)
-         ELSE IF ( N == IDTBBOCPO ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBBOCPO
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BBOCPO'
-            HSTAR(NUMDEP)   = 0.0d0
-            F0(NUMDEP)      = 0.0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
 
 !--------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
@@ -5959,45 +5937,11 @@ c$$$            FLAG(NUMDEP)    = 2
             FLAG(NUMDEP)    = 0
 
          ! BGSOA
-         ! Separate into component parts (skim, 6/13/14)
-         ELSE IF ( N == IDTBGSOA_ILNOX ) THEN
+         ELSE IF ( N == IDTBGSOA ) THEN
             NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBGSOA_ILNOX
+            NTRAIND(NUMDEP) = IDTBGSOA
             NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BGSOA_ILNOX'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
-
-         ELSE IF ( N == IDTBGSOA_IHNOX ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBGSOA_IHNOX
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BGSOA_IHNOX'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
-
-         ELSE IF ( N == IDTBGSOA_MLNOX ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBGSOA_MLNOX
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BGSOA_MLNOX'
-            HSTAR(NUMDEP)   = 0d0
-            F0(NUMDEP)      = 0d0
-            XMW(NUMDEP)     = 12d-3
-            AIROSOL(NUMDEP) = .TRUE.
-            FLAG(NUMDEP)    = 0
-
-         ELSE IF ( N == IDTBGSOA_MHNOX ) THEN
-            NUMDEP          = NUMDEP + 1
-            NTRAIND(NUMDEP) = IDTBGSOA_MHNOX
-            NDVZIND(NUMDEP) = NUMDEP
-            DEPNAME(NUMDEP) = 'BGSOA_MHNOX'
+            DEPNAME(NUMDEP) = 'BGSOA'
             HSTAR(NUMDEP)   = 0d0
             F0(NUMDEP)      = 0d0
             XMW(NUMDEP)     = 12d-3
