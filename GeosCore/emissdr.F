@@ -223,6 +223,11 @@
       REAL*8                 :: APINE  , BPINE , LIMON , SABIN 
       REAL*8                 :: MYRCN  , CAREN , OCIMN
 
+      ! Scaling monoterpenes in a consistent way
+      ! Double MTP emissions based on comparison to SEAC4RS
+      ! monoterpenes (jaf, 3/26/15)
+      REAL*8,  PARAMETER     :: MONOT_SCALING = 2d0
+
 !----------------------------------------------------------------------------
 ! This is in the std code (bmy, 10/30/13)
 !      ! SOAupdate: Sesquiterpenes (hotp 3/1/10)
@@ -574,35 +579,43 @@
                   ! Aplha Pinene emissions
                   EMIS_APIN = GET_MEGAN_EMISSIONS( I,         J, 
      &                                             State_Met, 'APIN' )
+     &                      * MONOT_SCALING
                   ! ------------------------------------------
                   ! Beta Pinene emissions
                   EMIS_BPIN = GET_MEGAN_EMISSIONS( I,         J, 
      &                                             State_Met, 'BPIN' )
+     &                      * MONOT_SCALING
                   ! ------------------------------------------
                   ! Limonene emissions 
                   EMIS_LIMO = GET_MEGAN_EMISSIONS( I,         J,
      &                                             State_Met, 'LIMO' )
+     &                      * MONOT_SCALING
                   ! ------------------------------------------
                   ! Sabinene emissions
                   EMIS_SABI = GET_MEGAN_EMISSIONS( I,         J, 
      &                                             State_Met, 'SABI' )         
+     &                      * MONOT_SCALING
                   ! ------------------------------------------
                   ! Mycrene emissions
                   EMIS_MYRC = GET_MEGAN_EMISSIONS( I,         J, 
      &                                             State_Met, 'MYRC' )
+     &                      * MONOT_SCALING
                   ! ------------------------------------------
                   ! 3-Carene emissions 
                   EMIS_CARE = GET_MEGAN_EMISSIONS( I,         J,
      &                                             State_Met, 'CARE' )
+     &                      * MONOT_SCALING
                   ! ------------------------------------------
                   ! Ocimene emissions
                   EMIS_OCIM = GET_MEGAN_EMISSIONS( I,         J, 
      &                                             State_Met, 'OCIM' )
+     &                      * MONOT_SCALING
                   ! ------------------------------------------
                   ! Other monoterpenes
                   ! (added 12/2012; dbm)
                   EMIS_OMON = GET_MEGAN_EMISSIONS( I,         J, 
      &                                             State_Met, 'OMON' )
+     &                      * MONOT_SCALING
                   ! ------------------------------------------
 
                   ! Total monoterpenes = sum of individual
@@ -739,17 +752,15 @@
                ! API = alpha-pinene, beta-pinene, sabinene, d3-carene
                ! LIM = limonene, myrcene, ocimene
                ! Based on RACM2 and Browne et al., 2014 (jaf, 3/16/15)
-               ! Double MTP emissions based on comparison to SEAC4RS
-               ! monoterpenes (jaf, 3/26/15)
                IF ( IDTAPI /= 0 ) THEN
                   EMISRR(I,J,IDEAPI) = EMISRR(I,J,IDEAPI) + 
      &                 ( (EMIS_APIN + EMIS_BPIN + EMIS_SABI + EMIS_CARE)
-     &                   * 2d0 / DTSRCE )
+     &                   / DTSRCE )
                ENDIF
                IF ( IDTLIM /= 0 ) THEN
                   EMISRR(I,J,IDELIM) = EMISRR(I,J,IDELIM) + 
      &                 ( (EMIS_LIMO + EMIS_MYRC + EMIS_OCIM)
-     &                   * 2d0 / DTSRCE )
+     &                   / DTSRCE )
                ENDIF
 
 
