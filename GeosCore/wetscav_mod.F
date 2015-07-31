@@ -1059,7 +1059,8 @@
             ! Compute liquid to gas ratio for H2O2, using
             ! the appropriate parameters for Henry's law
             ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
-            CALL COMPUTE_L2G( 8.3d4, -7.4d3, State_Met%T(I,J,L), 
+            ! Update Henry's Law to Table4 Nguen et al, 2015
+            CALL COMPUTE_L2G( 5.0d7, -7.4d3, State_Met%T(I,J,L), 
      &                        CLDLIQ(I,J,L), L2G )
 
             ! Fraction of H2O2 in liquid & ice phases
@@ -1477,7 +1478,8 @@
             ! the appropriate parameters for Henry's law
             ! from Betterton and Hoffman 1988): 
             ! Kstar298 = 4.1d4 M/atm;  H298_R = -4600 K
-            CALL COMPUTE_L2G( 4.1d4, -4.6d3, State_Met%T(I,J,L),
+            ! Update Henry's Law to Table4 Nguen et al, 2015
+            CALL COMPUTE_L2G( 2.0d7, -4.6d3, State_Met%T(I,J,L),
      &                        CLDLIQ(I,J,L), L2G )
 
             ! Fraction of MGLY in liquid phase 
@@ -1534,7 +1536,8 @@
             ! the appropriate parameters for Henry's law
             ! from O'Connor et al, 2014
             ! Kstar298 =1.4d2 M/atm;  H298_R = -7200 K
-             CALL COMPUTE_L2G( 1.4d2, -7.2d3, State_Met%T(I,J,L),
+            ! Update Henry's Law to Table4 Nguen et al, 2015
+             CALL COMPUTE_L2G( 1.4d6, -7.2d3, State_Met%T(I,J,L),
      &                        CLDLIQ(I,J,L), L2G )
 
             ! Fraction of HAC in liquid phase 
@@ -2754,7 +2757,8 @@
 
             !FP ISOP : BUG FIX FOR CONSISTENCY WITH DRY DEP MODULE
             !USE ITO NUMBER
-            CALL COMPUTE_L2G( 17D3, -9.2d3,  State_Met%T(I,J,L), 
+            ! Update Henry's Law to Table4 Nguen et al, 2015
+            CALL COMPUTE_L2G( 2.0D6, -9.2d3,  State_Met%T(I,J,L), 
      &                        CLDLIQ(I,J,L), L2G )
 
             C_TOT = 1d0 + L2G
@@ -2809,7 +2813,8 @@
 
             !FP ISOP : BUG FIX FOR CONSISTENCY WITH DRY DEP MODULE
             !USE ITO NUMBER
-            CALL COMPUTE_L2G( 17D3, -9.2d3,  State_Met%T(I,J,L), 
+            ! Update Henry's Law to Table4 Nguen et al, 2015
+            CALL COMPUTE_L2G( 2D6, -9.2d3,  State_Met%T(I,J,L), 
      &                        CLDLIQ(I,J,L), L2G )
 
             C_TOT = 1d0 + L2G
@@ -2864,7 +2869,8 @@
 
             !FP ISOP : BUG FIX FOR CONSISTENCY WITH DRY DEP MODULE
             !USE ITO NUMBER
-            CALL COMPUTE_L2G( 17D3, -9.2d3,  State_Met%T(I,J,L), 
+            ! Update Henry's Law to Table4 Nguen et al, 2015
+            CALL COMPUTE_L2G( 2D6, -9.2d3,  State_Met%T(I,J,L), 
      &                        CLDLIQ(I,J,L), L2G )
 
             C_TOT = 1d0 + L2G
@@ -2919,7 +2925,8 @@
 
             !FP ISOP : BUG FIX FOR CONSISTENCY WITH DRY DEP MODULE
             !USE ITO NUMBER
-            CALL COMPUTE_L2G( 17D3, -9.2d3,  State_Met%T(I,J,L),
+            ! Update Henry's Law to Table4 Nguen et al, 2015
+            CALL COMPUTE_L2G( 2D6, -9.2d3,  State_Met%T(I,J,L),
      &                        CLDLIQ(I,J,L), L2G )
 
             C_TOT = 1d0 + L2G
@@ -2973,7 +2980,8 @@
             ! (Eqs. 7, 8, and Table 1, Jacob et al, 2000)
 
             !NITROOXYACETONE IN SANDER TABLE
-            CALL COMPUTE_L2G( 1.0d3, 0.0d0,  State_Met%T(I,J,L), 
+            ! Update Henry's Law to Table4 Nguen et al, 2015
+            CALL COMPUTE_L2G( 5.0d5, 0.0d0,  State_Met%T(I,J,L), 
      &                        CLDLIQ(I,J,L), L2G )
 
 
@@ -3258,7 +3266,7 @@
          DO J = 1, JJPAR
          DO I = 1, IIPAR
 
-            CALL COMPUTE_L2G( 1.3d8, 0.0d0,  State_Met%T(I,J,L), !USE H2O2
+            CALL COMPUTE_L2G( 8.0d7, 0.0d0,  State_Met%T(I,J,L), !USE H2O2
      &                        CLDLIQ(I,J,L), L2G )
 
             C_TOT = 1d0 + L2G
@@ -3697,7 +3705,8 @@
          ! Compute liquid to gas ratio for H2O2, using
          ! the appropriate parameters for Henry's law
          ! (Eqs. 7, 8 and Table 1, Jacob et al, 2000)
-         CALL COMPUTE_L2G( 8.3d4, -7.4d3, TK, CLDLIQ(I,J,L), L2G )
+         ! Update Henry's Law to Table4 Nguen et al, 2015
+         CALL COMPUTE_L2G( 5.0d7, -7.4d3, TK, CLDLIQ(I,J,L), L2G )
 
          ! Fraction of H2O2 in liquid & ice phases
          ! (Eqs. 4, 5, 6, Jacob et al, 2000)
@@ -3934,7 +3943,8 @@
          ! the appropriate parameters for Henry's law
          ! from Betterton and Hoffman 1988): 
          ! Kstar298 = 4.1d4 M/atm;  H298_R = -4.6d3 K
-         CALL COMPUTE_L2G( 4.1d4, -4.6d3, TK, CLDLIQ(I,J,L), L2G )
+         ! Update Henry's Law to Table4 Nguen et al, 2015
+         CALL COMPUTE_L2G( 2.0d7, -4.6d3, TK, CLDLIQ(I,J,L), L2G )
             
          ! Fraction of GLYC in liquid phase 
          ! NOTE: CH2O does not exist in the ice phase!
@@ -3967,7 +3977,8 @@
       ELSE IF ( N == IDTHAC ) THEN 
 
          ! Compute liquid to gas ratio for HAC
-         CALL COMPUTE_L2G( 1.4d2, -7.2d3, TK, CLDLIQ(I,J,L), L2G )
+         ! Update Henry's Law to Table4 Nguen et al, 2015
+         CALL COMPUTE_L2G( 1.4d6, -7.2d3, TK, CLDLIQ(I,J,L), L2G )
             
          ! Fraction of GLYC in liquid phase 
          ! NOTE: CH2O does not exist in the ice phase!
@@ -4071,7 +4082,8 @@
 
          !Based on 2-pentyl nitrate
 
-         CALL COMPUTE_L2G( 17D3, -9.2d3, TK, CLDLIQ(I,J,L), L2G )
+         ! Update Henry's Law to Table4 Nguen et al, 2015
+         CALL COMPUTE_L2G( 2D6, -9.2d3, TK, CLDLIQ(I,J,L), L2G )
 
          C_TOT = 1d0 + L2G
          F_L   = L2G / C_TOT
@@ -4100,7 +4112,8 @@
       ELSE IF ( N == IDTMMN ) THEN
 
          !Ito 2007
-         CALL COMPUTE_L2G( 17d3, -9.2d3, TK, CLDLIQ(I,J,L), L2G )
+         ! Update Henry's Law to Table4 Nguen et al, 2015
+         CALL COMPUTE_L2G( 2d6, -9.2d3, TK, CLDLIQ(I,J,L), L2G )
 
 
          C_TOT = 1d0 + L2G
@@ -4130,7 +4143,8 @@
       ELSE IF ( N == IDTETHLN ) THEN
 
          !Ito 2007
-         CALL COMPUTE_L2G( 17d3, -9.2d3, TK, CLDLIQ(I,J,L), L2G )
+         !Nguyen 2015
+         CALL COMPUTE_L2G( 2d6, -9.2d3, TK, CLDLIQ(I,J,L), L2G )
 
 
          C_TOT = 1d0 + L2G
@@ -4160,7 +4174,8 @@
       ELSE IF ( N == IDTDHDN  ) THEN
 
          !Ito 2007
-         CALL COMPUTE_L2G( 17d3, -9.2d3, TK, CLDLIQ(I,J,L), L2G )
+         !Nguyen 2015
+         CALL COMPUTE_L2G( 2d6, -9.2d3, TK, CLDLIQ(I,J,L), L2G )
 
 
          C_TOT = 1d0 + L2G
@@ -4189,7 +4204,8 @@
       !------------------------------
       ELSE IF ( N == IDTPROPNN ) THEN
 
-         CALL COMPUTE_L2G( 1.0d3, 0.0d0, TK, CLDLIQ(I,J,L), L2G )
+         !Nguyen 2015
+         CALL COMPUTE_L2G( 5.0d5, 0.0d0, TK, CLDLIQ(I,J,L), L2G )
 
 
          C_TOT = 1d0 + L2G
@@ -4276,7 +4292,8 @@
       ELSE IF ( N == IDTIEPOX ) THEN
 
          !USE H2O2 
-         CALL COMPUTE_L2G( 1.3d8, 0.0d0, TK, CLDLIQ(I,J,L), L2G )
+         !Nguyen 2015
+         CALL COMPUTE_L2G( 8.0d7, 0.0d0, TK, CLDLIQ(I,J,L), L2G )
 
 
          C_TOT = 1d0 + L2G
@@ -5363,7 +5380,7 @@
       !------------------------------
       ELSE IF ( N == IDTH2O2 ) THEN
          KIN      = .FALSE.
-         CALL WASHFRAC_LIQ_GAS( 8.3d4, -7.4d3, PP,       DT,  F,
+         CALL WASHFRAC_LIQ_GAS( 5.0d7, -7.4d3, PP,       DT,  F,
      &                          DZ,     TK,    WASHFRAC, KIN  )
 
       !------------------------------
@@ -5433,8 +5450,9 @@
          ! the appropriate parameters for Henry's law
          ! from Betterton and Hoffman 1988): Kstar298 = 4.6d4 M/atm;  
          ! H298_R = -4.6d3 K
+         !Nguyen 2015
          KIN      = .FALSE.
-         CALL WASHFRAC_LIQ_GAS( 4.1d4, -4.6d3, PP,       DT,  F,
+         CALL WASHFRAC_LIQ_GAS( 2.0d7, -4.6d3, PP,       DT,  F,
      &                          DZ,     TK,    WASHFRAC, KIN  )
 
       !------------------------------
@@ -5444,8 +5462,9 @@
          ! Compute liquid to gas ratio for HAC, using
          ! the appropriate parameters for Henry's law
          ! from O'Conner et al, 2014
+         !Nguyen 2015
          KIN      = .FALSE.
-         CALL WASHFRAC_LIQ_GAS( 1.4d4, -7.2d3, PP,       DT,  F,
+         CALL WASHFRAC_LIQ_GAS( 1.4d6, -7.2d3, PP,       DT,  F,
      &                          DZ,     TK,    WASHFRAC, KIN  )
 
       !------------------------------
@@ -5469,7 +5488,7 @@
       !------------------------------
       ELSE IF ( N == IDTISOPN .or. N == IDTISN1 ) THEN
          KIN      = .FALSE.
-         CALL WASHFRAC_LIQ_GAS(17d3, -9.2d3 , PP,        DT,  F,
+         CALL WASHFRAC_LIQ_GAS(2d6, -9.2d3 , PP,        DT,  F,
      &                          DZ,     TK,    WASHFRAC, KIN  )
 
       !------------------------------
@@ -5477,7 +5496,7 @@
       !------------------------------
       ELSE IF ( N == IDTMMN ) THEN
          KIN      = .FALSE.
-         CALL WASHFRAC_LIQ_GAS( 17d3, -9.2d3, PP,        DT,  F,
+         CALL WASHFRAC_LIQ_GAS( 2d6, -9.2d3, PP,        DT,  F,
      &                          DZ,     TK,    WASHFRAC, KIN  )
 
       !------------------------------
@@ -5485,7 +5504,7 @@
       !------------------------------
       ELSE IF ( N == IDTETHLN ) THEN
          KIN      = .FALSE.
-         CALL WASHFRAC_LIQ_GAS( 17d3, -9.2d3, PP,        DT,  F,
+         CALL WASHFRAC_LIQ_GAS( 2d6, -9.2d3, PP,        DT,  F,
      &                          DZ,     TK,    WASHFRAC, KIN  )
 
       !------------------------------
@@ -5493,7 +5512,7 @@
       !------------------------------
       ELSE IF ( N == IDTDHDN  ) THEN
          KIN      = .FALSE.
-         CALL WASHFRAC_LIQ_GAS( 17d3, -9.2d3, PP,        DT,  F,
+         CALL WASHFRAC_LIQ_GAS( 2d6, -9.2d3, PP,        DT,  F,
      &                          DZ,     TK,    WASHFRAC, KIN  )
 
       !------------------------------
@@ -5501,7 +5520,7 @@
       !------------------------------
       ELSE IF ( N == IDTPROPNN ) THEN
          KIN      = .FALSE.
-         CALL WASHFRAC_LIQ_GAS( 1.0d3, 0.0d0, PP,        DT,  F,
+         CALL WASHFRAC_LIQ_GAS( 5.0d5, 0.0d0, PP,        DT,  F,
      &                          DZ,     TK,    WASHFRAC, KIN  )
 
       !------------------------------
@@ -5550,7 +5569,7 @@
       !------------------------------
       ELSE IF ( N == IDTIEPOX ) THEN
          KIN      = .FALSE.
-         CALL WASHFRAC_LIQ_GAS( 1.3d8, 0.0d0, PP,       DT,  F,
+         CALL WASHFRAC_LIQ_GAS( 8.0d7, 0.0d0, PP,       DT,  F,
      &                          DZ,     TK,    WASHFRAC, KIN  )
 
       !------------------------------
