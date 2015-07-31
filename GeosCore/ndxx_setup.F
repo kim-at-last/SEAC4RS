@@ -411,11 +411,11 @@
          IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD07_SOAGM' )
 
          IF ( IDTASOA > 0 ) THEN
-            ALLOCATE( AD07_ASOA( IIPAR, JJPAR, LD07 ), STAT=AS )
+            ALLOCATE( AD07_ASOA( IIPAR, JJPAR, LLPAR ), STAT=AS )
             IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD07_ASOA' )
          ENDIF
          IF ( IDTBBSOA > 0 ) THEN
-            ALLOCATE( AD07_BBSOA( IIPAR, JJPAR, LD07 ), STAT=AS )
+            ALLOCATE( AD07_BBSOA( IIPAR, JJPAR, LLPAR ), STAT=AS )
             IF ( AS /= 0 ) CALL ALLOC_ERR( 'AD07_BBSOA' )
          ENDIF
 
