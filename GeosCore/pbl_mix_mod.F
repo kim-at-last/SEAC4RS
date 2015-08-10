@@ -268,18 +268,14 @@
          ! Find PBL top and thickness [hPa]
          !----------------------------------------------
 
-         ! Only apply PBLH correction for August - September when we have 
-         ! DIAL data
          ! Only apply PBLH correction during the day (skim, 2/4/15)
          
-         PBL_SCALE = 1.0
-         IF ( GET_MONTH() .ge. 6 .and. GET_MONTH() .le. 9 ) THEN 
-            IF ( State_Met%GAMMAPAR(I,J) > 0d0  ) THEN
-               PBL_SCALE = 0.6
-            ELSE
-               PBL_SCALE = 1.0
-            ENDIF 
-         ENDIF
+         IF ( State_Met%GAMMAPAR(I,J) > 0d0  ) THEN
+            PBL_SCALE = 0.6
+         ELSE
+            PBL_SCALE = 1.0
+         ENDIF 
+         
          ! ----------------Fire Injection --
 
          ! BLTOP = pressure at PBL top [hPa]
