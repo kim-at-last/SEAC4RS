@@ -369,7 +369,7 @@
             ! KRT, test, cut soilnox in half over the midwest U.S.
             X = GET_XMID(I, J, 1)
             Y = GET_YMID(I, J, 1)
-            IF ( MONTH .eq. 6 .or. MONTH .eq. 7 .or. MONTH .eq. 8 ) THEN
+            IF (  MONTH .eq. 8 .or. MONTH .eq. 9 ) THEN
             ! Use the definition of midwest from Vinken et al, 2014
             ! Mid-USA (93.8°-106.3°W; 37°-49°N), just for JJA
                ! krt, lower to 28oN
@@ -377,6 +377,11 @@
      &              WRITE(*,*) 'Cutting USA Midwest Soil NOx by 1/2'
                IF ( (X >= -106.3) .AND. (X <=  -93.8)  .AND.
      &              (Y >=   28.0) .AND. (Y <=   49.0) ) THEN  
+                  GEMISNOX2(I,J) = GEMISNOX2(I,J) / 2.0
+               ENDIF
+               ! make sure we get Illinois
+               IF ( (X >= -91.3) .AND. (X <=  -87.8)  .AND.
+     &              (Y >=   37.5) .AND. (Y <=   49.0) ) THEN  
                   GEMISNOX2(I,J) = GEMISNOX2(I,J) / 2.0
                ENDIF
             ENDIF
