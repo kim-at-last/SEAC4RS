@@ -721,10 +721,10 @@
          ! NO SHIPS OR SURFACE FILES OR EGU OR EGUPK OR PTNONIPM OR OIL
          GEOS_NATIVE(402:1301,1101:1500,6,:) =  ARRAYOTH(:,:,6,:) 
          
-         ! ------ Scale GEOS-NATIVE without EGU by 50% krt, 5/20/15
+         ! ------ Scale GEOS-NATIVE without EGU by 60% krt, 5/20/15
          IF (TRIM(SId) .eq. 'NO' .or. TRIM(SId) .eq. 'NO2') THEN
-            GEOS_NATIVE = GEOS_NATIVE * 0.50
-            WRITE(*,*) 'REMOVING 50% OF NON EGU NOx EMISSIONS'
+            GEOS_NATIVE = GEOS_NATIVE * 0.400
+            WRITE(*,*) 'REMOVING 60% OF NON EGU NOx EMISSIONS'
          ENDIF
          ! Add in EGU
          GEOS_NATIVE(402:1301,1101:1500,1,:) = GEOS_NATIVE(402:1301,1101:1500,1,:) &
