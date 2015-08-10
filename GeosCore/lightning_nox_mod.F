@@ -125,7 +125,7 @@
       REAL*8,  PARAMETER   :: RFLASH_MIDLAT = 3.011d26   ! 500 mol/flash
       REAL*8,  PARAMETER   :: RFLASH_TROPIC = 1.566d26   ! 260 mol/flash
       REAL*8,  PARAMETER   :: EAST_WEST_DIV = -30d0
-      REAL*8,  PARAMETER   :: WEST_NS_DIV   =  32d0 !23d0
+      REAL*8,  PARAMETER   :: WEST_NS_DIV   =  35d0 !23d0
       REAL*8,  PARAMETER   :: EAST_NS_DIV   =  35d0
       REAL*8,  PARAMETER   :: T_NEG_BOT     = 273.0d0    !   0 C 
       REAL*8,  PARAMETER   :: T_NEG_CTR     = 258.0d0    ! -15 C
@@ -948,7 +948,7 @@
          ENDIF
 
       ! Northern Hemisphere Summer
-      CASE ( 6,7,8,9 )
+      CASE ( 6,7,9 )
 
          IF ( ABS(YMID) .le. 15 ) THEN
             IF ( IS_LAND( I, J, State_Met ) ) THEN
@@ -958,6 +958,22 @@
             ENDIF
          ELSE IF ( ( YMID .gt. 15. ) .and. ( YMID .le. 40. ) ) THEN
             MTYPE = 4           ! N. Subtropics
+         ELSE IF ( ( YMID .ge. -30. ) .and. ( YMID .lt. -15. ) ) THEN
+            MTYPE = 4           ! S. Subtropics
+         ELSE
+            MTYPE = 3           ! Midlatitude
+         ENDIF
+      ! Northern Hemisphere August
+      CASE ( 8 )
+
+         IF ( ABS(YMID) .le. 15 ) THEN
+            IF ( IS_LAND( I, J, State_Met ) ) THEN
+               MTYPE = 2        ! Tropical continental
+            ELSE
+               MTYPE = 1        ! Tropical marine
+            ENDIF
+         ELSE IF ( ( YMID .gt. 15. ) .and. ( YMID .le. 40. ) ) THEN
+            MTYPE = 2        ! Tropical continental
          ELSE IF ( ( YMID .ge. -30. ) .and. ( YMID .lt. -15. ) ) THEN
             MTYPE = 4           ! S. Subtropics
          ELSE
@@ -1554,12 +1570,16 @@
       !---------------------------------------
 
       ! Constrained with simulated "climatology" for
-      ! April 2012 - May 2014. Will need to be updated as more
-      ! met fields become available (ltm, 07/23/14).
+      ! April 2012 - October 2014. Will need to be updated as more
+      ! met fields become available (ltm, 2014-12-10).
+            
       IF ( ( GET_YEAR() .eq. 2012 .and. GET_MONTH() .ge. 4 ) .or.
      &     ( GET_YEAR() .eq. 2013 ) .or.
-     &     ( GET_YEAR() .eq. 2014 .and. GET_MONTH() .le. 5 ) ) THEN
-         BETA = ANN_AVG_FLASHRATE / 81.924504d0 / 2 ! divide by 2 -krt, 3/13/14
+     &     ( GET_YEAR() .eq. 2014 .and. GET_MONTH() .le. 10 ) ) THEN
+         BETA = (ANN_AVG_FLASHRATE /  82.373293d0 ) 
+      ENDIF
+      IF ( ( GET_YEAR() .eq. 2013 .and. GET_MONTH() .ge. 8 ) ) THEN
+         BETA = (ANN_AVG_FLASHRATE /  82.373293d0 ) /2.0d0 !divide by 2- krt, 3/17/1
       ENDIF
 
 #elif defined( GEOS_FP ) && defined( GRID2x25 )
@@ -1569,12 +1589,15 @@
       !---------------------------------------
 
       ! Constrained with simulated "climatology" for
-      ! April 2012 - May 2014. Will need to be updated as more
+      ! April 2012 - Oct 2014. Will need to be updated as more
       ! met fields become available (ltm, 07/23/14).
       IF ( ( GET_YEAR() .eq. 2012 .and. GET_MONTH() .ge. 4 ) .or.
      &     ( GET_YEAR() .eq. 2013 ) .or.    
-     &     ( GET_YEAR() .eq. 2014 .and. GET_MONTH() .le. 5 ) ) THEN
-         BETA = ANN_AVG_FLASHRATE / 258.88566d0/ 2 !divide by 2- krt, 3/17/14
+     &     ( GET_YEAR() .eq. 2014 .and. GET_MONTH() .le. 10 ) ) THEN
+         BETA = ANN_AVG_FLASHRATE / 260.40253d0
+      ENDIF
+      IF ( ( GET_YEAR() .eq. 2013 .and. GET_MONTH() .ge. 8 ) ) THEN
+         BETA = (ANN_AVG_FLASHRATE / 260.40253d0 ) /2.0d0 !divide by 2- krt, 3/17/1
       ENDIF
 
 #elif defined( GEOS_FP ) && defined( GRID025x0325 ) && defined( NESTED_CH )
@@ -1592,12 +1615,14 @@
       !---------------------------------------
       
       ! Constrained with simulated "climatology" for
-      ! April 2012 - May 2014. Will need to be updated as more
+      ! April 2012 - Oct 2014. Will need to be updated as more
       ! met fields become available (ltm, 07/23/14).
       IF     ( GET_YEAR() .eq. 2013 ) THEN	
-         BETA = ANN_AVG_FLASHRATE / 689.68452d0/ 2 !/2 krt, 9/15/14
+         BETA = ANN_AVG_FLASHRATE / 720.10258d0
       ENDIF
-
+      IF ( ( GET_YEAR() .eq. 2013 .and. GET_MONTH() .ge. 8 ) ) THEN
+         BETA = (ANN_AVG_FLASHRATE / 720.10258d0) /2.0d0 !divide by 2- krt, 3/17/1
+      ENDIF
 #elif defined( MERRA ) && defined( GRID2x25 )
 
       !---------------------------------------
