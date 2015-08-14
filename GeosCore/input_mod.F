@@ -4641,9 +4641,6 @@
 
       USE CMN_SIZE_MOD       ! Size parameters
       USE CMN_DIAG_MOD       ! NDxx flags
-      USE DIAG_MOD,           ONLY: TINDEX
-      USE DIAG_MOD,           ONLY: TCOUNT
-      USE DIAG_MOD,           ONLY: TMAX
       USE GIGC_ErrCode_Mod
       USE GIGC_Input_Opt_Mod, ONLY : OptInput
 !
