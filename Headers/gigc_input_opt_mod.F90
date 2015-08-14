@@ -1195,6 +1195,8 @@ CONTAINS
     !----------------------------------------
     ! ND63 MENU fields
     !----------------------------------------
+    ALLOCATE( Input_Opt%ND63_TRACERS( MAX_TRCS ), STAT=RC )
+
     Input_Opt%DO_ND63                = .FALSE.
     Input_Opt%ND63_FILE              = ''
     Input_Opt%ND63_TRACERS           = 0
