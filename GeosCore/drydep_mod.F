@@ -4554,7 +4554,7 @@
             NDVZIND(NUMDEP) = NUMDEP
             NTRAIND(NUMDEP) = IDTH2O2
             DEPNAME(NUMDEP) = 'H2O2'
-            HSTAR(NUMDEP)   = 1.0d+7 !1.0d+5 !
+            HSTAR(NUMDEP)   = 5.0d+7 !1.0d+5 !
             F0(NUMDEP)      = 1.0d0
             XMW(NUMDEP)     = 34d-3
             AIROSOL(NUMDEP) = .FALSE.
